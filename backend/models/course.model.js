@@ -156,11 +156,7 @@ const courseSchema = new mongoose.Schema({
     ref: 'Subject',
     required: true
   },
-  category: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'StageCategory',
-    required: true
-  },
+
   image: {
     public_id: {
       type: String

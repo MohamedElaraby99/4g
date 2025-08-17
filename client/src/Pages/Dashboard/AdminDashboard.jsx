@@ -698,7 +698,7 @@ export default function AdminDashboard() {
                     <div className="w-3 h-3 bg-purple-200 rounded-full animate-pulse"></div>
                   </div>
                   <h4 className="text-lg lg:text-xl font-bold mb-2">إدارة المراحل</h4>
-                  <p className="text-purple-100 text-sm lg:text-base opacity-90">إدارة المراحل الدراسية والفئات</p>
+                  <p className="text-purple-100 text-sm lg:text-base opacity-90">إدارة المراحل الدراسية</p>
                   <div className="mt-4 flex items-center justify-between">
                     <span className="text-xs text-purple-200">إدارة كاملة</span>
                     <FaArrowUp className="text-purple-200 transform rotate-45" />
@@ -730,19 +730,7 @@ export default function AdminDashboard() {
                   </div>
                 </div>
 
-                {/* فئات المراحل */}
-                <div className="bg-gradient-to-br from-pink-500 to-pink-600 rounded-xl p-4 lg:p-6 text-white hover:from-pink-600 hover:to-pink-700 transition-all duration-200 transform hover:scale-105 cursor-pointer shadow-lg hover:shadow-xl" onClick={() => navigate("/admin/stage-categories")}>
-                  <div className="flex items-center justify-between mb-3">
-                    <FaList className="text-2xl lg:text-3xl text-pink-200" />
-                    <div className="w-3 h-3 bg-pink-200 rounded-full animate-pulse"></div>
-                  </div>
-                  <h4 className="text-lg lg:text-xl font-bold mb-2">فئات المراحل</h4>
-                  <p className="text-pink-100 text-sm lg:text-base opacity-90">إدارة فئات المراحل الدراسية</p>
-                  <div className="mt-4 flex items-center justify-between">
-                    <span className="text-xs text-pink-200">إدارة كاملة</span>
-                    <FaArrowUp className="text-pink-200 transform rotate-45" />
-                  </div>
-                </div>
+
 
                 {/* الجلسات المباشرة */}
                 <div className="bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-xl p-4 lg:p-6 text-white hover:from-yellow-600 hover:to-yellow-700 transition-all duration-200 transform hover:scale-105 cursor-pointer shadow-lg hover:shadow-xl" onClick={() => navigate("/admin/live-meetings")}>

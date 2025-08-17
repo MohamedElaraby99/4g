@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { getFeaturedInstructors } from '../Redux/Slices/InstructorSlice';
-import { FaGraduationCap, FaStar, FaUsers, FaBook, FaClock, FaLinkedin, FaTwitter, FaGlobe, FaTimes, FaAward, FaArrowRight } from 'react-icons/fa';
+import { FaGraduationCap, FaStar, FaUsers, FaBook, FaClock, FaLinkedin, FaTwitter, FaFacebook, FaWhatsapp, FaTimes, FaAward, FaArrowRight } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import { generateImageUrl } from "../utils/fileUtils";
 import { placeholderImages } from "../utils/placeholderImages";
@@ -223,43 +223,64 @@ const InstructorSection = () => {
               )}
 
               {/* Social Links */}
-              {(selectedInstructor.socialLinks?.linkedin || selectedInstructor.socialLinks?.twitter || selectedInstructor.socialLinks?.website) && (
-                <div className="mb-8">
-                  <h4 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">روابط التواصل</h4>
-                  <div className="flex items-center justify-center gap-4">
-                    {selectedInstructor.socialLinks?.linkedin && (
-                      <a
-                        href={selectedInstructor.socialLinks.linkedin}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="w-12 h-12 bg-blue-600 hover:bg-blue-700 text-white rounded-full flex items-center justify-center transition-colors"
-                      >
-                        <FaLinkedin className="text-sm" />
-                      </a>
-                    )}
-                    {selectedInstructor.socialLinks?.twitter && (
-                      <a
-                        href={selectedInstructor.socialLinks.twitter}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="w-12 h-12 bg-blue-400 hover:bg-blue-500 text-white rounded-full flex items-center justify-center transition-colors"
-                      >
-                        <FaTwitter className="text-sm" />
-                      </a>
-                    )}
-                    {selectedInstructor.socialLinks?.website && (
-                      <a
-                        href={selectedInstructor.socialLinks.website}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="w-12 h-12 bg-gray-600 hover:bg-gray-700 text-white rounded-full flex items-center justify-center transition-colors"
-                      >
-                        <FaGlobe className="text-sm" />
-                      </a>
-                    )}
+              {(() => {
+                                 const hasSocialLinks = (
+                   (selectedInstructor.socialLinks?.linkedin && selectedInstructor.socialLinks.linkedin.trim() !== '') ||
+                   (selectedInstructor.socialLinks?.twitter && selectedInstructor.socialLinks.twitter.trim() !== '') ||
+                   (selectedInstructor.socialLinks?.facebook && selectedInstructor.socialLinks.facebook.trim() !== '') ||
+                   (selectedInstructor.socialLinks?.whatsapp && selectedInstructor.socialLinks.whatsapp.trim() !== '')
+                 );
+                
+                if (!hasSocialLinks) return null;
+                
+                return (
+                  <div className="mb-8">
+                    <h4 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">روابط التواصل</h4>
+                    <div className="flex items-center justify-center gap-4">
+                      {selectedInstructor.socialLinks?.linkedin && selectedInstructor.socialLinks.linkedin.trim() !== '' && (
+                        <a
+                          href={selectedInstructor.socialLinks.linkedin}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="w-12 h-12 bg-blue-600 hover:bg-blue-700 text-white rounded-full flex items-center justify-center transition-colors"
+                        >
+                          <FaLinkedin className="text-sm" />
+                        </a>
+                      )}
+                      {selectedInstructor.socialLinks?.twitter && selectedInstructor.socialLinks.twitter.trim() !== '' && (
+                        <a
+                          href={selectedInstructor.socialLinks.twitter}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="w-12 h-12 bg-blue-400 hover:bg-blue-500 text-white rounded-full flex items-center justify-center transition-colors"
+                        >
+                          <FaTwitter className="text-sm" />
+                        </a>
+                      )}
+                                             {selectedInstructor.socialLinks?.facebook && selectedInstructor.socialLinks.facebook.trim() !== '' && (
+                         <a
+                           href={selectedInstructor.socialLinks.facebook}
+                           target="_blank"
+                           rel="noopener noreferrer"
+                           className="w-12 h-12 bg-blue-600 hover:bg-blue-700 text-white rounded-full flex items-center justify-center transition-colors"
+                         >
+                           <FaFacebook className="text-sm" />
+                         </a>
+                       )}
+                      {selectedInstructor.socialLinks?.whatsapp && selectedInstructor.socialLinks.whatsapp.trim() !== '' && (
+                        <a
+                          href={`https://wa.me/${selectedInstructor.socialLinks.whatsapp.replace(/[^0-9]/g, '')}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="w-12 h-12 bg-green-600 hover:bg-green-700 text-white rounded-full flex items-center justify-center transition-colors"
+                        >
+                          <FaWhatsapp className="text-sm" />
+                        </a>
+                      )}
+                    </div>
                   </div>
-                </div>
-              )}
+                );
+              })()}
 
               {/* Featured Badge */}
               {selectedInstructor.featured && (

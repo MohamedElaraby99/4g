@@ -18,7 +18,7 @@ import {
   FaGraduationCap,
   FaLinkedin,
   FaTwitter,
-  FaGlobe,
+  FaFacebook,
   FaSearch,
   FaFilter,
   FaTimes,
@@ -51,7 +51,8 @@ const InstructorDashboard = () => {
     socialLinks: {
       linkedin: '',
       twitter: '',
-      website: ''
+      facebook: '',
+      whatsapp: ''
     },
     featured: false,
     photo: null
@@ -115,7 +116,8 @@ const InstructorDashboard = () => {
       socialLinks: instructor.socialLinks || {
         linkedin: '',
         twitter: '',
-        website: ''
+        facebook: '',
+        whatsapp: ''
       },
       featured: instructor.featured
     });
@@ -146,7 +148,8 @@ const InstructorDashboard = () => {
       socialLinks: {
         linkedin: '',
         twitter: '',
-        website: ''
+        facebook: '',
+        whatsapp: ''
       },
       featured: false,
       photo: null
@@ -331,16 +334,16 @@ const InstructorDashboard = () => {
                         <FaTwitter />
                       </a>
                     )}
-                    {instructor.socialLinks?.website && (
-                      <a
-                        href={instructor.socialLinks.website}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-gray-600 hover:text-gray-700 transition-colors"
-                      >
-                        <FaGlobe />
-                      </a>
-                    )}
+                                         {instructor.socialLinks?.facebook && (
+                       <a
+                         href={instructor.socialLinks.facebook}
+                         target="_blank"
+                         rel="noopener noreferrer"
+                         className="text-blue-600 hover:text-blue-700 transition-colors"
+                       >
+                         <FaFacebook />
+                       </a>
+                     )}
                   </div>
                 )}
 
@@ -545,7 +548,7 @@ const InstructorDashboard = () => {
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 text-right">
                     روابط التواصل الاجتماعي
                   </label>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <input
                       type="url"
                       placeholder="LinkedIn"
@@ -566,13 +569,23 @@ const InstructorDashboard = () => {
                       })}
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-right"
                     />
+                                         <input
+                       type="url"
+                       placeholder="Facebook"
+                       value={formData.socialLinks.facebook}
+                       onChange={(e) => setFormData({
+                         ...formData,
+                         socialLinks: { ...formData.socialLinks, facebook: e.target.value }
+                       })}
+                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-right"
+                     />
                     <input
-                      type="url"
-                      placeholder="Website"
-                      value={formData.socialLinks.website}
+                      type="text"
+                      placeholder="WhatsApp (e.g., +201234567890)"
+                      value={formData.socialLinks.whatsapp}
                       onChange={(e) => setFormData({
                         ...formData,
-                        socialLinks: { ...formData.socialLinks, website: e.target.value }
+                        socialLinks: { ...formData.socialLinks, whatsapp: e.target.value }
                       })}
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-right"
                     />

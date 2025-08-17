@@ -9,7 +9,8 @@ import {
   FaGraduationCap, 
   FaLinkedin, 
   FaTwitter, 
-  FaGlobe,
+  FaFacebook,
+  FaWhatsapp,
   FaArrowLeft,
   FaEnvelope,
   FaCalendarAlt,
@@ -237,47 +238,70 @@ export default function InstructorDetail() {
                 )}
 
                 {/* Social Links */}
-                {(instructor.socialLinks?.linkedin || instructor.socialLinks?.twitter || instructor.socialLinks?.website) && (
-                  <div className="space-y-3">
-                    <div className="text-sm text-gray-500 dark:text-gray-400">روابط التواصل الاجتماعي</div>
-                    
-                    {instructor.socialLinks?.linkedin && (
-                      <a
-                        href={instructor.socialLinks.linkedin}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-2 text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
-                      >
-                        <FaLinkedin />
-                        LinkedIn
-                      </a>
-                    )}
-                    
-                    {instructor.socialLinks?.twitter && (
-                      <a
-                        href={instructor.socialLinks.twitter}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-2 text-blue-400 hover:text-blue-500 dark:text-blue-300 dark:hover:text-blue-200 transition-colors"
-                      >
-                        <FaTwitter />
-                        Twitter
-                      </a>
-                    )}
-                    
-                    {instructor.socialLinks?.website && (
-                      <a
-                        href={instructor.socialLinks.website}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-2 text-gray-600 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 transition-colors"
-                      >
-                        <FaGlobe />
-                        الموقع الشخصي
-                      </a>
-                    )}
-                  </div>
-                )}
+                {(() => {
+                                     const hasSocialLinks = (
+                     (instructor.socialLinks?.linkedin && instructor.socialLinks.linkedin.trim() !== '') ||
+                     (instructor.socialLinks?.twitter && instructor.socialLinks.twitter.trim() !== '') ||
+                     (instructor.socialLinks?.facebook && instructor.socialLinks.facebook.trim() !== '') ||
+                     (instructor.socialLinks?.whatsapp && instructor.socialLinks.whatsapp.trim() !== '')
+                   );
+                  
+                  if (!hasSocialLinks) return null;
+                  
+                  return (
+                    <div className="space-y-3">
+                      <div className="text-sm text-gray-500 dark:text-gray-400">روابط التواصل الاجتماعي</div>
+                      
+                      {instructor.socialLinks?.linkedin && instructor.socialLinks.linkedin.trim() !== '' && (
+                        <a
+                          href={instructor.socialLinks.linkedin}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2 text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
+                        >
+                          <FaLinkedin />
+                          LinkedIn
+                        </a>
+                      )}
+                      
+                      {instructor.socialLinks?.twitter && instructor.socialLinks.twitter.trim() !== '' && (
+                        <a
+                          href={instructor.socialLinks.twitter}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2 text-blue-400 hover:text-blue-500 dark:text-blue-300 dark:hover:text-blue-200 transition-colors"
+                        >
+                          <FaTwitter />
+                          Twitter
+                        </a>
+                      )}
+                      
+                                             {instructor.socialLinks?.facebook && instructor.socialLinks.facebook.trim() !== '' && (
+                         <a
+                           href={instructor.socialLinks.facebook}
+                           target="_blank"
+                           rel="noopener noreferrer"
+                           className="flex items-center gap-2 text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
+                         >
+                           <FaFacebook />
+                           Facebook
+                         </a>
+                       )}
+                      
+                      {instructor.socialLinks?.whatsapp && instructor.socialLinks.whatsapp.trim() !== '' && (
+                        <a
+                          href={`https://wa.me/${instructor.socialLinks.whatsapp.replace(/[^0-9]/g, '')}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2 text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300 transition-colors"
+                        >
+                          <FaWhatsapp />
+                          WhatsApp
+                        </a>
+                      )}
+                    </div>
+                  );
+                })()}
               </div>
 
               {/* Status */}

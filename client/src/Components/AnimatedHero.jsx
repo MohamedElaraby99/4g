@@ -125,16 +125,7 @@ const AnimatedHero = ({ onGetStarted }) => {
         {/* Creative Content Section */}
         <div className="max-w-5xl mx-auto">
           <div className={`transition-all duration-1000 delay-300 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-            
-            {/* Enhanced Badge with Creative Design */}
-            <div className="text-center mb-8">
-              <div className="inline-flex items-center gap-3 px-6 py-3 md:px-8 md:py-4 bg-gradient-to-r from-blue-100 via-indigo-100 to-purple-100 dark:from-blue-900/30 dark:via-indigo-900/30 dark:to-purple-900/30 text-blue-700 dark:text-blue-300 rounded-full text-base md:text-lg font-semibold shadow-lg border border-blue-200 dark:border-blue-700 transform hover:scale-105 transition-all duration-300">
-                <FaRocket className="w-5 h-5 md:w-6 md:h-6 animate-bounce" />
-                <span>منصة التعليم الرائدة</span>
-                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-              </div>
-            </div>
-            
+         
             {/* Enhanced Description with Creative Elements */}
             <div className="text-center mb-10">
               <div className="relative">

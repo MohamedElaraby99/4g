@@ -7,7 +7,7 @@ export default defineConfig({
   define: {
     'import.meta.env.VITE_REACT_APP_API_URL': JSON.stringify(
       process.env.NODE_ENV === 'production' 
-        ? 'https://lms.the4g.online/api/v1'
+        ? 'https://api.the4g.online/api/v1'
         : (process.env.VITE_REACT_APP_API_URL || 'http://localhost:4001/api/v1')
     )
   }

@@ -53,7 +53,7 @@ const allowedOrigins = new Set([
   'http://127.0.0.1:5175',
   'https://the4g.online',
   'https://www.the4g.online',
-  'https://lms.the4g.online'
+  'https://api.the4g.online'
 ]);
 
 // Add any additional origins from environment variables

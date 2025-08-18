@@ -56,7 +56,7 @@ const generateRandomPassword = (length = 12) => {
 };
 
 const createAdminAccount = async () => {
-    console.log("🚀 LMS Admin Account Creator");
+    console.log("🚀 api Admin Account Creator");
     console.log("=============================\n");
     
     // Prefer CLI overrides first
@@ -134,7 +134,7 @@ const createQuickAdmin = async ({ clientUrl }) => {
     console.log("==================\n");
     
     const username = findArg('username') || 'admin';
-    const email = findArg('email') || 'admin@lms.com';
+    const email = findArg('email') || 'admin@api.com';
     const passwordArg = findArg('password');
 
     const adminData = {

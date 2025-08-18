@@ -16,7 +16,7 @@ const getBaseUrl = () => {
       window.location.hostname === 'localhost' || 
       window.location.hostname === '127.0.0.1' ||
       window.location.port === '5173' ||
-      window.location.port === '5175') {
+      window.location.port === '5190') {
     const devUrl = 'http://localhost:4015/api/v1';
     console.log('✅ Using development API URL:', devUrl);
     return devUrl;

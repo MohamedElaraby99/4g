@@ -49,8 +49,8 @@ const allowedOrigins = new Set([
   process.env.FRONTEND_URL,
   'http://localhost:5173',
   'http://127.0.0.1:5173',
-  'http://localhost:5175',
-  'http://127.0.0.1:5175',
+  'http://localhost:5190',
+  'http://127.0.0.1:5190',
   'https://the4g.online',
   'https://www.the4g.online',
   'https://api.the4g.online'
@@ -65,7 +65,7 @@ if (process.env.ADDITIONAL_CORS_ORIGINS) {
 // Extend allowed origins with IPv6 localhost variants
 const moreLocalOrigins = [
   'http://[::1]:5173',
-  'http://[::1]:5175',
+  'http://[::1]:5190',
   'http://[::1]:3000'
 ];
 moreLocalOrigins.forEach(o => allowedOrigins.add(o));

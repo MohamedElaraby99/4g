@@ -22,7 +22,18 @@ const cookieOptions = {
 // Register  
 const register = async (req, res, next) => {
     try {
-        const { fullName, username, email, password, phoneNumber, fatherPhoneNumber, governorate, stage, age, adminCode } = req.body;
+        // Handle FormData requests where data comes as JSON string
+        let requestBody = req.body;
+        if (req.body.data && typeof req.body.data === 'string') {
+            try {
+                requestBody = JSON.parse(req.body.data);
+            } catch (e) {
+                console.log('Failed to parse FormData JSON:', e.message);
+                return next(new AppError("Invalid request format", 400));
+            }
+        }
+
+        const { fullName, username, email, password, phoneNumber, fatherPhoneNumber, governorate, stage, age, adminCode, deviceInfo } = requestBody;
 
         // Determine user role based on admin code
         let userRole = 'USER';
@@ -127,15 +138,22 @@ const register = async (req, res, next) => {
 
         // Register device automatically after successful registration
         try {
-            const { deviceInfo } = req.body;
-            
             if (deviceInfo) {
-                let parsedDeviceInfo = {};
-                try {
-                    parsedDeviceInfo = JSON.parse(deviceInfo);
-                } catch (e) {
-                    console.log('Failed to parse deviceInfo JSON, using as is:', e.message);
-                    parsedDeviceInfo = deviceInfo;
+                let parsedDeviceInfo = deviceInfo;
+                
+                // If deviceInfo is a string, try to parse it as JSON
+                if (typeof deviceInfo === 'string') {
+                    try {
+                        parsedDeviceInfo = JSON.parse(deviceInfo);
+                    } catch (e) {
+                        console.log('Failed to parse deviceInfo JSON:', e.message);
+                        return next(new AppError("Invalid device information format", 400));
+                    }
+                }
+                
+                // Validate required device info fields
+                if (!parsedDeviceInfo.platform || !parsedDeviceInfo.screenResolution || !parsedDeviceInfo.timezone) {
+                    return next(new AppError("Invalid device information format. Please refresh the page and try again.", 400));
                 }
                 
                 const deviceFingerprint = generateDeviceFingerprint(req, parsedDeviceInfo);

@@ -166,14 +166,6 @@ export default function Signup() {
 
     }
 
-    const formData = new FormData();
-    formData.append("fullName", signupData.fullName);
-    formData.append("username", signupData.username);
-    formData.append("email", signupData.email);
-    formData.append("password", signupData.password);
-    formData.append("adminCode", signupData.adminCode);
-    formData.append("captchaSessionId", captchaSessionId);
-    
     // Generate device information for fingerprinting
     const deviceInfo = {
       platform: getDeviceType(),
@@ -188,45 +180,84 @@ export default function Signup() {
         touchSupport: 'ontouchstart' in window,
       }
     };
+
+    // Create request data with device info as JSON object
+    const requestData = {
+      fullName: signupData.fullName,
+      username: signupData.username,
+      email: signupData.email,
+      password: signupData.password,
+      adminCode: signupData.adminCode,
+      captchaSessionId: captchaSessionId,
+      deviceInfo: deviceInfo
+    };
     
-    // Append device info as JSON string
-    formData.append("deviceInfo", JSON.stringify(deviceInfo));
-    
-    // Only append additional fields for regular users
+    // Only add additional fields for regular users
     if (!isAdminRegistration) {
-      formData.append("phoneNumber", signupData.phoneNumber);
+      requestData.phoneNumber = signupData.phoneNumber;
       if (signupData.fatherPhoneNumber) {
-        formData.append("fatherPhoneNumber", signupData.fatherPhoneNumber);
+        requestData.fatherPhoneNumber = signupData.fatherPhoneNumber;
       }
-      formData.append("governorate", signupData.governorate);
-      formData.append("stage", signupData.stage);
-      formData.append("age", signupData.age);
+      requestData.governorate = signupData.governorate;
+      requestData.stage = signupData.stage;
+      requestData.age = signupData.age;
     }
-    
-    formData.append("avatar", signupData.avatar);
 
-    // dispatch create account action
-    const response = await dispatch(createAccount(formData));
-    if (response?.payload?.success) {
-      setSignupData({
-        fullName: "",
-        username: "",
-        email: "",
-        password: "",
-        phoneNumber: "",
-        fatherPhoneNumber: "",
-        governorate: "",
-        stage: "",
-        age: "",
-        avatar: "",
-        adminCode: "",
-      });
+    // Handle avatar file separately if present
+    if (signupData.avatar) {
+      const formData = new FormData();
+      formData.append("avatar", signupData.avatar);
+      
+      // Add all other data as JSON string
+      formData.append("data", JSON.stringify(requestData));
+      
+      // dispatch create account action with FormData
+      const response = await dispatch(createAccount(formData));
+      if (response?.payload?.success) {
+        setSignupData({
+          fullName: "",
+          username: "",
+          email: "",
+          password: "",
+          phoneNumber: "",
+          fatherPhoneNumber: "",
+          governorate: "",
+          stage: "",
+          age: "",
+          avatar: "",
+          adminCode: "",
+        });
 
-      setPreviewImage("");
-      setIsCaptchaVerified(false);
-      setCaptchaSessionId("");
+        setPreviewImage("");
+        setIsCaptchaVerified(false);
+        setCaptchaSessionId("");
 
-      navigate("/");
+        navigate("/");
+      }
+    } else {
+      // No avatar file, send as JSON
+      const response = await dispatch(createAccount(requestData));
+      if (response?.payload?.success) {
+        setSignupData({
+          fullName: "",
+          username: "",
+          email: "",
+          password: "",
+          phoneNumber: "",
+          fatherPhoneNumber: "",
+          governorate: "",
+          stage: "",
+          age: "",
+          avatar: "",
+          adminCode: "",
+        });
+
+        setPreviewImage("");
+        setIsCaptchaVerified(false);
+        setCaptchaSessionId("");
+
+        navigate("/");
+      }
     }
   }
 

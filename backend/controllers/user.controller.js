@@ -182,6 +182,11 @@ const register = async (req, res, next) => {
 
         const token = await user.generateJWTToken();
 
+        // Populate stage for regular users
+        if (user.role !== 'ADMIN' && user.stage) {
+            await user.populate('stage', 'name');
+        }
+
         res.cookie("token", token, cookieOptions);
 
         res.status(201).json({
@@ -281,6 +286,11 @@ const login = async (req, res, next) => {
 
         user.password = undefined;
 
+        // Populate stage for regular users
+        if (user.role !== 'ADMIN' && user.stage) {
+            await user.populate('stage', 'name');
+        }
+
         res.cookie('token', token, cookieOptions)
 
         res.status(200).json({
@@ -315,10 +325,14 @@ const logout = async (req, res, next) => {
 
 
 // getProfile
-const getProfile = async (req, res) => {
+const getProfile = async (req, res, next) => {
     try {
         const { id } = req.user;
-        const user = await userModel.findById(id).populate('stage');
+        const user = await userModel.findById(id).populate('stage', 'name');
+
+        if (!user) {
+            return next(new AppError('User not found', 404));
+        }
 
         console.log('User profile data being sent:', {
             id: user._id,
@@ -327,7 +341,6 @@ const getProfile = async (req, res) => {
             phoneNumber: user.phoneNumber,
             fatherPhoneNumber: user.fatherPhoneNumber,
             governorate: user.governorate,
-            grade: user.grade,
             stage: user.stage,
             age: user.age,
             role: user.role

@@ -1,7 +1,7 @@
 // Test script for CAPTCHA functionality
 import axios from 'axios';
 
-const BASE_URL = 'http://localhost:8800/api/v1';
+const BASE_URL = 'http://localhost:4015/api/v1';
 
 async function testCaptcha() {
   try {

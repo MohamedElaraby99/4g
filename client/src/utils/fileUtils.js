@@ -8,7 +8,7 @@
 const getBaseApiUrl = () => {
   // For development, always use localhost
   if (import.meta.env.DEV || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-    return 'http://localhost:8800/api/v1';
+    return 'http://localhost:4015/api/v1';
   }
   // Production fallback
   return 'https://api.the4g.online/api/v1';

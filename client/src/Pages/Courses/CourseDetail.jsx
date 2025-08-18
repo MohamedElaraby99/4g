@@ -43,6 +43,7 @@ export default function CourseDetail() {
   const { currentCourse, loading } = useSelector((state) => state.course);
   const { walletBalance, purchaseStatus, loading: paymentLoading } = useSelector((state) => state.payment);
   const { data: user, isLoggedIn } = useSelector((state) => state.auth);
+  const courseAccessState = useSelector((state) => state.courseAccess.byCourseId[id]);
 
   const [expandedUnits, setExpandedUnits] = useState(new Set());
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
@@ -173,8 +174,7 @@ export default function CourseDetail() {
       return true;
     }
     // If user has active course access via code, allow viewing
-    const accessState = useSelector((state) => state.courseAccess.byCourseId[id]);
-    if (accessState?.hasAccess) {
+    if (courseAccessState?.hasAccess) {
       return true;
     }
     const key = `${currentCourse._id}-${purchaseType}-${itemId}`;

@@ -2,15 +2,35 @@ import axios from 'axios';
 
 // Determine base URL based on environment
 const getBaseUrl = () => {
+  // Debug logging
+  console.log('🔧 API URL Configuration:', {
+    isDev: import.meta.env.DEV,
+    hostname: window.location.hostname,
+    port: window.location.port,
+    href: window.location.href,
+    NODE_ENV: import.meta.env.MODE
+  });
+
   // For development, always use localhost
-  if (import.meta.env.DEV || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-    return 'http://localhost:4015/api/v1';
+  if (import.meta.env.DEV || 
+      window.location.hostname === 'localhost' || 
+      window.location.hostname === '127.0.0.1' ||
+      window.location.port === '5173' ||
+      window.location.port === '5175') {
+    const devUrl = 'http://localhost:4015/api/v1';
+    console.log('✅ Using development API URL:', devUrl);
+    return devUrl;
   }
+  
   // Production fallback
-  return 'https://api.the4g.online/api/v1';
+  const prodUrl = 'https://api.the4g.online/api/v1';
+  console.log('🌐 Using production API URL:', prodUrl);
+  return prodUrl;
 };
 
 const BASE_URL = getBaseUrl();
+
+console.log('🚀 Axios Instance Created with BASE_URL:', BASE_URL);
 
 // Create axios instance with proper CORS configuration
 export const axiosInstance = axios.create({

@@ -517,7 +517,7 @@ const CourseStructureModal = ({ courseId, onClose, isOpen }) => {
                   onClick={() => showAddDirectLesson ? handleAddLesson() : handleAddLesson(showAddLesson.unitId)}
                   className="flex-1 bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700"
                 >
-                  Add Lesson
+                  اضافة الدرس
                 </button>
                 <button
                   onClick={() => {
@@ -526,7 +526,7 @@ const CourseStructureModal = ({ courseId, onClose, isOpen }) => {
                   }}
                   className="flex-1 bg-gray-300 text-gray-700 py-2 rounded-md hover:bg-gray-400"
                 >
-                  Cancel
+                  الغاء
                 </button>
               </div>
             </div>

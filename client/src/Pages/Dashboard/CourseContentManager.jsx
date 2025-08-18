@@ -1125,6 +1125,35 @@ const CourseContentManager = () => {
               {selectedCourse.units?.length === 0 && selectedCourse.directLessons?.length === 0 && (
                 <div className="text-center text-gray-400 py-10 text-sm md:text-base">لا توجد وحدات أو مقدمة في هذه الدرس</div>
               )}
+
+               {/* درس */}
+               {selectedCourse.directLessons?.length > 0 && (
+                <div className="bg-purple-50 dark:bg-purple-900/20 rounded-xl shadow p-3 md:p-4">
+                  <div className="font-semibold text-purple-700 dark:text-purple-300 mb-2 flex items-center gap-2">
+                    <FaBookOpen className="text-purple-500" />
+                    مقدمة
+                  </div>
+                  {selectedCourse.directLessons.map(lesson => (
+                    <div key={lesson._id} className="flex items-center justify-between bg-white dark:bg-gray-600 rounded p-2 mb-2">
+                      <div>
+                        <span className="font-medium text-gray-900 dark:text-white text-sm md:text-base">{lesson.title}</span>
+                        <span className="ml-2 text-xs text-gray-500 dark:text-gray-400">{lesson.price ? `سعر الدرس: ${lesson.price}` : 'بدون سعر'}</span>
+                      </div>
+                      <button
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-md text-xs flex items-center gap-1 transition-colors"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          console.log('Opening direct lesson content modal for:', lesson.title);
+                          setSelectedLesson({ ...lesson, courseId: selectedCourse._id, unitId: null });
+                        }}
+                      >
+                        <FaEdit className="text-sm" />
+                        إدارة محتوى الدرس
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
               {/* Units Accordion */}
               {selectedCourse.units?.map(unit => (
                 <div key={unit._id} className="bg-white dark:bg-gray-800 rounded-xl shadow p-3 md:p-4">
@@ -1168,34 +1197,7 @@ const CourseContentManager = () => {
                   )}
                 </div>
               ))}
-              {/* درس */}
-              {selectedCourse.directLessons?.length > 0 && (
-                <div className="bg-purple-50 dark:bg-purple-900/20 rounded-xl shadow p-3 md:p-4">
-                  <div className="font-semibold text-purple-700 dark:text-purple-300 mb-2 flex items-center gap-2">
-                    <FaBookOpen className="text-purple-500" />
-                    مقدمة
-                  </div>
-                  {selectedCourse.directLessons.map(lesson => (
-                    <div key={lesson._id} className="flex items-center justify-between bg-white dark:bg-gray-600 rounded p-2 mb-2">
-                      <div>
-                        <span className="font-medium text-gray-900 dark:text-white text-sm md:text-base">{lesson.title}</span>
-                        <span className="ml-2 text-xs text-gray-500 dark:text-gray-400">{lesson.price ? `سعر الدرس: ${lesson.price}` : 'بدون سعر'}</span>
-                      </div>
-                      <button
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-md text-xs flex items-center gap-1 transition-colors"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          console.log('Opening direct lesson content modal for:', lesson.title);
-                          setSelectedLesson({ ...lesson, courseId: selectedCourse._id, unitId: null });
-                        }}
-                      >
-                        <FaEdit className="text-sm" />
-                        إدارة محتوى الدرس
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
+             
             </div>
           )}
           {/* Modern Modal for lesson content */}

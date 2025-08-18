@@ -21,6 +21,7 @@ import videoProgressRoutes from './routes/videoProgress.routes.js';
 import deviceManagementRoutes from './routes/deviceManagement.routes.js';
 import liveMeetingRoutes from './routes/liveMeeting.routes.js';
 import captchaRoutes from './routes/captcha.routes.js';
+import courseAccessRoutes from './routes/courseAccess.routes.js';
 
 
 
@@ -291,6 +292,7 @@ app.use('/api/v1/video-progress', videoProgressRoutes);
 app.use('/api/v1/device-management', deviceManagementRoutes);
 app.use('/api/v1/live-meetings', liveMeetingRoutes);
 app.use('/api/v1/captcha', captchaRoutes);
+app.use('/api/v1/course-access', courseAccessRoutes);
 
 
 // Apply device authorization middleware to protected routes

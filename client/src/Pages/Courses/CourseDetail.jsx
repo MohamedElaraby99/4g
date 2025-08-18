@@ -34,6 +34,7 @@ import {
 } from 'react-icons/fa';
 import { generateImageUrl } from '../../utils/fileUtils';
 import { placeholderImages } from '../../utils/placeholderImages';
+import { checkCourseAccess, redeemCourseAccessCode } from '../../Redux/Slices/CourseAccessSlice';
 
 export default function CourseDetail() {
   const { id } = useParams();
@@ -53,12 +54,20 @@ export default function CourseDetail() {
   const [previewItem, setPreviewItem] = useState(null);
   const [showLessonModal, setShowLessonModal] = useState(false);
   const [selectedLesson, setSelectedLesson] = useState(null);
+  const [redeemCode, setRedeemCode] = useState('');
 
   useEffect(() => {
     if (id) {
       dispatch(getCourseById(id));
     }
   }, [dispatch, id]);
+
+  // Check timed-access via code
+  useEffect(() => {
+    if (id && user && isLoggedIn) {
+      dispatch(checkCourseAccess(id));
+    }
+  }, [dispatch, id, user, isLoggedIn]);
 
   // Fetch wallet balance only when user is logged in
   useEffect(() => {
@@ -163,6 +172,11 @@ export default function CourseDetail() {
     if (user?.role === 'ADMIN') {
       return true;
     }
+    // If user has active course access via code, allow viewing
+    const accessState = useSelector((state) => state.courseAccess.byCourseId[id]);
+    if (accessState?.hasAccess) {
+      return true;
+    }
     const key = `${currentCourse._id}-${purchaseType}-${itemId}`;
     return purchaseStatus[key] || false;
   };
@@ -192,6 +206,20 @@ export default function CourseDetail() {
 
     setSelectedItem({ ...item, purchaseType });
     setShowPurchaseModal(true);
+  };
+
+  const handleRedeemCode = async (e) => {
+    e.preventDefault();
+    if (!redeemCode.trim()) return;
+    try {
+      await dispatch(redeemCourseAccessCode({ code: redeemCode.trim() })).unwrap();
+      setRedeemCode('');
+      setAlertMessage('تم تفعيل الوصول للكورس بنجاح لوقت محدد');
+      setShowSuccessAlert(true);
+    } catch (err) {
+      setAlertMessage(err?.message || 'تعذر تفعيل الكود');
+      setShowErrorAlert(true);
+    }
   };
 
   const handlePreviewClick = (item, purchaseType) => {
@@ -466,6 +494,34 @@ export default function CourseDetail() {
                         <span>المرحلة: {currentCourse.stage?.name || 'غير محدد'}</span>
                       </div>
                     </div>
+
+                    {/* Redeem Access Code */}
+                    {user && isLoggedIn && (
+                      <form onSubmit={handleRedeemCode} className="space-y-3">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                          لديك كود لفتح الكورس؟
+                        </label>
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            value={redeemCode}
+                            onChange={(e) => setRedeemCode(e.target.value)}
+                            placeholder="أدخل الكود هنا"
+                            className="flex-1 px-3 py-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white"
+                            required
+                          />
+                          <button
+                            type="submit"
+                            className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg"
+                          >
+                            تفعيل
+                          </button>
+                        </div>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          يمنحك الكود وصولاً كاملاً للكورس لمدة محددة.
+                        </p>
+                      </form>
+                    )}
                   </div>
                 </div>
               </div>

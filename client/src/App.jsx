@@ -54,6 +54,7 @@ import LiveMeetingDashboard from "./Pages/Dashboard/LiveMeetingDashboard";
 import ExamResultsDashboard from "./Pages/Dashboard/ExamResultsDashboard";
 import LiveMeetings from "./Pages/User/LiveMeetings";
 import ExamHistory from "./Pages/User/ExamHistory";
+import AdminCourseAccessCodes from "./Pages/Dashboard/AdminCourseAccessCodes";
 
 function App() {
   // Auto scroll to top on route change
@@ -114,6 +115,7 @@ function App() {
                     <Route path="/admin/device-management" element={<DeviceManagementDashboard />} />
                     <Route path="/admin/live-meetings" element={<LiveMeetingDashboard />} />
                     <Route path="/admin/exam-results" element={<ExamResultsDashboard />} />
+                    <Route path="/admin/course-access-codes" element={<AdminCourseAccessCodes />} />
                   </Route>
 
         <Route element={<RequireAuth allowedRoles={["USER", "ADMIN"]} />}>

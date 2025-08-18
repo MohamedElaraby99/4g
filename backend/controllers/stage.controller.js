@@ -24,7 +24,6 @@ export const getAllStages = async (req, res, next) => {
         }
         
         const stages = await stageModel.find(query)
-            .populate('category', 'name status')
             .sort({ createdAt: -1 })
             .limit(limit * 1)
             .skip((page - 1) * limit)
@@ -275,7 +274,6 @@ export const getAllStagesAdmin = async (req, res, next) => {
         }
         
         const stages = await stageModel.find(query)
-            .populate('category', 'name status')
             .sort({ createdAt: -1 })
             .limit(limit * 1)
             .skip((page - 1) * limit)

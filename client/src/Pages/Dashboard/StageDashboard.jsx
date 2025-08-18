@@ -158,7 +158,7 @@ export default function StageDashboard() {
 
   return (
     <Layout>
-      <section className="min-h-screen py-8 px-4 lg:px-20">
+      <section className="min-h-screen py-8 px-4 lg:px-20" dir="rtl">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
           <div className="flex items-center justify-between mb-8">

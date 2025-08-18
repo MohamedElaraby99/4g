@@ -8,9 +8,9 @@ import jwt from 'jsonwebtoken';
 // Create a new course
 export const createCourse = async (req, res, next) => {
   try {
-    const { title, description, instructor, stage, subject, category } = req.body;
-    if (!title || !instructor || !stage || !subject || !category) {
-      return res.status(400).json({ success: false, message: 'Title, instructor, stage, subject, and category are required' });
+    const { title, description, instructor, stage, subject } = req.body;
+    if (!title || !instructor || !stage || !subject) {
+      return res.status(400).json({ success: false, message: 'Title, instructor, stage, and subject are required' });
     }
 
     // Prepare course data
@@ -20,7 +20,6 @@ export const createCourse = async (req, res, next) => {
       instructor,
             stage,
       subject,
-      category,
       units: [],
       directLessons: []
     };
@@ -110,8 +109,7 @@ export const getAdminCourses = async (req, res, next) => {
     const courses = await Course.find(query)
       .populate('instructor', 'name')
       .populate('stage', 'name')
-      .populate('subject', 'title')
-      .populate('category', 'name');
+      .populate('subject', 'title');
 
     return res.status(200).json({ success: true, data: { courses } });
   } catch (error) {
@@ -158,7 +156,6 @@ export const getAllCourses = async (req, res, next) => {
       .populate('instructor', 'name')
       .populate('stage', 'name')
       .populate('subject', 'title')
-      .populate('category', 'name')
       .select('-units.lessons.exams.questions.correctAnswer -units.lessons.trainings.questions.correctAnswer -directLessons.exams.questions.correctAnswer -directLessons.trainings.questions.correctAnswer -units.lessons.exams.userAttempts -units.lessons.trainings.userAttempts -directLessons.exams.userAttempts -directLessons.trainings.userAttempts');
 
     console.log('📊 Raw courses before processing:', courses.map(c => ({
@@ -316,7 +313,6 @@ export const getFeaturedCourses = async (req, res, next) => {
       .populate('instructor', 'name')
       .populate('stage', 'name')
       .populate('subject', 'title')
-      .populate('category', 'name')
       .limit(6);
       
     console.log('🎯 Featured courses query used for filtering:', JSON.stringify(query, null, 2));
@@ -387,8 +383,7 @@ export const getCourseById = async (req, res, next) => {
     const course = await Course.findById(id)
       .populate('instructor', 'name')
       .populate('stage', 'name')
-      .populate('subject', 'title')
-      .populate('category', 'name');
+      .populate('subject', 'title');
         
     if (!course) {
       return res.status(404).json({ success: false, message: 'Course not found' });

@@ -794,15 +794,25 @@ export default function HomePage() {
               شركاؤنا
             </h2>
             <p className="text-lg text-gray-600 dark:text-gray-300">
-              شريكنا التقني: <span className="font-semibold">Fikra Software</span>
+              شريكنا التقني: 
+              <a
+                href="https://fikra.solutions/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+              >
+                Fikra Software
+              </a>
             </p>
           </div>
           <div className="flex items-center justify-center">
-            <img
-              src={fikraLogo}
-              alt="Fikra Software Logo"
-              className="h-24 md:h-32 object-contain drop-shadow-lg"
-            />
+            <a href="https://fikra.solutions/" target="_blank" rel="noopener noreferrer">
+              <img
+                src={fikraLogo}
+                alt="Fikra Software Logo"
+                className="h-24 md:h-32 object-contain drop-shadow-lg hover:opacity-90 transition"
+              />
+            </a>
           </div>
         </div>
       </section>

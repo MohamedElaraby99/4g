@@ -55,7 +55,6 @@ import ExamResultsDashboard from "./Pages/Dashboard/ExamResultsDashboard";
 import LiveMeetings from "./Pages/User/LiveMeetings";
 import ExamHistory from "./Pages/User/ExamHistory";
 import AdminCourseAccessCodes from "./Pages/Dashboard/AdminCourseAccessCodes";
-import ApiTest from "./Components/ApiTest";
 
 function App() {
   // Auto scroll to top on route change
@@ -65,7 +64,6 @@ function App() {
     <DeviceProtection>
       <Routes>
         <Route path="/" element={<HomePage />} />
-        <Route path="/api-test" element={<ApiTest />} />
         <Route path="/about" element={<AboutUs />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/denied" element={<Denied />} />

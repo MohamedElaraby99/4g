@@ -8,8 +8,16 @@ const getBaseUrl = () => {
     hostname: window.location.hostname,
     port: window.location.port,
     href: window.location.href,
-    NODE_ENV: import.meta.env.MODE
+    NODE_ENV: import.meta.env.MODE,
+    envApiUrl: import.meta.env.VITE_REACT_APP_API_URL
   });
+
+  // Check for environment variable first
+  if (import.meta.env.VITE_REACT_APP_API_URL) {
+    const envUrl = import.meta.env.VITE_REACT_APP_API_URL;
+    console.log('✅ Using environment API URL:', envUrl);
+    return envUrl;
+  }
 
   // For development, always use localhost
   if (import.meta.env.DEV || 
@@ -23,7 +31,7 @@ const getBaseUrl = () => {
   }
   
   // Production fallback
-  const prodUrl = 'https://api.the4g.online/api/v1';
+  const prodUrl = 'https://api.the4g.live/api/v1';
   console.log('🌐 Using production API URL:', prodUrl);
   return prodUrl;
 };

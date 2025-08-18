@@ -51,9 +51,9 @@ const allowedOrigins = new Set([
   'http://127.0.0.1:5173',
   'http://localhost:5190',
   'http://127.0.0.1:5190',
-  'https://the4g.online',
-  'https://www.the4g.online',
-  'https://api.the4g.online'
+  'https://the4g.live',
+  'https://www.the4g.live',
+  'https://api.the4g.live'
 ]);
 
 // Add any additional origins from environment variables

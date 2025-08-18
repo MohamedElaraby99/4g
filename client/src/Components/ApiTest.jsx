@@ -28,20 +28,24 @@ const ApiTest = () => {
     setLoading(true);
     try {
       console.log('🧪 Testing API connection...');
-      const response = await axiosInstance.get('/health');
+      // Test the base API endpoint
+      const baseUrl = axiosInstance.defaults.baseURL.replace('/api/v1', '');
+      const response = await fetch(`${baseUrl}/api/health`);
+      const data = await response.json();
+      
       setTestResult({
         success: true,
-        data: response.data,
+        data: data,
         status: response.status
       });
-      console.log('✅ API test successful:', response.data);
+      console.log('✅ API test successful:', data);
     } catch (error) {
       console.error('❌ API test failed:', error);
       setTestResult({
         success: false,
         error: error.message,
-        status: error.response?.status,
-        data: error.response?.data
+        status: error.status,
+        data: null
       });
     } finally {
       setLoading(false);

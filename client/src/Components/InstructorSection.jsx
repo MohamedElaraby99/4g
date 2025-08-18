@@ -95,17 +95,17 @@ const InstructorSection = () => {
                 className="group bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 overflow-hidden border border-gray-100 dark:border-gray-700 cursor-pointer"
                 onClick={() => handleInstructorClick(instructor)}
               >
-                {/* Large Instructor Photo */}
-                <div className="relative w-full h-48 overflow-hidden">
+                {/* Large Instructor Photo - modern and fully visible */}
+                <div className="relative w-full aspect-[4/3] bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-800 dark:to-gray-700 rounded-lg overflow-hidden flex items-center justify-center">
                   {instructor.profileImage?.secure_url ? (
                     <img
                       src={generateImageUrl(instructor.profileImage.secure_url)}
                       alt={instructor.name}
-                      className="w-full h-full object-cover"
+                      className="max-w-full max-h-full object-contain transition-transform duration-300 group-hover:scale-105"
                       onError={handleImgError}
                     />
                   ) : (
-                    <div className="w-full h-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
+                    <div className="w-full h-full flex items-center justify-center">
                       <FaGraduationCap className="text-gray-400 dark:text-gray-500 text-6xl" />
                     </div>
                   )}
@@ -172,14 +172,16 @@ const InstructorSection = () => {
               {/* Instructor Header */}
               <div className="text-center mb-8">
                 {selectedInstructor.profileImage?.secure_url ? (
-                  <img
-                    src={generateImageUrl(selectedInstructor.profileImage.secure_url)}
-                    alt={selectedInstructor.name}
-                    className="w-24 h-24 rounded-full object-cover"
-                    onError={handleImgError}
-                  />
+                  <div className="w-28 h-28 rounded-xl bg-gray-100 dark:bg-gray-700 mx-auto mb-4 overflow-hidden flex items-center justify-center ring-1 ring-gray-200 dark:ring-gray-600">
+                    <img
+                      src={generateImageUrl(selectedInstructor.profileImage.secure_url)}
+                      alt={selectedInstructor.name}
+                      className="max-w-full max-h-full object-contain"
+                      onError={handleImgError}
+                    />
+                  </div>
                 ) : (
-                  <div className="w-32 h-32 bg-gray-200 dark:bg-gray-600 rounded-full flex items-center justify-center mx-auto mb-4 border-4 border-gray-200 dark:border-gray-600 shadow-lg">
+                  <div className="w-32 h-32 bg-gray-200 dark:bg-gray-600 rounded-xl flex items-center justify-center mx-auto mb-4 border-4 border-gray-200 dark:border-gray-600 shadow-lg">
                     <FaGraduationCap className="text-gray-400 dark:text-gray-500 text-4xl" />
                   </div>
                 )}

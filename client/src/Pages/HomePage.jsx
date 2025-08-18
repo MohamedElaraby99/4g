@@ -8,6 +8,7 @@ import { getFeaturedSubjects } from "../Redux/Slices/SubjectSlice";
 import { getFeaturedCourses } from "../Redux/Slices/CourseSlice";
 import { generateImageUrl } from "../utils/fileUtils";
 import AnimatedHero from "../Components/AnimatedHero";
+import fikraLogo from "../assets/Asset 2@3x.png";
 
 // Lazy load components
 const FAQAccordion = lazy(() => import("../Components/FAQAccordion"));
@@ -782,6 +783,27 @@ export default function HomePage() {
           }>
             <FAQAccordion />
           </Suspense>
+        </div>
+      </section>
+
+        {/* Partner Section */}
+        <section className="py-16 bg-white dark:bg-gray-800" dir="rtl">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-3">
+              شركاؤنا
+            </h2>
+            <p className="text-lg text-gray-600 dark:text-gray-300">
+              شريكنا التقني: <span className="font-semibold">Fikra Software</span>
+            </p>
+          </div>
+          <div className="flex items-center justify-center">
+            <img
+              src={fikraLogo}
+              alt="Fikra Software Logo"
+              className="h-24 md:h-32 object-contain drop-shadow-lg"
+            />
+          </div>
         </div>
       </section>
 

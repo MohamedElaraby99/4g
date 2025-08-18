@@ -64,12 +64,18 @@ export const generateCourseAccessCodes = asyncHandler(async (req, res) => {
 
 // User: redeem code to unlock course
 export const redeemCourseAccessCode = asyncHandler(async (req, res) => {
-    const { code } = req.body;
+    const { code, courseId } = req.body;
     const userId = req.user.id;
     if (!code) throw new ApiError(400, 'code is required');
+    if (!courseId) throw new ApiError(400, 'courseId is required');
 
     const redeemable = await CourseAccessCode.findRedeemable(code);
     if (!redeemable) throw new ApiError(400, 'Invalid or expired code');
+
+    // Check if the code is for the correct course
+    if (redeemable.courseId.toString() !== courseId) {
+        throw new ApiError(400, 'This code is not valid for this course');
+    }
 
     // Ensure course exists
     const course = await Course.findById(redeemable.courseId);
@@ -129,7 +135,11 @@ export const listCourseAccessCodes = asyncHandler(async (req, res) => {
     if (courseId) query.courseId = courseId;
     if (typeof isUsed !== 'undefined') query.isUsed = isUsed === 'true';
 
-    const codes = await CourseAccessCode.find(query).sort({ createdAt: -1 });
+    const codes = await CourseAccessCode.find(query)
+        .populate('usedBy', 'name email') // Populate user name and email
+        .populate('courseId', 'title') // Also populate course title
+        .sort({ createdAt: -1 });
+    
     return res.status(200).json(new ApiResponse(200, { codes }, 'Codes list'));
 });
 

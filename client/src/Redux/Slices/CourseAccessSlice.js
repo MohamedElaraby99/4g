@@ -15,9 +15,9 @@ export const checkCourseAccess = createAsyncThunk(
 
 export const redeemCourseAccessCode = createAsyncThunk(
   "courseAccess/redeem",
-  async ({ code }, { rejectWithValue }) => {
+  async ({ code, courseId }, { rejectWithValue }) => {
     try {
-      const res = await axiosInstance.post(`/course-access/redeem`, { code });
+      const res = await axiosInstance.post(`/course-access/redeem`, { code, courseId });
       return res.data.data;
     } catch (error) {
       return rejectWithValue(error.response?.data || { message: "Failed to redeem code" });

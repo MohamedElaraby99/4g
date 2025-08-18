@@ -212,10 +212,15 @@ export default function CourseDetail() {
     e.preventDefault();
     if (!redeemCode.trim()) return;
     try {
-      await dispatch(redeemCourseAccessCode({ code: redeemCode.trim() })).unwrap();
+      await dispatch(redeemCourseAccessCode({ 
+        code: redeemCode.trim(),
+        courseId: currentCourse._id 
+      })).unwrap();
       setRedeemCode('');
       setAlertMessage('تم تفعيل الوصول للكورس بنجاح لوقت محدد');
       setShowSuccessAlert(true);
+      // Refresh course access status
+      dispatch(checkCourseAccess(currentCourse._id));
     } catch (err) {
       setAlertMessage(err?.message || 'تعذر تفعيل الكود');
       setShowErrorAlert(true);
@@ -496,7 +501,7 @@ export default function CourseDetail() {
                     </div>
 
                     {/* Redeem Access Code */}
-                    {user && isLoggedIn && (
+                    {user && isLoggedIn && user.role !== 'ADMIN' && (
                       <form onSubmit={handleRedeemCode} className="space-y-3">
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                           لديك كود لفتح الكورس؟

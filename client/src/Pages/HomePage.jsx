@@ -796,7 +796,7 @@ export default function HomePage() {
             <p className="text-lg text-gray-600 dark:text-gray-300">
               شريكنا التقني: 
               <a
-                href="https://fikra.solutions/"
+                href=""
                 target="_blank"
                 rel="noopener noreferrer"
                 className="font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
@@ -806,7 +806,7 @@ export default function HomePage() {
             </p>
           </div>
           <div className="flex items-center justify-center">
-            <a href="https://fikra.solutions/" target="_blank" rel="noopener noreferrer">
+            <a href="" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center">
               <img
                 src={fikraLogo}
                 alt="Fikra Software Logo"

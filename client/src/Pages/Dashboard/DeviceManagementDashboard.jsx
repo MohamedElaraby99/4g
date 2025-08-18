@@ -239,6 +239,25 @@ export default function DeviceManagementDashboard() {
                     {/* Overview Tab */}
                     {activeTab === "overview" && (
                         <div className="space-y-6">
+                            {/* Debug Information */}
+                            <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg p-4">
+                                <h3 className="text-lg font-medium text-yellow-800 dark:text-yellow-200 mb-2">
+                                    معلومات التصحيح
+                                </h3>
+                                <div className="text-sm text-yellow-700 dark:text-yellow-300 space-y-1">
+                                    <p>• إجمالي المستخدمين: {usersDevices.length}</p>
+                                    <p>• إجمالي الأجهزة: {deviceStats.totalDevices}</p>
+                                    <p>• الأجهزة النشطة: {deviceStats.activeDevices}</p>
+                                    <p>• الحد الحالي: {deviceStats.maxDevicesPerUser} أجهزة</p>
+                                    <p>• حالة التحميل: {loading ? 'جاري التحميل' : 'مكتمل'}</p>
+                                    {deviceStats.totalDevices === 0 && (
+                                        <p className="font-medium text-red-600 dark:text-red-400">
+                                            ملاحظة: لا توجد أجهزة مسجلة. الأجهزة تُسجل تلقائياً عند تسجيل دخول المستخدمين.
+                                        </p>
+                                    )}
+                                </div>
+                            </div>
+
                             {/* Statistics Cards */}
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                                 <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
@@ -424,6 +443,48 @@ export default function DeviceManagementDashboard() {
                                 <p className="text-sm text-gray-500 dark:text-gray-400 mt-4">
                                     يمكنك تغيير عدد الأجهزة المسموح بها لكل مستخدم. الحد الأقصى هو 10 أجهزة.
                                 </p>
+                            </div>
+
+                            {/* Test Section */}
+                            <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4 flex items-center">
+                                    <FaServer className="mr-2 text-green-500" />
+                                    اختبار النظام
+                                </h3>
+                                <div className="space-y-4">
+                                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                                        استخدم هذه الأزرار لاختبار نظام إدارة الأجهزة:
+                                    </p>
+                                    <div className="flex items-center space-x-4 space-x-reverse">
+                                        <button
+                                            onClick={() => {
+                                                dispatch(getDeviceStats());
+                                                dispatch(getAllUsersDevices(filters));
+                                            }}
+                                            disabled={loading}
+                                            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+                                        >
+                                            <FaRedo className="w-4 h-4" />
+                                            <span>تحديث البيانات</span>
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                console.log('Device Stats:', deviceStats);
+                                                console.log('Users Devices:', usersDevices);
+                                                toast.success('تم طباعة البيانات في وحدة التحكم');
+                                            }}
+                                            className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-medium flex items-center space-x-2"
+                                        >
+                                            <FaEye className="w-4 h-4" />
+                                            <span>عرض البيانات في وحدة التحكم</span>
+                                        </button>
+                                    </div>
+                                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                                        <p>• الأجهزة تُسجل تلقائياً عند تسجيل دخول المستخدمين</p>
+                                        <p>• تأكد من أن المستخدمين قد سجلوا دخولهم مرة واحدة على الأقل</p>
+                                        <p>• يمكنك تغيير حد الأجهزة من القسم أعلاه</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     )}

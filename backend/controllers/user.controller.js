@@ -158,16 +158,27 @@ const register = async (req, res, next) => {
                 
                 const deviceFingerprint = generateDeviceFingerprint(req, parsedDeviceInfo);
                 const deviceName = generateDeviceName(parsedDeviceInfo, req);
-                const finalDeviceInfo = parseDeviceInfo(req, parsedDeviceInfo);
+                const finalDeviceInfo = parseDeviceInfo(req.get('User-Agent'));
+                
+                // Ensure all required fields are present
+                const completeDeviceInfo = {
+                    userAgent: req.get('User-Agent') || '',
+                    platform: parsedDeviceInfo?.platform || finalDeviceInfo.platform || 'Unknown',
+                    browser: parsedDeviceInfo?.additionalInfo?.browser || finalDeviceInfo.browser || 'Unknown',
+                    os: parsedDeviceInfo?.additionalInfo?.os || finalDeviceInfo.os || 'Unknown',
+                    ip: req.ip || req.connection.remoteAddress || '',
+                    screenResolution: parsedDeviceInfo?.screenResolution || '',
+                    timezone: parsedDeviceInfo?.timezone || ''
+                };
                 
                 // Create the first device for the user
                 await UserDevice.create({
                     user: user._id,
                     deviceFingerprint,
                     deviceName,
-                    deviceInfo: finalDeviceInfo,
+                    deviceInfo: completeDeviceInfo,
                     isActive: true,
-                    firstLoginAt: new Date(),
+                    firstLogin: new Date(),
                     lastActivity: new Date(),
                     loginCount: 1
                 });
@@ -217,8 +228,17 @@ const login = async (req, res, next) => {
             return next(new AppError('Email or Password does not match', 400))
         }
 
+        console.log('=== LOGIN ATTEMPT ===');
+        console.log('User email:', email);
+        console.log('User role:', user.role);
+        console.log('Device info provided:', !!deviceInfo);
+
         // Skip device check for admin users
         if (user.role !== 'ADMIN') {
+            console.log('=== DEVICE REGISTRATION FOR NON-ADMIN USER ===');
+            console.log('User role:', user.role);
+            console.log('Device info received:', deviceInfo);
+            
             // Check device authorization before allowing login
             try {
                 const deviceFingerprint = generateDeviceFingerprint(req, deviceInfo || {});
@@ -260,26 +280,44 @@ const login = async (req, res, next) => {
 
                     // Register new device automatically on login
                     const deviceName = generateDeviceName(deviceInfo || {}, req);
-                    const parsedDeviceInfo = parseDeviceInfo(req, deviceInfo || {});
+                    const parsedDeviceInfo = parseDeviceInfo(req.get('User-Agent'));
+                    
+                    // Ensure all required fields are present
+                    const finalDeviceInfo = {
+                        userAgent: req.get('User-Agent') || '',
+                        platform: deviceInfo?.platform || parsedDeviceInfo.platform || 'Unknown',
+                        browser: deviceInfo?.additionalInfo?.browser || parsedDeviceInfo.browser || 'Unknown',
+                        os: deviceInfo?.additionalInfo?.os || parsedDeviceInfo.os || 'Unknown',
+                        ip: req.ip || req.connection.remoteAddress || '',
+                        screenResolution: deviceInfo?.screenResolution || '',
+                        timezone: deviceInfo?.timezone || ''
+                    };
 
                     const newDevice = await UserDevice.create({
                         user: user._id,
                         deviceFingerprint,
                         deviceName,
-                        deviceInfo: parsedDeviceInfo,
+                        deviceInfo: finalDeviceInfo,
                         isActive: true,
-                        firstLoginAt: new Date(),
+                        firstLogin: new Date(),
                         lastActivity: new Date(),
                         loginCount: 1
                     });
 
-                    console.log('New device registered automatically on login:', newDevice._id);
+                    console.log('New device registered successfully:', {
+                        deviceId: newDevice._id,
+                        deviceName: newDevice.deviceName,
+                        deviceInfo: newDevice.deviceInfo
+                    });
                 }
             } catch (deviceError) {
                 console.error('Device check error during login:', deviceError);
                 // Continue with login if device check fails (fallback)
                 console.log('Device check failed, allowing login as fallback');
             }
+        } else {
+            console.log('=== DEVICE REGISTRATION SKIPPED FOR ADMIN USER ===');
+            console.log('Admin users do not have device restrictions');
         }
 
         const token = await user.generateJWTToken();

@@ -6,12 +6,12 @@
  * Get the base API URL from environment variables
  */
 const getBaseApiUrl = () => {
-  // Check if we're in production
-  if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-    return 'https://api.the4g.online/api/v1';
+  // For development, always use localhost
+  if (import.meta.env.DEV || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    return 'http://localhost:8800/api/v1';
   }
-  // Development fallback
-  return import.meta.env.VITE_REACT_APP_API_URL || 'http://localhost:8800/api/v1';
+  // Production fallback
+  return 'https://api.the4g.online/api/v1';
 };
 
 /**

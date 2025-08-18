@@ -2,12 +2,12 @@ import axios from 'axios';
 
 // Determine base URL based on environment
 const getBaseUrl = () => {
-  // Check if we're in production
-  if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-    return 'https://api.the4g.online/api/v1';
+  // For development, always use localhost
+  if (import.meta.env.DEV || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    return 'http://localhost:8800/api/v1';
   }
-  // Development fallback
-  return import.meta.env.VITE_REACT_APP_API_URL || 'http://localhost:8800/api/v1';
+  // Production fallback
+  return 'https://api.the4g.online/api/v1';
 };
 
 const BASE_URL = getBaseUrl();
@@ -27,7 +27,7 @@ export const axiosInstance = axios.create({
 axiosInstance.interceptors.request.use(
     (config) => {
         // Add device info to headers for cross-domain requests
-        if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+        if (!import.meta.env.DEV && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
             try {
                 // Generate basic device info for cross-domain requests
                 const deviceInfo = {

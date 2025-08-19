@@ -501,16 +501,6 @@ const CourseStructureModal = ({ courseId, onClose, isOpen }) => {
                     min="0"
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">المحتوى</label>
-                  <textarea
-                    value={newLesson.content || ''}
-                    onChange={(e) => setNewLesson({ ...newLesson, content: e.target.value })}
-                    className="w-full p-2 border border-gray-300 rounded-md"
-                    rows="3"
-                    placeholder="ادخل محتوى الدرس (مثل رابط الفيديو, رابط الPDF, وغيرها)"
-                  />
-                </div>
               </div>
               <div className="flex gap-2 mt-6">
                 <button

@@ -83,14 +83,26 @@ const ExamModal = ({ isOpen, onClose, exam, courseId, lessonId, unitId, examType
     }
   }, [exam]);
 
-  // Handle exam result
+  // Reset stale results when opening a different exam
   useEffect(() => {
-    if (lastExamResult && !showResults) {
-      setShowResults(true);
-      setExamCompleted(true);
-      setIsTimerRunning(false);
+    // Clear previous results when exam changes
+    dispatch(clearLastExamResult());
+    setShowResults(false);
+    setExamCompleted(false);
+    setIsTimerRunning(false);
+  }, [dispatch, exam?._id]);
+
+  // Handle exam result only when it matches current exam context
+  useEffect(() => {
+    if (!lastExamResult) return;
+    // If backend includes examId, ensure it matches current exam
+    if (lastExamResult.examId && exam?._id && String(lastExamResult.examId) !== String(exam._id)) {
+      return;
     }
-  }, [lastExamResult]);
+    setShowResults(true);
+    setExamCompleted(true);
+    setIsTimerRunning(false);
+  }, [lastExamResult, exam?._id]);
 
   const formatTime = (seconds) => {
     // Ensure seconds is a valid number

@@ -110,7 +110,7 @@ const userSchema = new Schema({
         transactions: [{
             type: {
                 type: String,
-                enum: ['recharge', 'purchase', 'refund'],
+                enum: ['recharge', 'purchase', 'refund', 'access_code'],
                 required: true
             },
             amount: {

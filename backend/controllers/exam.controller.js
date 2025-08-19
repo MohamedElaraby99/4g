@@ -114,6 +114,11 @@ const takeTrainingExam = asyncHandler(async (req, res) => {
         success: true,
         message: "Training completed successfully",
         data: {
+            examType: 'training',
+            examId: training._id,
+            courseId,
+            lessonId,
+            unitId: unitId || null,
             score,
             totalQuestions,
             percentage,
@@ -277,6 +282,11 @@ const takeFinalExam = asyncHandler(async (req, res) => {
         success: true,
         message: "Exam completed successfully",
         data: {
+            examType: 'final',
+            examId: exam._id,
+            courseId,
+            lessonId,
+            unitId: unitId || null,
             score,
             totalQuestions,
             percentage,

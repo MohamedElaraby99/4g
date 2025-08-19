@@ -7,21 +7,21 @@ import logo from '../assets/logo.png';
 const AnimatedHero = ({ onGetStarted }) => {
   const [isVisible, setIsVisible] = useState(false);
   const navigate = useNavigate();
-  const { isAuthenticated, loading } = useSelector((state) => state.auth);
+  const { isLoggedIn } = useSelector((state) => state.auth);
 
   useEffect(() => {
     setIsVisible(true);
   }, []);
 
   const handleButtonClick = () => {
-    if (isAuthenticated) {
+    if (isLoggedIn) {
       navigate('/courses');
     } else {
       onGetStarted();
     }
   };
 
-  const buttonText = loading ? 'جاري التحميل...' : (isAuthenticated ? 'ابدأ التعلم الآن' : 'سجل الآن');
+  const buttonText = isLoggedIn ? 'ابدأ التعلم الآن' : 'سجل الآن';
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900" dir="rtl">
@@ -84,18 +84,11 @@ const AnimatedHero = ({ onGetStarted }) => {
             <div className="text-center mb-8">
               <button 
                 onClick={handleButtonClick}
-                disabled={loading}
-                className={`group relative px-10 py-5 md:px-12 md:py-6 font-bold rounded-full text-lg md:text-xl shadow-xl transition-all duration-300 transform hover:scale-105 ${
-                  loading 
-                    ? 'bg-gray-400 text-gray-200 cursor-not-allowed' 
-                    : 'bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white hover:shadow-blue-500/30 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700'
-                }`}
+                className="group relative px-10 py-5 md:px-12 md:py-6 font-bold rounded-full text-lg md:text-xl shadow-xl transition-all duration-300 transform hover:scale-105 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white hover:shadow-blue-500/30 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700"
               >
                 <span className="relative flex items-center gap-4 justify-center">
                   {buttonText}
-                  {!loading && (
-                    <FaArrowRight className="group-hover:translate-x-1 transition-transform duration-300" />
-                  )}
+                  <FaArrowRight className="group-hover:translate-x-1 transition-transform duration-300" />
                 </span>
               </button>
             </div>

@@ -35,6 +35,7 @@ import {
 import { generateImageUrl } from '../../utils/fileUtils';
 import { placeholderImages } from '../../utils/placeholderImages';
 import { checkCourseAccess, redeemCourseAccessCode } from '../../Redux/Slices/CourseAccessSlice';
+import { axiosInstance } from '../../Helpers/axiosInstance';
 
 export default function CourseDetail() {
   const { id } = useParams();
@@ -45,6 +46,7 @@ export default function CourseDetail() {
   const { data: user, isLoggedIn } = useSelector((state) => state.auth);
   const courseAccessState = useSelector((state) => state.courseAccess.byCourseId[id]);
   const [accessAlertShown, setAccessAlertShown] = useState(false);
+  const hidePrices = !!courseAccessState?.hasAccess && courseAccessState?.source === 'code';
   const hasAnyPurchase = (() => {
     if (!currentCourse || !purchaseStatus) return false;
     const prefix = `${currentCourse._id}-`;
@@ -273,7 +275,46 @@ export default function CourseDetail() {
     }
   };
 
-  const handleWatchClick = (item, purchaseType, unitId = null) => {
+  const PASSING_THRESHOLD = 50; // percentage required to unlock next lesson
+
+  const handleWatchClick = async (item, purchaseType, unitId = null) => {
+    // Gate: block viewing this lesson if previous lesson's exam not passed
+    try {
+      // Determine lesson list and find previous lesson
+      let lessons = [];
+      if (unitId) {
+        const unit = currentCourse.units?.find(u => (u._id || '') === (unitId || ''));
+        lessons = unit?.lessons || [];
+      } else {
+        lessons = currentCourse.directLessons || [];
+      }
+      const currentIndex = lessons.findIndex(l => (l._id || '') === (item._id || ''));
+      const hasPrevious = currentIndex > 0;
+
+      if (hasPrevious) {
+        const prevLesson = lessons[currentIndex - 1];
+        // Fetch previous lesson details to check exams and user results
+        const params = unitId ? { params: { unitId } } : {};
+        const resp = await axiosInstance.get(`/courses/${currentCourse._id}/lessons/${prevLesson._id}`, params);
+        const prevLessonData = resp?.data?.data?.lesson;
+        const exams = prevLessonData?.exams || [];
+
+        if (exams.length > 0) {
+          const passedAnyExam = exams.some(ex => ex?.userResult?.hasTaken && (ex?.userResult?.percentage || 0) >= PASSING_THRESHOLD);
+          if (!passedAnyExam) {
+            setAlertMessage(`لا يمكنك فتح الدرس التالي حتى تنجح في اختبار الدرس السابق بنسبة لا تقل عن ${PASSING_THRESHOLD}%.`);
+            setShowErrorAlert(true);
+            return;
+          }
+        }
+      }
+    } catch (err) {
+      // If the prerequisite check fails for any reason, be safe and block access
+      setAlertMessage('تعذر التحقق من شرط النجاح للدرس السابق. يرجى المحاولة لاحقًا.');
+      setShowErrorAlert(true);
+      return;
+    }
+
     // Store lesson info including unit context for the optimized modal
     const lessonInfo = {
       lessonId: item._id,
@@ -591,7 +632,7 @@ export default function CourseDetail() {
                           </div>
                         </div>
                         <div className="flex items-center gap-4">
-                          {lesson.price > 0 && (
+                          {!hidePrices && lesson.price > 0 && (
                             <span className="text-sm font-medium text-green-600">
                               {lesson.price} جنيه
                             </span>
@@ -671,7 +712,7 @@ export default function CourseDetail() {
                                     </div>
                                   </div>
                                   <div className="flex items-center gap-4">
-                                    {lesson.price > 0 && (
+                                    {!hidePrices && lesson.price > 0 && (
                                       <span className="text-sm font-medium text-green-600">
                                         {lesson.price} جنيه
                                       </span>

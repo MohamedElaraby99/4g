@@ -133,6 +133,9 @@ export const getAllCourses = async (req, res, next) => {
     if (req.user && req.user.stage) {
       query.stage = req.user.stage;
       console.log('🎯 Filtering courses by user stage:', req.user.stage, '(' + req.user.stageName + ')');
+      
+      // Stage filtering only (category field removed)
+      console.log('🎯 Filtering courses by user stage only');
     } else {
       console.log('⚠️ No stage filtering applied - showing all courses');
       if (req.user && !req.user.stage) {
@@ -150,12 +153,11 @@ export const getAllCourses = async (req, res, next) => {
       id: c._id,
       title: c.title,
       stage: c.stage?.name,
-      stageId: c.stage?._id,
-      
+      stageId: c.stage?._id
     })));
     
     console.log('🎯 Final query used for filtering:', JSON.stringify(query, null, 2));
-    console.log(`📚 Found ${courses.length} courses matching user's stage + category criteria`);
+    console.log(`📚 Found ${courses.length} courses matching user's stage criteria`);
 
     // Check if any courses have invalid stage references
     const coursesWithMissingStages = courses.filter(c => !c.stage || !c.stage.name);
@@ -278,7 +280,8 @@ export const getFeaturedCourses = async (req, res, next) => {
           query.stage = user.stage._id;
           console.log('🎯 Filtering featured courses by user stage:', user.stage.name);
           
-          // Removed category-based filtering since Stage has no category field
+          // Stage filtering only (category field removed)
+          console.log('🎯 Filtering featured courses by user stage only');
         }
       } catch (error) {
         console.log('Optional auth failed for featured courses, showing all');
@@ -298,7 +301,7 @@ export const getFeaturedCourses = async (req, res, next) => {
       id: c._id,
       title: c.title,
       stage: c.stage?.name,
-      category: c.category?.name
+
     })));
 
     // Create secure versions without sensitive data
@@ -539,9 +542,9 @@ export const getLessonById = async (req, res, next) => {
 export const updateCourse = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { title, description, instructor, stage, subject } = req.body;
+            const { title, description, instructor, stage, subject } = req.body;
 
-    console.log('🔄 Updating course:', { id, title, description, instructor, stage, subject, category });
+          console.log('🔄 Updating course:', { id, title, description, instructor, stage, subject });
     console.log('📁 File uploaded:', req.file ? 'Yes' : 'No');
 
     // Find the existing course
@@ -557,7 +560,7 @@ export const updateCourse = async (req, res, next) => {
     });
 
     // Prepare update data
-    const updateData = { title, description, instructor, stage, subject };
+            const updateData = { title, description, instructor, stage, subject };
 
     // Handle image upload if provided
     if (req.file) {
@@ -629,6 +632,7 @@ export const updateCourse = async (req, res, next) => {
     if (updateData.stage) existingCourse.stage = updateData.stage;
     if (updateData.subject) existingCourse.subject = updateData.subject;
     
+    
     // Save the updated course
     await existingCourse.save();
     
@@ -637,6 +641,7 @@ export const updateCourse = async (req, res, next) => {
       .populate('instructor', 'name')
       .populate('stage', 'name')
       .populate('subject', 'title')
+
       .select('title description instructor stage subject image createdAt updatedAt');
     
     console.log('✅ Course updated successfully');
@@ -681,11 +686,7 @@ export const deleteCourse = async (req, res, next) => {
     // Delete the course
     await Course.findByIdAndDelete(id);
     
-    return res.status(200).json({ 
-      success: true, 
-      message: 'Course deleted',
-      data: { course: { _id: id } }
-    });
+    return res.status(200).json({ success: true, message: 'Course deleted' });
   } catch (error) {
     return next(new AppError(error.message, 500));
   }

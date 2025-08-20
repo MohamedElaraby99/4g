@@ -73,7 +73,7 @@ export const getStageById = async (req, res, next) => {
 // Create new stage
 export const createStage = async (req, res, next) => {
     try {
-        const { name, status } = req.body;
+        const { name, status, category } = req.body;
         
         if (!name) {
             return next(new AppError('Name is required', 400));
@@ -87,7 +87,8 @@ export const createStage = async (req, res, next) => {
         
         const stageData = {
             name,
-            status: status || 'active'
+            status: status || 'active',
+            category: category || null
         };
         
         const stage = await stageModel.create(stageData);
@@ -106,7 +107,7 @@ export const createStage = async (req, res, next) => {
 export const updateStage = async (req, res, next) => {
     try {
         const { id } = req.params;
-        const { name, status } = req.body;
+        const { name, status, category } = req.body;
         
         const stage = await stageModel.findById(id);
         
@@ -126,7 +127,9 @@ export const updateStage = async (req, res, next) => {
         }
         
         if (status) updateData.status = status;
+        
 
+        
         const updatedStage = await stageModel.findByIdAndUpdate(
             id,
             updateData,

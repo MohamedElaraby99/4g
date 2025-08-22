@@ -2,6 +2,7 @@ import ExamResult from '../models/examResult.model.js';
 import User from '../models/user.model.js';
 import Course from '../models/course.model.js';
 import AppError from '../utils/error.utils.js';
+import { asyncHandler } from '../utils/asyncHandler.js';
 
 // Get all exam results for admin dashboard
 const getAllExamResults = async (req, res, next) => {
@@ -534,9 +535,206 @@ const exportExamResults = async (req, res, next) => {
     }
 };
 
+// Get exam results for a specific lesson
+const getExamResults = asyncHandler(async (req, res) => {
+    const { courseId, lessonId } = req.params;
+    const userId = req.user._id || req.user.id;
+
+    try {
+        const results = await ExamResult.find({
+            course: courseId,
+            lessonId: lessonId,
+            user: userId
+        }).sort({ completedAt: -1 });
+
+        res.status(200).json({
+            success: true,
+            data: results
+        });
+    } catch (error) {
+        console.error('Error getting exam results:', error);
+        throw new AppError('فشل في جلب نتائج الامتحانات', 500);
+    }
+});
+
+// Get user's exam history
+const getUserExamHistory = asyncHandler(async (req, res) => {
+    const userId = req.user._id || req.user.id;
+
+    try {
+        const results = await ExamResult.find({ user: userId })
+            .populate('course', 'title')
+            .sort({ completedAt: -1 });
+
+        res.status(200).json({
+            success: true,
+            data: results
+        });
+    } catch (error) {
+        console.error('Error getting user exam history:', error);
+        throw new AppError('فشل في جلب تاريخ الامتحانات', 500);
+    }
+});
+
+// Get exam statistics
+const getExamStatistics = asyncHandler(async (req, res) => {
+    try {
+        const totalResults = await ExamResult.countDocuments();
+        const passedResults = await ExamResult.countDocuments({ passed: true });
+        const failedResults = await ExamResult.countDocuments({ passed: false });
+        const trainingResults = await ExamResult.countDocuments({ examType: 'training' });
+        const finalResults = await ExamResult.countDocuments({ examType: 'final' });
+
+        const avgScore = await ExamResult.aggregate([
+            { $group: { _id: null, avgScore: { $avg: '$score' } } }
+        ]);
+
+        res.status(200).json({
+            success: true,
+            data: {
+                totalResults,
+                passedResults,
+                failedResults,
+                trainingResults,
+                finalResults,
+                averageScore: avgScore[0]?.avgScore || 0
+            }
+        });
+    } catch (error) {
+        console.error('Error getting exam statistics:', error);
+        throw new AppError('فشل في جلب إحصائيات الامتحانات', 500);
+    }
+});
+
+// Search exam results (admin only)
+const searchExamResults = asyncHandler(async (req, res) => {
+    const {
+        page = 1,
+        limit = 20,
+        search = '',
+        examType = '',
+        courseId = '',
+        userId = '',
+        dateFrom = '',
+        dateTo = '',
+        scoreFilter = '',
+        status = ''
+    } = req.query;
+
+    // Build filter object
+    const filter = {};
+
+    // Search functionality will be handled on the frontend after populating
+    // For now, we'll focus on the other filters
+
+    // Filter by exam type
+    if (examType) {
+        filter.examType = examType;
+    }
+
+    // Filter by course
+    if (courseId) {
+        filter.course = courseId;
+    }
+
+    // Filter by user
+    if (userId) {
+        filter.user = userId;
+    }
+
+    // Filter by date range
+    if (dateFrom || dateTo) {
+        filter.completedAt = {};
+        if (dateFrom) {
+            filter.completedAt.$gte = new Date(dateFrom);
+        }
+        if (dateTo) {
+            filter.completedAt.$lte = new Date(dateTo + 'T23:59:59.999Z');
+        }
+    }
+
+    // Filter by score range
+    if (scoreFilter) {
+        const [minScore, maxScore] = scoreFilter.split('-').map(Number);
+        filter.score = {};
+        if (minScore !== undefined) {
+            filter.score.$gte = minScore;
+        }
+        if (maxScore !== undefined) {
+            filter.score.$lte = maxScore;
+        }
+    }
+
+    // Filter by status (passed/failed)
+    if (status) {
+        filter.passed = status === 'passed';
+    }
+
+    // Calculate pagination
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const pageLimit = parseInt(limit);
+
+    try {
+        // Get total count
+        const total = await ExamResult.countDocuments(filter);
+
+        // Get results with pagination
+        const results = await ExamResult.find(filter)
+            .populate('user', 'fullName username email')
+            .populate('course', 'title')
+            .sort({ completedAt: -1 })
+            .skip(skip)
+            .limit(pageLimit)
+            .lean();
+
+        // Transform results to match frontend expectations
+        const transformedResults = results.map(result => ({
+            _id: result._id,
+            user: {
+                fullName: result.user?.fullName,
+                username: result.user?.username,
+                email: result.user?.email
+            },
+            course: {
+                title: result.course?.title
+            },
+            lesson: {
+                title: result.lessonTitle
+            },
+            examType: result.examType,
+            score: result.score,
+            percentage: result.score, // The model stores score as percentage
+            correctAnswers: result.correctAnswers,
+            totalQuestions: result.totalQuestions,
+            timeTaken: result.timeTaken,
+            passed: result.passed,
+            completedAt: result.completedAt,
+            answers: result.answers
+        }));
+
+        res.status(200).json({
+            success: true,
+            data: {
+                results: transformedResults,
+                total,
+                page: parseInt(page),
+                limit: pageLimit,
+                totalPages: Math.ceil(total / pageLimit)
+            }
+        });
+    } catch (error) {
+        console.error('Error searching exam results:', error);
+        throw new AppError('فشل في البحث عن نتائج الامتحانات', 500);
+    }
+});
+
 export {
     getAllExamResults,
     getExamResultsStats,
     getExamResultById,
-    exportExamResults
+    exportExamResults,
+    getExamResults,
+    getUserExamHistory,
+    getExamStatistics,
+    searchExamResults
 };

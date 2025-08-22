@@ -637,6 +637,13 @@ export default function AdminDashboard() {
                   <FaChartLine className="text-lg lg:text-2xl mx-auto mb-1 lg:mb-2 group-hover:scale-110 transition-transform duration-200" />
                   <span className="text-xs lg:text-sm font-medium">تقدم الطلاب</span>
                 </button>
+                <button
+                  onClick={() => navigate("/admin/exam-search")}
+                  className="group p-3 lg:p-4 bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-lg lg:rounded-xl text-white hover:from-yellow-600 hover:to-yellow-700 transition-all duration-200 transform hover:scale-105"
+                >
+                  <FaClipboardCheck className="text-lg lg:text-2xl mx-auto mb-1 lg:mb-2 group-hover:scale-110 transition-transform duration-200" />
+                  <span className="text-xs lg:text-sm font-medium">البحث في الامتحانات</span>
+                </button>
 
               </div>
             </div>

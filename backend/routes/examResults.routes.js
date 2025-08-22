@@ -4,7 +4,11 @@ import {
     getAllExamResults,
     getExamResultsStats,
     getExamResultById,
-    exportExamResults
+    exportExamResults,
+    getExamResults,
+    getUserExamHistory,
+    getExamStatistics,
+    searchExamResults
 } from '../controllers/examResults.controller.js';
 
 const router = express.Router();
@@ -24,5 +28,17 @@ router.get('/stats', getExamResultsStats);
 
 // Get specific exam result by ID
 router.get('/:id', getExamResultById);
+
+// Get exam results for a specific lesson
+router.get("/:courseId/:lessonId", isLoggedIn, getExamResults);
+
+// Get user's exam history
+router.get("/history", isLoggedIn, getUserExamHistory);
+
+// Get exam statistics
+router.get("/statistics", isLoggedIn, authorisedRoles("admin"), getExamStatistics);
+
+// Search exam results (admin only)
+router.get("/search", isLoggedIn, authorisedRoles("admin"), searchExamResults);
 
 export default router;

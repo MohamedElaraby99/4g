@@ -6,7 +6,8 @@ import {
     getExamResults,
     getUserExamHistory,
     getExamStatistics,
-    checkExamTaken
+    checkExamTaken,
+    clearExamAttempt
 } from "../controllers/exam.controller.js";
 
 const router = express.Router();
@@ -25,6 +26,9 @@ router.get("/history", isLoggedIn, getUserExamHistory);
 
 // Check if user has taken an exam
 router.get("/check/:courseId/:lessonId/:examType", isLoggedIn, checkExamTaken);
+
+// Clear exam attempt for a specific user and exam
+router.delete("/clear/:courseId/:lessonId/:examId", isLoggedIn, clearExamAttempt);
 
 // Get exam statistics (admin only)
 router.get("/statistics/:courseId", isLoggedIn, authorisedRoles('ADMIN'), getExamStatistics);

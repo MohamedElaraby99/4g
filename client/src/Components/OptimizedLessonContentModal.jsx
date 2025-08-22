@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useSelector } from 'react-redux';
-import { FaTimes, FaFilePdf, FaVideo, FaClipboardList, FaDumbbell, FaPlay, FaEye, FaSpinner, FaCheckCircle, FaTrophy } from 'react-icons/fa';
+import { FaTimes, FaFilePdf, FaVideo, FaClipboardList, FaDumbbell, FaPlay, FaEye, FaSpinner, FaCheckCircle, FaTrophy, FaClock } from 'react-icons/fa';
 import CustomVideoPlayer from './CustomVideoPlayer';
 import PDFViewer from './PDFViewer';
 import ExamModal from './Exam/ExamModal';
@@ -66,6 +66,54 @@ const OptimizedLessonContentModal = ({ isOpen, onClose, courseId, lessonId, unit
     setSelectedExam(null);
     // Refetch lesson data to get updated exam results
     refetch();
+  };
+
+  const handleClearExamAttempt = async (examId) => {
+    try {
+      const response = await fetch(`/api/v1/exams/clear/${courseId}/${lessonId}/${examId}${unitId ? `?unitId=${unitId}` : ''}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        // Refetch lesson data to update the UI
+        refetch();
+        alert('تم مسح محاولة الامتحان بنجاح');
+      } else {
+        const errorData = await response.json();
+        alert(`فشل في مسح محاولة الامتحان: ${errorData.message || 'خطأ غير معروف'}`);
+      }
+    } catch (error) {
+      console.error('Error clearing exam attempt:', error);
+      alert('حدث خطأ أثناء مسح محاولة الامتحان');
+    }
+  };
+
+  const handleClearTrainingAttempt = async (trainingId) => {
+    try {
+      const response = await fetch(`/api/v1/exams/clear/${courseId}/${lessonId}/${trainingId}${unitId ? `?unitId=${unitId}` : ''}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        // Refetch lesson data to update the UI
+        refetch();
+        alert('تم مسح محاولة التدريب بنجاح');
+      } else {
+        const errorData = await response.json();
+        alert(`فشل في مسح محاولة التدريب: ${errorData.message || 'خطأ غير معروف'}`);
+      }
+    } catch (error) {
+      console.error('Error clearing training attempt:', error);
+      alert('حدث خطأ أثناء مسح محاولة التدريب');
+    }
   };
 
   // Extract YouTube video ID from URL
@@ -136,6 +184,12 @@ const OptimizedLessonContentModal = ({ isOpen, onClose, courseId, lessonId, unit
       {lesson.videos?.map((video, index) => (
         <div key={video._id} className="bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-800 dark:to-gray-900 p-4 sm:p-6 rounded-xl border border-blue-200 dark:border-gray-700">
           <div className="mb-4 text-gray-600 dark:text-gray-300 leading-relaxed text-sm sm:text-base">{video.description}</div>
+          {video.publishDate && (
+            <div className="mb-3 flex items-center gap-2 text-blue-600 dark:text-blue-400 text-sm">
+              <FaClock />
+              <span>تاريخ النشر: {new Date(video.publishDate).toLocaleDateString('ar')} {new Date(video.publishDate).toLocaleTimeString('ar', { hour: '2-digit', minute: '2-digit' })}</span>
+            </div>
+          )}
           {video.url ? (
             <div className="relative bg-black rounded-lg overflow-hidden shadow-lg aspect-video cursor-pointer group">
               {/* YouTube Thumbnail Background */}
@@ -197,6 +251,12 @@ const OptimizedLessonContentModal = ({ isOpen, onClose, courseId, lessonId, unit
             <div className="flex-1 min-w-0">
               <div className="font-semibold text-lg sm:text-xl text-gray-800 dark:text-gray-200 break-words">{pdf.title || pdf.fileName}</div>
               <div className="text-sm text-red-600 dark:text-red-400 font-medium">ملف PDF</div>
+              {pdf.publishDate && (
+                <div className="mt-1 flex items-center gap-2 text-blue-600 dark:text-blue-400 text-xs">
+                  <FaClock />
+                  <span>تاريخ النشر: {new Date(pdf.publishDate).toLocaleDateString('ar')} {new Date(pdf.publishDate).toLocaleTimeString('ar', { hour: '2-digit', minute: '2-digit' })}</span>
+                </div>
+              )}
             </div>
           </div>
           
@@ -260,6 +320,21 @@ const OptimizedLessonContentModal = ({ isOpen, onClose, courseId, lessonId, unit
               </div>
             </div>
             
+            {/* Date Information */}
+            {(exam.openDate || exam.closeDate) && (
+              <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                <div className="text-sm font-medium text-blue-800 dark:text-blue-300 mb-2">معلومات التواريخ:</div>
+                <div className="space-y-1 text-xs text-blue-700 dark:text-blue-400">
+                  {exam.openDate && (
+                    <div>يفتح في: {new Date(exam.openDate).toLocaleDateString('ar')} {new Date(exam.openDate).toLocaleTimeString('ar', { hour: '2-digit', minute: '2-digit' })}</div>
+                  )}
+                  {exam.closeDate && (
+                    <div>يغلق في: {new Date(exam.closeDate).toLocaleDateString('ar')} {new Date(exam.closeDate).toLocaleTimeString('ar', { hour: '2-digit', minute: '2-digit' })}</div>
+                  )}
+                </div>
+              </div>
+            )}
+            
             <div className="text-center">
               {exam.userResult?.hasTaken ? (
                 <div className="space-y-3">
@@ -273,6 +348,38 @@ const OptimizedLessonContentModal = ({ isOpen, onClose, courseId, lessonId, unit
                   <div className="text-xs text-gray-500">
                     تاريخ الامتحان: {new Date(exam.userResult.takenAt).toLocaleDateString('ar')}
                   </div>
+                </div>
+              ) : exam.examStatus === 'not_open' ? (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-center gap-2 text-orange-600">
+                    <FaClock />
+                    <span>الامتحان غير متاح بعد</span>
+                  </div>
+                  <div className="text-sm text-gray-600">
+                    {exam.statusMessage}
+                  </div>
+                  <button 
+                    disabled
+                    className="bg-gray-400 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-medium text-sm sm:text-base w-full sm:w-auto cursor-not-allowed"
+                  >
+                    الامتحان غير متاح
+                  </button>
+                </div>
+              ) : exam.examStatus === 'closed' ? (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-center gap-2 text-red-600">
+                    <FaTimes />
+                    <span>الامتحان مغلق</span>
+                  </div>
+                  <div className="text-sm text-gray-600">
+                    {exam.statusMessage}
+                  </div>
+                  <button 
+                    disabled
+                    className="bg-gray-400 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-medium text-sm sm:text-base w-full sm:w-auto cursor-not-allowed"
+                  >
+                    الامتحان مغلق
+                  </button>
                 </div>
               ) : (
                 <button 
@@ -323,22 +430,59 @@ const OptimizedLessonContentModal = ({ isOpen, onClose, courseId, lessonId, unit
               </div>
             </div>
             
+            {/* Date Information */}
+            {(training.openDate || training.closeDate) && (
+              <div className="mb-4 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                <div className="text-sm font-medium text-green-800 dark:text-green-300 mb-2">معلومات التواريخ:</div>
+                <div className="space-y-1 text-xs text-green-700 dark:text-green-400">
+                  {training.openDate && (
+                    <div>يفتح في: {new Date(training.openDate).toLocaleDateString('ar')} {new Date(training.openDate).toLocaleTimeString('ar', { hour: '2-digit', minute: '2-digit' })}</div>
+                  )}
+                </div>
+              </div>
+            )}
+            
             {training.userResults.length > 0 && (
               <div className="mb-4 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
                 <div className="text-sm font-medium text-green-800 dark:text-green-300 mb-2">أفضل نتيجة:</div>
                 <div className="text-lg font-bold text-green-600">
                   {Math.max(...training.userResults.map(r => r.percentage))}%
                 </div>
+                <button 
+                  onClick={() => handleClearTrainingAttempt(training._id)}
+                  className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs transition-colors mt-2"
+                  title="مسح محاولات التدريب"
+                >
+                  مسح المحاولات
+                </button>
               </div>
             )}
             
             <div className="text-center">
-              <button 
-                onClick={() => handleStartExam(training, 'training')}
-                className="bg-green-600 hover:bg-green-700 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg transition-all duration-200 hover:shadow-lg font-medium text-sm sm:text-base w-full sm:w-auto"
-              >
-                {training.attemptCount > 0 ? 'إعادة التدريب' : 'بدء التدريب'}
-              </button>
+              {training.trainingStatus === 'not_open' ? (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-center gap-2 text-orange-600">
+                    <FaClock />
+                    <span>التدريب غير متاح بعد</span>
+                  </div>
+                  <div className="text-sm text-gray-600">
+                    {training.statusMessage}
+                  </div>
+                  <button 
+                    disabled
+                    className="bg-gray-400 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-medium text-sm sm:text-base w-full sm:w-auto cursor-not-allowed"
+                  >
+                    التدريب غير متاح
+                  </button>
+                </div>
+              ) : (
+                <button 
+                  onClick={() => handleStartExam(training, 'training')}
+                  className="bg-green-600 hover:bg-green-700 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg transition-all duration-200 hover:shadow-lg font-medium text-sm sm:text-base w-full sm:w-auto"
+                >
+                  {training.attemptCount > 0 ? 'إعادة التدريب' : 'بدء التدريب'}
+                </button>
+              )}
             </div>
           </div>
         </div>

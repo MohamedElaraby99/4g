@@ -366,7 +366,7 @@ const ExamHistory = () => {
                               Question {index + 1}: {question.question}
                             </p>
                             <div className="space-y-1">
-                              {question.options.map((option, optionIndex) => (
+                              {question.options.slice(0, question.numberOfOptions || 4).map((option, optionIndex) => (
                                 <div
                                   key={optionIndex}
                                   className={`p-2 rounded ${

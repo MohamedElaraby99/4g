@@ -241,7 +241,7 @@ const ExamModal = ({ isOpen, onClose, exam, courseId, lessonId, unitId, examType
         </div>
 
         <div className="space-y-3">
-          {question.options.map((option, optionIndex) => (
+          {question.options.slice(0, question.numberOfOptions || 4).map((option, optionIndex) => (
             <label
               key={optionIndex}
               className={`flex items-center p-4 rounded-lg border-2 cursor-pointer transition-all duration-200 ${
@@ -379,22 +379,12 @@ const ExamModal = ({ isOpen, onClose, exam, courseId, lessonId, unitId, examType
           </div>
         </div>
 
-        <div className="mt-6 flex gap-3">
+        <div className="mt-6">
           <button
             onClick={onClose}
-            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg font-medium transition-colors"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg font-medium transition-colors"
           >
             إغلاق
-          </button>
-          <button
-            onClick={() => {
-              setExamStarted(false);
-              setShowResults(false);
-              dispatch(clearLastExamResult());
-            }}
-            className="flex-1 bg-gray-600 hover:bg-gray-700 text-white py-3 px-4 rounded-lg font-medium transition-colors"
-          >
-            إعادة الامتحان
           </button>
         </div>
       </div>
@@ -485,7 +475,8 @@ const ExamModal = ({ isOpen, onClose, exam, courseId, lessonId, unitId, examType
                       disabled={currentQuestionIndex === 0}
                       className="flex items-center gap-2 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors disabled:opacity-50"
                     >
-                      <FaChevronLeft />
+                      <FaChevronRight />
+                      
                       السابق
                     </button>
                     
@@ -504,7 +495,7 @@ const ExamModal = ({ isOpen, onClose, exam, courseId, lessonId, unitId, examType
                       className="flex items-center gap-2 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors disabled:opacity-50"
                     >
                       التالي
-                      <FaChevronRight />
+                      <FaChevronLeft />
                     </button>
                   </div>
                 </div>

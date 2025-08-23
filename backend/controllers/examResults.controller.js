@@ -606,7 +606,7 @@ const getExamStatistics = asyncHandler(async (req, res) => {
     }
 });
 
-// Search exam results (admin only)
+// Search exam results (admin only) - Enhanced to include both completed results and available exams
 const searchExamResults = asyncHandler(async (req, res) => {
     const {
         page = 1,
@@ -621,65 +621,35 @@ const searchExamResults = asyncHandler(async (req, res) => {
         status = ''
     } = req.query;
 
-    // Build filter object
-    const filter = {};
-
-    // Search functionality will be handled on the frontend after populating
-    // For now, we'll focus on the other filters
-
-    // Filter by exam type
-    if (examType) {
-        filter.examType = examType;
-    }
-
-    // Filter by course
-    if (courseId) {
-        filter.course = courseId;
-    }
-
-    // Filter by user
-    if (userId) {
-        filter.user = userId;
-    }
-
-    // Filter by date range
-    if (dateFrom || dateTo) {
-        filter.completedAt = {};
-        if (dateFrom) {
-            filter.completedAt.$gte = new Date(dateFrom);
-        }
-        if (dateTo) {
-            filter.completedAt.$lte = new Date(dateTo + 'T23:59:59.999Z');
-        }
-    }
-
-    // Filter by score range
-    if (scoreFilter) {
-        const [minScore, maxScore] = scoreFilter.split('-').map(Number);
-        filter.score = {};
-        if (minScore !== undefined) {
-            filter.score.$gte = minScore;
-        }
-        if (maxScore !== undefined) {
-            filter.score.$lte = maxScore;
-        }
-    }
-
-    // Filter by status (passed/failed)
-    if (status) {
-        filter.passed = status === 'passed';
-    }
-
-    // Calculate pagination
-    const skip = (parseInt(page) - 1) * parseInt(limit);
-    const pageLimit = parseInt(limit);
-
     try {
-        // Get total count
-        const total = await ExamResult.countDocuments(filter);
+        // 1. Get completed exam results from ExamResult collection
+        const filter = {};
+        
+        if (examType) filter.examType = examType;
+        if (courseId) filter.course = courseId;
+        if (userId) filter.user = userId;
+        
+        if (dateFrom || dateTo) {
+            filter.completedAt = {};
+            if (dateFrom) filter.completedAt.$gte = new Date(dateFrom);
+            if (dateTo) filter.completedAt.$lte = new Date(dateTo + 'T23:59:59.999Z');
+        }
+        
+        if (scoreFilter) {
+            const [minScore, maxScore] = scoreFilter.split('-').map(Number);
+            filter.score = {};
+            if (minScore !== undefined) filter.score.$gte = minScore;
+            if (maxScore !== undefined) filter.score.$lte = maxScore;
+        }
+        
+        if (status) filter.passed = status === 'passed';
 
-        // Get results with pagination
-        const results = await ExamResult.find(filter)
+        const skip = (parseInt(page) - 1) * parseInt(limit);
+        const pageLimit = parseInt(limit);
+
+        // Get completed exam results
+        const totalCompleted = await ExamResult.countDocuments(filter);
+        const completedResults = await ExamResult.find(filter)
             .populate('user', 'fullName username email')
             .populate('course', 'title')
             .sort({ completedAt: -1 })
@@ -687,9 +657,136 @@ const searchExamResults = asyncHandler(async (req, res) => {
             .limit(pageLimit)
             .lean();
 
-        // Transform results to match frontend expectations
-        const transformedResults = results.map(result => ({
+        // 2. Get ALL exams with user progress from Course structure (including completed ones)
+        let allExamsFromLessons = [];
+        
+        // Always fetch all exams from lessons to show complete picture
+        const courses = await Course.find({
+            $or: [
+                { 'units.lessons.exams': { $exists: true, $ne: [] } },
+                { 'directLessons.exams': { $exists: true, $ne: [] } }
+            ]
+        }).select('title units directLessons').lean();
+
+        console.log(`🔍 Found ${courses.length} courses with exams`);
+
+        for (const course of courses) {
+            console.log(`📚 Processing course: ${course.title}`);
+            
+            // Process direct lessons
+            if (course.directLessons) {
+                for (const lesson of course.directLessons) {
+                    if (lesson.exams && lesson.exams.length > 0) {
+                        for (const exam of lesson.exams) {
+                            console.log(`  📖 Processing exam: ${exam.title}`);
+                            console.log(`    - userResult:`, exam.userResult);
+                            
+                            // Check if this exam has user results - be more flexible with the check
+                            const hasUserResult = exam.userResult && (
+                                exam.userResult.hasTaken === true || 
+                                exam.userResult.score !== undefined || 
+                                exam.userResult.percentage !== undefined
+                            );
+                            
+                            console.log(`    - hasUserResult: ${hasUserResult}`);
+                            
+                            allExamsFromLessons.push({
+                                _id: `lesson_${exam._id}`,
+                                type: hasUserResult ? 'completed' : 'available',
+                                course: { title: course.title },
+                                lesson: { title: lesson.title },
+                                exam: {
+                                    title: exam.title,
+                                    description: exam.description,
+                                    timeLimit: exam.timeLimit,
+                                    questionsCount: exam.questions?.length || 0
+                                },
+                                userResult: exam.userResult || { hasTaken: false },
+                                examType: 'final',
+                                isAvailable: !hasUserResult,
+                                isCompleted: hasUserResult,
+                                // If user has taken the exam, include the result data
+                                ...(hasUserResult && {
+                                    score: exam.userResult.score || 0,
+                                    percentage: exam.userResult.percentage || 0,
+                                    correctAnswers: exam.userResult.score || 0,
+                                    totalQuestions: exam.userResult.totalQuestions || 0,
+                                    completedAt: exam.userResult.takenAt || new Date(),
+                                    passed: (exam.userResult.percentage || 0) >= 50, // Assuming 50% is passing
+                                    user: {
+                                        fullName: 'طالب', // We don't have user details in lesson structure
+                                        username: 'طالب',
+                                        email: 'طالب'
+                                    }
+                                })
+                            });
+                        }
+                    }
+                }
+            }
+
+            // Process unit lessons
+            if (course.units) {
+                for (const unit of course.units) {
+                    if (unit.lessons) {
+                        for (const lesson of unit.lessons) {
+                            if (lesson.exams && lesson.exams.length > 0) {
+                                for (const exam of lesson.exams) {
+                                    console.log(`  📖 Processing exam: ${exam.title} (Unit: ${unit.title})`);
+                                    console.log(`    - userResult:`, exam.userResult);
+                                    
+                                    // Check if this exam has user results - be more flexible with the check
+                                    const hasUserResult = exam.userResult && (
+                                        exam.userResult.hasTaken === true || 
+                                        exam.userResult.score !== undefined || 
+                                        exam.userResult.percentage !== undefined
+                                    );
+                                    
+                                    console.log(`    - hasUserResult: ${hasUserResult}`);
+                                    
+                                    allExamsFromLessons.push({
+                                        _id: `lesson_${exam._id}`,
+                                        type: hasUserResult ? 'completed' : 'available',
+                                        course: { title: course.title },
+                                        lesson: { title: lesson.title },
+                                        unit: { title: unit.title },
+                                        exam: {
+                                            title: exam.title,
+                                            description: exam.description,
+                                            timeLimit: exam.timeLimit,
+                                            questionsCount: exam.questions?.length || 0
+                                        },
+                                        userResult: exam.userResult || { hasTaken: false },
+                                        examType: 'final',
+                                        isAvailable: !hasUserResult,
+                                        isCompleted: hasUserResult,
+                                        // If user has taken the exam, include the result data
+                                        ...(hasUserResult && {
+                                            score: exam.userResult.score || 0,
+                                            percentage: exam.userResult.percentage || 0,
+                                            correctAnswers: exam.userResult.score || 0,
+                                            totalQuestions: exam.userResult.totalQuestions || 0,
+                                            completedAt: exam.userResult.takenAt || new Date(),
+                                            passed: (exam.userResult.percentage || 0) >= 50, // Assuming 50% is passing
+                                            user: {
+                                                fullName: 'طالب', // We don't have user details in lesson structure
+                                                username: 'طالب',
+                                                email: 'طالب'
+                                            }
+                                        })
+                                    });
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // 3. Combine and transform results
+        const transformedCompleted = completedResults.map(result => ({
             _id: result._id,
+            type: 'completed',
             user: {
                 fullName: result.user?.fullName,
                 username: result.user?.username,
@@ -703,25 +800,34 @@ const searchExamResults = asyncHandler(async (req, res) => {
             },
             examType: result.examType,
             score: result.score,
-            percentage: result.score, // The model stores score as percentage
+            percentage: result.score,
             correctAnswers: result.correctAnswers,
             totalQuestions: result.totalQuestions,
             timeTaken: result.timeTaken,
             passed: result.passed,
             completedAt: result.completedAt,
-            answers: result.answers
+            answers: result.answers,
+            isCompleted: true
         }));
+
+        // Combine results (completed from ExamResult collection first, then all from lessons)
+        const allResults = [...transformedCompleted, ...allExamsFromLessons];
+        const total = totalCompleted + allExamsFromLessons.length;
 
         res.status(200).json({
             success: true,
             data: {
-                results: transformedResults,
+                results: allResults,
                 total,
                 page: parseInt(page),
                 limit: pageLimit,
-                totalPages: Math.ceil(total / pageLimit)
+                totalPages: Math.ceil(total / pageLimit),
+                completedCount: totalCompleted,
+                availableCount: allExamsFromLessons.filter(exam => !exam.isCompleted).length,
+                lessonExamsCount: allExamsFromLessons.length
             }
         });
+
     } catch (error) {
         console.error('Error searching exam results:', error);
         throw new AppError('فشل في البحث عن نتائج الامتحانات', 500);

@@ -374,9 +374,43 @@ export const getCourseById = async (req, res, next) => {
     
     // Clean up units and lessons
     if (courseObj.units) {
-      courseObj.units = courseObj.units.map(unit => ({
-        ...unit,
-        lessons: unit.lessons?.map(lesson => ({
+      console.log('🔍 Processing units:', courseObj.units.length);
+      courseObj.units = courseObj.units.map(unit => {
+        console.log(`📚 Unit "${unit.title}":`, {
+          lessonsCount: unit.lessons?.length || 0
+        });
+        return {
+          ...unit,
+          lessons: unit.lessons?.map(lesson => {
+            const lessonData = {
+              _id: lesson._id,
+              title: lesson.title,
+              description: lesson.description,
+              price: lesson.price,
+              content: lesson.content,
+              videosCount: lesson.videos?.length || 0,
+              pdfsCount: lesson.pdfs?.length || 0,
+              examsCount: lesson.exams?.length || 0,
+              trainingsCount: lesson.trainings?.length || 0
+              // Exclude actual videos, pdfs, exams, trainings for security
+            };
+            console.log(`  📚 Lesson "${lesson.title}":`, {
+              videos: lesson.videos?.length || 0,
+              pdfs: lesson.pdfs?.length || 0,
+              exams: lesson.exams?.length || 0,
+              trainings: lesson.trainings?.length || 0
+            });
+            return lessonData;
+          }) || []
+        };
+      });
+    }
+    
+    // Clean up direct lessons
+    if (courseObj.directLessons) {
+      console.log('🔍 Processing direct lessons:', courseObj.directLessons.length);
+      courseObj.directLessons = courseObj.directLessons.map(lesson => {
+        const lessonData = {
           _id: lesson._id,
           title: lesson.title,
           description: lesson.description,
@@ -387,24 +421,15 @@ export const getCourseById = async (req, res, next) => {
           examsCount: lesson.exams?.length || 0,
           trainingsCount: lesson.trainings?.length || 0
           // Exclude actual videos, pdfs, exams, trainings for security
-        })) || []
-      }));
-    }
-    
-    // Clean up direct lessons
-    if (courseObj.directLessons) {
-      courseObj.directLessons = courseObj.directLessons.map(lesson => ({
-        _id: lesson._id,
-        title: lesson.title,
-        description: lesson.description,
-        price: lesson.price,
-        content: lesson.content,
-        videosCount: lesson.videos?.length || 0,
-        pdfsCount: lesson.pdfs?.length || 0,
-        examsCount: lesson.exams?.length || 0,
-        trainingsCount: lesson.trainings?.length || 0
-        // Exclude actual videos, pdfs, exams, trainings for security
-      }));
+        };
+        console.log(`📚 Lesson "${lesson.title}":`, {
+          videos: lesson.videos?.length || 0,
+          pdfs: lesson.pdfs?.length || 0,
+          exams: lesson.exams?.length || 0,
+          trainings: lesson.trainings?.length || 0
+        });
+        return lessonData;
+      });
     }
 
     return res.status(200).json({ success: true, data: { course: courseObj } });

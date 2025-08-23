@@ -26,19 +26,19 @@ router.get('/export', exportExamResults);
 // Get exam results statistics
 router.get('/stats', getExamResultsStats);
 
-// Get specific exam result by ID
-router.get('/:id', getExamResultById);
+// Search exam results (admin only) - MUST come before /:id route
+router.get("/search", searchExamResults);
 
-// Get exam results for a specific lesson
-router.get("/:courseId/:lessonId", isLoggedIn, getExamResults);
+// Get exam results statistics
+router.get("/statistics", getExamStatistics);
 
 // Get user's exam history
 router.get("/history", isLoggedIn, getUserExamHistory);
 
-// Get exam statistics
-router.get("/statistics", isLoggedIn, authorisedRoles("admin"), getExamStatistics);
+// Get exam results for a specific lesson
+router.get("/:courseId/:lessonId", isLoggedIn, getExamResults);
 
-// Search exam results (admin only)
-router.get("/search", isLoggedIn, authorisedRoles("admin"), searchExamResults);
+// Get specific exam result by ID - MUST come last
+router.get('/:id', getExamResultById);
 
 export default router;

@@ -74,13 +74,13 @@ export const createGroup = asyncHandler(async (req, res) => {
 export const getAllGroups = asyncHandler(async (req, res) => {
   const {
     page = 1,
-    limit = 10,
     search,
     instructor,
     status,
     sortBy = 'createdAt',
     sortOrder = 'desc'
   } = req.query;
+  const limitParam = req.query.limit ?? 'all';
 
   // Build query
   const query = {};
@@ -104,9 +104,37 @@ export const getAllGroups = asyncHandler(async (req, res) => {
   const sort = {};
   sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
 
+  // If limit is 'all' or 0, return all groups without pagination
+  if (limitParam === 'all' || parseInt(limitParam) === 0) {
+    const docs = await Group.find(query)
+      .sort(sort)
+      .populate({ path: 'instructor', select: 'name email bio specialization experience' })
+      .populate({ path: 'subjects', select: 'name description' })
+      .populate({ path: 'students', select: 'fullName email phoneNumber' })
+      .populate({ path: 'createdBy', select: 'fullName' });
+
+    const totalDocs = docs.length;
+    const payload = {
+      docs,
+      totalDocs,
+      limit: totalDocs,
+      totalPages: 1,
+      page: 1,
+      pagingCounter: 1,
+      hasPrevPage: false,
+      hasNextPage: false,
+      prevPage: null,
+      nextPage: null
+    };
+
+    return res.status(200).json(
+      new ApiResponse(200, payload, "تم جلب المجموعات بنجاح")
+    );
+  }
+
   const options = {
     page: parseInt(page),
-    limit: parseInt(limit),
+    limit: parseInt(limitParam),
     sort,
     populate: [
       { path: 'instructor', select: 'name email bio specialization experience' },

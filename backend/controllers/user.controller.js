@@ -101,6 +101,15 @@ const register = async (req, res, next) => {
             userData.email = email;
         }
 
+        // Require ID images for USER role
+        if (userRole === 'USER') {
+            const hasIdFront = !!(req.files && req.files.idFront && req.files.idFront[0]);
+            const hasIdBack = !!(req.files && req.files.idBack && req.files.idBack[0]);
+            if (!hasIdFront || !hasIdBack) {
+                return next(new AppError("ID front and back images are required", 400));
+            }
+        }
+
         // Save user in the database and log the user in
         const user = await userModel.create(userData);
 
@@ -108,34 +117,46 @@ const register = async (req, res, next) => {
             return next(new AppError("User registration failed, please try again", 400));
         }
 
-        // File upload
-        if (req.file) {
+        // File uploads: avatar, ID front, ID back
+        if (req.files && (req.files.avatar || req.files.idFront || req.files.idBack)) {
             try {
-                // Use local file storage for avatars instead of Cloudinary
-                const fileName = req.file.filename;
-                
-                // Create avatars directory if it doesn't exist
-                const avatarsDir = 'uploads/avatars';
-                if (!fs.existsSync(avatarsDir)) {
-                    fs.mkdirSync(avatarsDir, { recursive: true });
+                // Ensure directories exist
+                const ensureDir = (dir) => { if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true }); };
+                ensureDir('uploads/avatars');
+                ensureDir('uploads/id');
+
+                // Helper to move a file and return url
+                const moveAndGetUrl = (fileObj, subfolder) => {
+                    const fileName = fileObj.filename;
+                    const oldPath = `uploads/${fileName}`;
+                    const newPath = `uploads/${subfolder}/${fileName}`;
+                    if (fs.existsSync(oldPath)) {
+                        fs.renameSync(oldPath, newPath);
+                    }
+                    const url = generateProductionFileUrl(fileName, subfolder);
+                    return { public_id: `local_${fileName}`, secure_url: url };
+                };
+
+                if (req.files.avatar && req.files.avatar[0]) {
+                    const { public_id, secure_url } = moveAndGetUrl(req.files.avatar[0], 'avatars');
+                    user.avatar.public_id = public_id;
+                    user.avatar.secure_url = secure_url;
+                    console.log('Avatar saved locally:', secure_url);
                 }
-                
-                // Move file to avatars directory
-                const oldPath = `uploads/${fileName}`;
-                const newPath = `${avatarsDir}/${fileName}`;
-                
-                if (fs.existsSync(oldPath)) {
-                    fs.renameSync(oldPath, newPath);
+
+                if (req.files.idFront && req.files.idFront[0]) {
+                    const { public_id, secure_url } = moveAndGetUrl(req.files.idFront[0], 'id');
+                    user.idImages = user.idImages || {};
+                    user.idImages.front = { public_id, secure_url };
+                    console.log('ID Front saved locally:', secure_url);
                 }
-                
-                // Generate the proper production URL
-                const avatarUrl = generateProductionFileUrl(fileName, 'avatars');
-                
-                // Save the avatar information
-                user.avatar.public_id = `local_${fileName}`;
-                user.avatar.secure_url = avatarUrl;
-                
-                console.log('Avatar saved locally:', avatarUrl);
+
+                if (req.files.idBack && req.files.idBack[0]) {
+                    const { public_id, secure_url } = moveAndGetUrl(req.files.idBack[0], 'id');
+                    user.idImages = user.idImages || {};
+                    user.idImages.back = { public_id, secure_url };
+                    console.log('ID Back saved locally:', secure_url);
+                }
                 
             } catch (e) {
                 console.log('File upload error:', e.message);

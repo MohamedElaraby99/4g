@@ -10,7 +10,7 @@ import CourseNotifications from "./CourseNotifications";
 
 export default function Navbar() {
   const [darkMode, setDarkMode] = useState(
-    localStorage.getItem("theme") === "light" ? false : true
+    localStorage.getItem("theme") === "dark"
   );
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { data: user, role } = useSelector((state) => state.auth);
@@ -61,12 +61,12 @@ export default function Navbar() {
     }
   }, [darkMode]);
 
-  // Set dark mode as default on first load
+  // Set light mode as default on first load
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme");
     if (!savedTheme) {
-      setDarkMode(true);
-      localStorage.setItem("theme", "dark");
+      setDarkMode(false);
+      localStorage.setItem("theme", "light");
     }
   }, []);
 

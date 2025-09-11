@@ -12,14 +12,8 @@ const AnimatedHero = ({ onGetStarted }) => {
     setIsVisible(true);
   }, []);
 
-  const stats = [
-    { icon: FaUsers, number: "5K+", label: "طلاب مسجلين", color: "text-blue-600" },
-    { icon: FaFlask, number: "200+", label: "تجربة كيميائية", color: "text-green-600" },
-    { icon: FaStar, number: "4.9", label: "متوسط التقييم", color: "text-blue-600" },
-    { icon: FaAward, number: "15+", label: "سنوات خبرة", color: "text-purple-600" }
-  ];
-
-  const buttonText = 'استكشف الدورات';
+ 
+  const buttonText = 'ابدأ المذاكرة دلوقتي';
 
   const handleExploreCourses = () => {
     // Navigate to courses page
@@ -74,10 +68,17 @@ const AnimatedHero = ({ onGetStarted }) => {
               <div className="mt-4 flex items-center justify-center gap-3">
                 <FaLightbulb className="w-6 h-6 md:w-8 md:h-8 text-yellow-500" />
                 <p className="text-xl md:text-2xl lg:text-3xl text-gray-600 dark:text-gray-400 font-medium">
-                  منصة التعليم الذكي
+                  منصة تعليم مصرية لطلبة الإعدادي والثانوي
                 </p>
                 <FaGraduationCap className="w-6 h-6 md:w-8 md:h-8 text-blue-500" />
               </div>
+
+              {/* Bold Headline */}
+              <h1 className="mt-6 text-center text-3xl md:text-5xl lg:text-6xl font-extrabold tracking-tight">
+                <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600">
+                  ذاكر بذكاء.. وحقّق أعلى الدرجات
+                </span>
+              </h1>
             </div>
           </div>
         </div>
@@ -90,23 +91,28 @@ const AnimatedHero = ({ onGetStarted }) => {
             <div className="text-center mb-10">
               <div className="relative">
                 <p className="text-lg md:text-xl lg:text-2xl text-gray-600 dark:text-gray-400 leading-relaxed max-w-4xl mx-auto p-6 rounded-2xl bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-blue-200 dark:border-blue-700 shadow-lg">
-                  انضم إلى آلاف المتعلمين حول العالم وقم بتحويل حياتك المهنية من خلال دوراتنا الشاملة عبر الإنترنت المصممة من قبل خبراء الصناعة.
+                  منصة تعليم مصرية لطلبة الإعدادي والثانوي، تقدم شروحات تفاعلية، فيديوهات تعليمية، امتحانات، وملفات PDF لمساعدتك على التفوق الدراسي.
                 </p>
+                {/* Trust Badges */}
+                <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+                  <span className="px-3 py-1 text-sm md:text-base rounded-full bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-200 border border-blue-200 dark:border-blue-700">مطابق للمنهج المصري</span>
+                  <span className="px-3 py-1 text-sm md:text-base rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-200 border border-emerald-200 dark:border-emerald-700">تمارين وامتحانات تفاعلية</span>
+                  <span className="px-3 py-1 text-sm md:text-base rounded-full bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-200 border border-purple-200 dark:border-purple-700">مذكرات مراجعة PDF</span>
+                </div>
               </div>
             </div>
 
-            {/* CTA Button */}
-            <div className="text-center mb-8">
-              <button 
-                onClick={handleExploreCourses}
-                className="group relative px-10 py-5 md:px-12 md:py-6 font-bold rounded-full text-lg md:text-xl shadow-xl transition-all duration-300 transform hover:scale-105 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white hover:shadow-blue-500/30 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700"
+            {/* CTA Buttons */}
+            <div className="text-center mb-8 flex items-center justify-center gap-4 flex-wrap">
+              <Link
+                to="/courses"
+                className="px-10 py-5 md:px-12 md:py-6 font-bold rounded-full text-lg md:text-xl border-2 border-blue-300/60 dark:border-blue-700/60 text-blue-600 dark:text-blue-200 bg-white/60 dark:bg-gray-900/40 backdrop-blur hover:bg-white hover:shadow-lg transition-all flex items-center gap-3"
               >
-                <span className="relative flex items-center gap-4 justify-center">
-                  {buttonText}
-                  <FaArrowRight className="group-hover:translate-x-1 transition-transform duration-300" />
-                </span>
-              </button>
+                <FaPlay className="text-blue-600 dark:text-blue-300" /> ابدأ المذاكرة دلوقتي
+              </Link>
             </div>
+
+           
           </div>
         </div>
       </div>

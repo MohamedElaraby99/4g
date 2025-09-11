@@ -76,6 +76,16 @@ const userSchema = new Schema({
             type: String
         }
     },
+    idImages: {
+        front: {
+            public_id: { type: String },
+            secure_url: { type: String }
+        },
+        back: {
+            public_id: { type: String },
+            secure_url: { type: String }
+        }
+    },
     role: {
         type: String,
         default: 'USER',

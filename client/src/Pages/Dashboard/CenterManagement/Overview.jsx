@@ -143,7 +143,7 @@ export default function Overview() {
         {
           id: 3,
           type: 'payment',
-          message: 'تم استلام رسوم مجموعة الكيمياء',
+          message: 'تم استلام رسوم مجموعة The 4G',
           time: 'منذ ساعة',
           icon: FaBook
         },

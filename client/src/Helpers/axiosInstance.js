@@ -46,7 +46,6 @@ export const axiosInstance = axios.create({
     withCredentials: true, // Keep this for authentication
     timeout: 30000, // 30 second timeout
     headers: {
-        'Content-Type': 'application/json',
         'Accept': 'application/json'
     }
 });
@@ -54,6 +53,10 @@ export const axiosInstance = axios.create({
 // Add request interceptor to include device info in headers for cross-domain requests
 axiosInstance.interceptors.request.use(
     (config) => {
+        // Ensure Content-Type is correct for FormData
+        if (config.data instanceof FormData) {
+            delete config.headers['Content-Type'];
+        }
         // Add device info to headers for cross-domain requests
         if (!import.meta.env.DEV && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
             try {

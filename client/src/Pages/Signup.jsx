@@ -7,7 +7,7 @@ import Layout from "../Layout/Layout";
 import { createAccount } from "../Redux/Slices/AuthSlice";
 import InputBox from "../Components/InputBox/InputBox";
 import CaptchaComponent from "../Components/CaptchaComponent";
-import { FaUser, FaEnvelope, FaLock, FaEye, FaEyeSlash, FaUserPlus, FaGraduationCap, FaCamera, FaUpload, FaPhone, FaMapMarkerAlt, FaBook, FaExclamationTriangle, FaTimes, FaCheckCircle, FaInfoCircle } from "react-icons/fa";
+import { FaUser, FaEnvelope, FaLock, FaEye, FaEyeSlash, FaUserPlus, FaGraduationCap, FaCamera, FaUpload, FaPhone, FaMapMarkerAlt, FaBook, FaExclamationTriangle, FaTimes, FaCheckCircle, FaInfoCircle, FaIdCard } from "react-icons/fa";
 import { axiosInstance } from "../Helpers/axiosInstance";
 import { useEffect } from "react";
 import { egyptianCities } from "../utils/governorateMapping";
@@ -19,6 +19,8 @@ export default function Signup() {
   const navigate = useNavigate();
 
   const [previewImage, setPreviewImage] = useState("");
+  const [previewIdFront, setPreviewIdFront] = useState("");
+  const [previewIdBack, setPreviewIdBack] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [stages, setStages] = useState([]);
@@ -38,6 +40,8 @@ export default function Signup() {
     stage: "",
     age: "",
     avatar: "",
+    idFront: "",
+    idBack: "",
     adminCode: "",
   });
 
@@ -100,6 +104,38 @@ export default function Signup() {
     }
   }
 
+  function getIdFrontImage(event) {
+    event.preventDefault();
+    const file = event.target.files[0];
+    if (file) {
+      setSignupData({
+        ...signupData,
+        idFront: file,
+      });
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.addEventListener("load", function () {
+        setPreviewIdFront(this.result);
+      });
+    }
+  }
+
+  function getIdBackImage(event) {
+    event.preventDefault();
+    const file = event.target.files[0];
+    if (file) {
+      setSignupData({
+        ...signupData,
+        idBack: file,
+      });
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.addEventListener("load", function () {
+        setPreviewIdBack(this.result);
+      });
+    }
+  }
+
   // CAPTCHA handlers
   function handleCaptchaVerified(sessionId) {
     console.log('CAPTCHA verified with session ID:', sessionId);
@@ -132,6 +168,16 @@ export default function Signup() {
     // Check CAPTCHA verification
     if (!isCaptchaVerified || !captchaSessionId) {
       errors.push("🔒 يرجى التحقق من رمز الأمان أولاً");
+    }
+
+    // Require ID images for regular users
+    if (!isAdminRegistration) {
+      if (!signupData.idFront) {
+        errors.push("🪪 لازم ترفع صورة بطاقة (الوجه)");
+      }
+      if (!signupData.idBack) {
+        errors.push("🪪 لازم ترفع صورة بطاقة (الظهر)");
+      }
     }
     
     if (!termsAccepted) {
@@ -321,10 +367,16 @@ export default function Signup() {
       requestData.age = signupData.age;
     }
 
-    // Handle avatar file separately if present
-    if (signupData.avatar) {
+    // Always send multipart/form-data so files are handled correctly
+    {
       const formData = new FormData();
-      formData.append("avatar", signupData.avatar);
+      if (signupData.avatar) formData.append("avatar", signupData.avatar);
+      if (signupData.idFront) {
+        formData.append("idFront", signupData.idFront);
+      }
+      if (signupData.idBack) {
+        formData.append("idBack", signupData.idBack);
+      }
       
       // Add captchaSessionId at the top level for middleware access
       formData.append("captchaSessionId", captchaSessionId);
@@ -366,57 +418,14 @@ export default function Signup() {
             stage: "",
             age: "",
             avatar: "",
+            idFront: "",
+            idBack: "",
             adminCode: "",
           });
 
           setPreviewImage("");
-          setIsCaptchaVerified(false);
-          setCaptchaSessionId("");
-          setCaptchaReset(true);
-          setTimeout(() => setCaptchaReset(false), 100);
-
-          navigate("/");
-        } else {
-          // If signup failed, reset CAPTCHA for security
-          setIsCaptchaVerified(false);
-          setCaptchaSessionId("");
-          setCaptchaReset(true);
-          setTimeout(() => setCaptchaReset(false), 100);
-          setIsLoading(false);
-        }
-      } catch (error) {
-        console.error('Signup error:', error);
-        // Reset CAPTCHA on error
-        setIsCaptchaVerified(false);
-        setCaptchaSessionId("");
-        setCaptchaReset(true);
-        setTimeout(() => setCaptchaReset(false), 100);
-        setIsLoading(false);
-      }
-    } else {
-      // No avatar file, send as JSON
-      console.log('=== SENDING JSON REQUEST ===');
-      console.log('Request data:', requestData);
-      console.log('captchaSessionId from state:', captchaSessionId);
-      console.log('=== END DEBUG ===');
-      
-      try {
-        const response = await dispatch(createAccount(requestData));
-        if (response?.payload?.success) {
-          setSignupData({
-            fullName: "",
-            email: "",
-            password: "",
-            phoneNumber: "",
-            fatherPhoneNumber: "",
-            governorate: "",
-            stage: "",
-            age: "",
-            avatar: "",
-            adminCode: "",
-          });
-
-          setPreviewImage("");
+          setPreviewIdFront("");
+          setPreviewIdBack("");
           setIsCaptchaVerified(false);
           setCaptchaSessionId("");
           setCaptchaReset(true);
@@ -779,50 +788,101 @@ export default function Signup() {
                 </div>
               )}
 
-              {/* Enhanced Avatar Upload */}
+              {/* ID Photos Upload (Optional) */}
               <div className="group">
                 <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 text-right">
-                  الصورة الشخصية (اختياري)
+                  صورة البطاقة — الوجه والظهر
                 </label>
-                <div className="flex items-center space-x-reverse space-x-4">
-                  <div className="relative">
-                    <div className="w-20 h-20 rounded-full bg-gradient-to-r from-blue-100 to-blue-100 dark:from-blue-900/20 dark:to-blue-900/20 flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300">
-                      {previewImage ? (
-                        <img 
-                          src={previewImage} 
-                          alt="Profile preview" 
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <BsPersonCircle className="w-10 h-10 text-gray-400" />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Front Side */}
+                  <div className="flex items-center space-x-reverse space-x-4">
+                    <div className="relative">
+                      <div className="w-28 h-20 rounded-xl bg-gradient-to-r from-blue-100 to-blue-100 dark:from-blue-900/20 dark:to-blue-900/20 flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300">
+                        {previewIdFront ? (
+                          <img 
+                            src={previewIdFront} 
+                            alt="ID Front preview" 
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="flex flex-col items-center justify-center text-gray-400">
+                            <FaIdCard className="w-8 h-8" />
+                            <span className="text-[10px] mt-1">الوجه</span>
+                          </div>
+                        )}
+                      </div>
+                      {previewIdFront && (
+                        <div className="absolute -top-1 -left-1 w-7 h-7 bg-green-500 rounded-full flex items-center justify-center shadow-lg">
+                          <FaCamera className="w-4 h-4 text-white" />
+                        </div>
                       )}
                     </div>
-                    {previewImage && (
-                      <div className="absolute -top-1 -left-1 w-7 h-7 bg-green-500 rounded-full flex items-center justify-center shadow-lg">
-                        <FaCamera className="w-4 h-4 text-white" />
-                      </div>
-                    )}
+                    <div className="flex-1">
+                      <label htmlFor="id_front_upload" className="cursor-pointer">
+                        <div className="flex items-center justify-center px-6 py-3 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl hover:border-blue-400 dark:hover:border-blue-400 transition-all duration-300 hover:shadow-md bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600">
+                          <FaUpload className="w-5 h-5 text-blue-500 ml-2" />
+                          <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                            {previewIdFront ? "تغيير صورة الوجه" : "رفع صورة الوجه"}
+                          </span>
+                        </div>
+                      </label>
+                      <input
+                        id="id_front_upload"
+                        onChange={getIdFrontImage}
+                        type="file"
+                        accept=".jpg, .jpeg, .png, image/*"
+                        className="hidden"
+                      />
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <label htmlFor="image_uploads" className="cursor-pointer">
-                      <div className="flex items-center justify-center px-6 py-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl hover:border-blue-400 dark:hover:border-blue-400 transition-all duration-300 hover:shadow-md bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600">
-                        <FaUpload className="w-5 h-5 text-blue-500 ml-2" />
-                        <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
-                          {previewImage ? "تغيير الصورة" : "رفع صورة"}
-                        </span>
+
+                  {/* Back Side */}
+                  <div className="flex items-center space-x-reverse space-x-4">
+                    <div className="relative">
+                      <div className="w-28 h-20 rounded-xl bg-gradient-to-r from-blue-100 to-blue-100 dark:from-blue-900/20 dark:to-blue-900/20 flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300">
+                        {previewIdBack ? (
+                          <img 
+                            src={previewIdBack} 
+                            alt="ID Back preview" 
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="flex flex-col items-center justify-center text-gray-400">
+                            <FaIdCard className="w-8 h-8" />
+                            <span className="text-[10px] mt-1">الظهر</span>
+                          </div>
+                        )}
                       </div>
-                    </label>
-                    <input
-                      id="image_uploads"
-                      onChange={getImage}
-                      type="file"
-                      accept=".jpg, .jpeg, .png, image/*"
-                      className="hidden"
-                    />
+                      {previewIdBack && (
+                        <div className="absolute -top-1 -left-1 w-7 h-7 bg-green-500 rounded-full flex items-center justify-center shadow-lg">
+                          <FaCamera className="w-4 h-4 text-white" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <label htmlFor="id_back_upload" className="cursor-pointer">
+                        <div className="flex items-center justify-center px-6 py-3 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl hover:border-blue-400 dark:hover:border-blue-400 transition-all duration-300 hover:shadow-md bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600">
+                          <FaUpload className="w-5 h-5 text-blue-500 ml-2" />
+                          <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                            {previewIdBack ? "تغيير صورة الظهر" : "رفع صورة الظهر"}
+                          </span>
+                        </div>
+                      </label>
+                      <input
+                        id="id_back_upload"
+                        onChange={getIdBackImage}
+                        type="file"
+                        accept=".jpg, .jpeg, .png, image/*"
+                        className="hidden"
+                      />
+                    </div>
                   </div>
                 </div>
-              </div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 text-right">
+  ارفع صورة بطاقتك، ده هيساعدنا نتأكد من هويتك لما نحتاج.
+</p>
 
+              </div>
               {/* CAPTCHA Component */}
               <CaptchaComponent
                 onVerified={handleCaptchaVerified}

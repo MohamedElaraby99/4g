@@ -92,20 +92,20 @@ const InstructorSection = () => {
             {featuredInstructors.map((instructor, index) => (
               <div
                 key={instructor._id}
-                className="group bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 overflow-hidden border border-gray-100 dark:border-gray-700 cursor-pointer"
+                className="group bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 overflow-hidden border border-gray-100 dark:border-gray-700 hover:border-blue-200 dark:hover:border-blue-600 cursor-pointer"
                 onClick={() => handleInstructorClick(instructor)}
               >
                 {/* Large Instructor Photo - modern and fully visible */}
-                <div className="relative w-full aspect-[4/3] bg-gradient-to-br from-blue-50 to-blue-50 dark:from-gray-800 dark:to-gray-700 rounded-lg overflow-hidden flex items-center justify-center">
+                <div className="relative w-full aspect-[3/4] bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 rounded-xl overflow-hidden flex items-center justify-center border-b border-gray-100 dark:border-gray-700">
                   {instructor.profileImage?.secure_url ? (
                     <img
                       src={generateImageUrl(instructor.profileImage.secure_url)}
                       alt={instructor.name}
-                      className="max-w-full max-h-full object-contain transition-transform duration-300 group-hover:scale-105"
+                      className="w-full h-full object-contain p-2 transition-transform duration-300 group-hover:scale-105"
                       onError={handleImgError}
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center">
+                    <div className="w-full h-full flex items-center justify-center p-6">
                       <FaGraduationCap className="text-gray-400 dark:text-gray-500 text-6xl" />
                     </div>
                   )}
@@ -114,14 +114,14 @@ const InstructorSection = () => {
                 {/* Card Content */}
                 <div className="p-6">
                   {/* Instructor Name */}
-                  <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                  <h3 className="text-2xl font-bold text-gray-800 dark:text-white mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                     {instructor.name}
                   </h3>
                   
                   {/* Role/Specialization */}
-                  <p className="text-gray-600 dark:text-gray-400 font-medium mb-3">
+                  <div className="inline-flex items-center px-3 py-1 rounded-full bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-200 border border-blue-200 dark:border-blue-700 mb-3">
                     {instructor.specialization}
-                  </p>
+                  </div>
                   
                   {/* Brief Description */}
                   <p className="text-gray-500 dark:text-gray-500 text-sm leading-relaxed mb-4 line-clamp-3">

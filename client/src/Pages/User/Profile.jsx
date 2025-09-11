@@ -198,32 +198,7 @@ export default function Profile() {
             <h1 className="text-center absolute right-6 md:top-auto top-5 text-violet-500 dark:text-blue-500 md:text-4xl text-3xl font-bold font-inter after:content-[' ']  after:absolute after:-bottom-3.5 after:right-0 after:h-1.5 after:w-[60%] after:rounded-full after:bg-blue-400 dark:after:bg-blue-600">
               الملف الشخصي
             </h1>
-            {/* avatar */}
-            <div
-              className="w-16 h-16 rounded-full overflow-hidden self-center cursor-pointer"
-              onClick={() => avatarInputRef.current.click()}
-            >
-              {userData?.avatar?.secure_url || userInput.previewImage ? (
-                <img
-                  src={
-                    userInput.previewImage
-                      ? userInput.previewImage
-                      : userData?.avatar?.secure_url
-                  }
-                  alt="avatar"
-                  className="h-full w-full"
-                />
-              ) : (
-                <FaUserCircle className="h-full w-full" />
-              )}
-              <input
-                type="file"
-                accept=".png, .jpeg, .jpg"
-                className="hidden"
-                ref={avatarInputRef}
-                onChange={handleImageUpload}
-              />
-            </div>
+           
             {/* more options */}
             <div className="absolute left-3 top-3">
               <button

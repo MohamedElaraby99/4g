@@ -33,7 +33,7 @@ const register = async (req, res, next) => {
             }
         }
 
-        const { fullName, username, email, password, phoneNumber, fatherPhoneNumber, governorate, stage, age, adminCode, deviceInfo } = requestBody;
+        const { fullName, email, password, phoneNumber, fatherPhoneNumber, governorate, stage, age, adminCode, deviceInfo } = requestBody;
 
         // Determine user role based on admin code
         let userRole = 'USER';
@@ -42,50 +42,63 @@ const register = async (req, res, next) => {
         }
 
         // Check required fields based on role
-        if (!fullName || !username || !email || !password) {
-            return next(new AppError("Name, username, email, and password are required", 400));
+        if (!fullName || !password) {
+            return next(new AppError("Name and password are required", 400));
         }
 
-        // For regular users, check all required fields (fatherPhoneNumber is now optional)
+        // Role-specific field validation
         if (userRole === 'USER') {
-            if (!phoneNumber || !governorate || !stage || !age) {
-                return next(new AppError("Phone number, governorate, stage, and age are required for regular users", 400));
+            // For USER role: phone number is required, email is optional
+            if (!phoneNumber) {
+                return next(new AppError("Phone number is required for regular users", 400));
+            }
+            if (!governorate || !stage || !age) {
+                return next(new AppError("Governorate, stage, and age are required for regular users", 400));
+            }
+        } else if (userRole === 'ADMIN') {
+            // For ADMIN role: email is required
+            if (!email) {
+                return next(new AppError("Email is required for admin users", 400));
             }
         }
 
-        // Check if the user already exists
-        const userExist = await userModel.findOne({ 
-            $or: [{ email }, { username }] 
-        });
-        if (userExist) {
-            if (userExist.email === email) {
-                return next(new AppError("Email already exists, please login", 400));
+        // Check if the user already exists based on role
+        let userExist;
+        if (userRole === 'USER') {
+            // For USER role: check phone number
+            userExist = await userModel.findOne({ phoneNumber });
+            if (userExist) {
+                return next(new AppError("Phone number already exists, please login", 400));
             }
-            if (userExist.username === username) {
-                return next(new AppError("Username already exists, please choose another", 400));
+        } else {
+            // For ADMIN role: check email
+            userExist = await userModel.findOne({ email });
+            if (userExist) {
+                return next(new AppError("Email already exists, please login", 400));
             }
         }
 
         // Prepare user data based on role
         const userData = {
             fullName,
-            username,
-            email,
             password,
             role: userRole,
             avatar: {
-                public_id: email,
+                public_id: userRole === 'USER' ? phoneNumber : email,
                 secure_url: "",
             },
         };
 
-        // Add optional fields for regular users
+        // Add role-specific fields
         if (userRole === 'USER') {
             userData.phoneNumber = phoneNumber;
+            if (email) userData.email = email; // Optional email for USER
             if (fatherPhoneNumber) userData.fatherPhoneNumber = fatherPhoneNumber;
             userData.governorate = governorate;
             userData.stage = stage;
             userData.age = parseInt(age);
+        } else if (userRole === 'ADMIN') {
+            userData.email = email;
         }
 
         // Save user in the database and log the user in
@@ -194,7 +207,7 @@ const register = async (req, res, next) => {
         const token = await user.generateJWTToken();
 
         // Populate stage for regular users
-        if (user.role !== 'ADMIN' && user.stage) {
+        if (user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN' && user.stage) {
             await user.populate('stage', 'name');
         }
 
@@ -215,26 +228,32 @@ const register = async (req, res, next) => {
 // login
 const login = async (req, res, next) => {
     try {
-        const { email, password, deviceInfo } = req.body;
+        const { email, phoneNumber, password, deviceInfo } = req.body;
 
-        // check if user miss any field
-        if (!email || !password) {
-            return next(new AppError('All fields are required', 400))
+        // check if user provided either email or phone number and password
+        if ((!email && !phoneNumber) || !password) {
+            return next(new AppError('Please provide either email or phone number and password', 400))
         }
 
-        const user = await userModel.findOne({ email }).select('+password');
+        // Find user by email or phone number
+        let user;
+        if (email) {
+            user = await userModel.findOne({ email }).select('+password');
+        } else if (phoneNumber) {
+            user = await userModel.findOne({ phoneNumber }).select('+password');
+        }
 
         if (!user || !(await bcrypt.compare(password, user.password))) {
-            return next(new AppError('Email or Password does not match', 400))
+            return next(new AppError('Invalid credentials', 400))
         }
 
         console.log('=== LOGIN ATTEMPT ===');
-        console.log('User email:', email);
+        console.log('User identifier:', email || phoneNumber);
         console.log('User role:', user.role);
         console.log('Device info provided:', !!deviceInfo);
 
         // Skip device check for admin users
-        if (user.role !== 'ADMIN') {
+        if (user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN') {
             console.log('=== DEVICE REGISTRATION FOR NON-ADMIN USER ===');
             console.log('User role:', user.role);
             console.log('Device info received:', deviceInfo);
@@ -325,7 +344,7 @@ const login = async (req, res, next) => {
         user.password = undefined;
 
         // Populate stage for regular users
-        if (user.role !== 'ADMIN' && user.stage) {
+        if (user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN' && user.stage) {
             await user.populate('stage', 'name');
         }
 
@@ -507,10 +526,10 @@ const changePassword = async (req, res, next) => {
 // update profile
 const updateUser = async (req, res, next) => {
     try {
-        const { fullName, username, phoneNumber, fatherPhoneNumber, governorate, stage, age } = req.body;
+        const { fullName, phoneNumber, fatherPhoneNumber, governorate, stage, age } = req.body;
         const { id } = req.user;
 
-        console.log('Update user data:', { fullName, username, phoneNumber, fatherPhoneNumber, governorate, stage, age });
+        console.log('Update user data:', { fullName, phoneNumber, fatherPhoneNumber, governorate, stage, age });
 
         const user = await userModel.findById(id);
 
@@ -521,17 +540,6 @@ const updateUser = async (req, res, next) => {
         // Update user fields if provided
         if (fullName) {
             user.fullName = fullName;
-        }
-        if (username) {
-            // Check if username is already taken by another user
-            const existingUser = await userModel.findOne({ 
-                username: username, 
-                _id: { $ne: id } 
-            });
-            if (existingUser) {
-                return next(new AppError("Username already exists, please choose another", 400));
-            }
-            user.username = username;
         }
         if (phoneNumber) {
             user.phoneNumber = phoneNumber;
@@ -607,6 +615,66 @@ const updateUser = async (req, res, next) => {
     }
 }
 
+// Get all users with pagination and filtering
+const getAllUsers = async (req, res, next) => {
+    try {
+        const {
+            page = 1,
+            limit = 10,
+            search,
+            role,
+            status,
+            sortBy = 'createdAt',
+            sortOrder = 'desc'
+        } = req.query;
+
+        // Build query
+        const query = {};
+        
+        if (search) {
+            query.$or = [
+                { fullName: { $regex: search, $options: 'i' } },
+                { email: { $regex: search, $options: 'i' } },
+                { phoneNumber: { $regex: search, $options: 'i' } }
+            ];
+        }
+        
+        if (role) {
+            query.role = role;
+        }
+        
+        if (status !== undefined) {
+            query.isActive = status === 'active';
+        }
+
+        // Build sort object
+        const sort = {};
+        sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
+
+        const options = {
+            page: parseInt(page),
+            limit: parseInt(limit),
+            sort,
+            select: 'fullName email phoneNumber role isActive createdAt stage governorate age',
+            populate: {
+                path: 'stage',
+                select: 'name _id'
+            }
+        };
+
+        const users = await userModel.paginate(query, options);
+
+        res.status(200).json({
+            success: true,
+            message: "تم جلب المستخدمين بنجاح",
+            data: users
+        });
+    } catch (error) {
+        console.error('Error fetching users:', error);
+        return next(new AppError("حدث خطأ في جلب المستخدمين", 500));
+    }
+};
+
 export {
     register,
     login,
@@ -615,5 +683,6 @@ export {
     forgotPassword,
     resetPassword,
     changePassword,
-    updateUser
+    updateUser,
+    getAllUsers
 }

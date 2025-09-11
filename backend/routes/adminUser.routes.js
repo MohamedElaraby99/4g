@@ -13,14 +13,15 @@ import {
     resetUserWallet,
     resetAllRechargeCodes,
     getUserActivities,
-    getUserStats
+    getUserStats,
+    bulkImportUsers
 } from "../controllers/adminUser.controller.js";
 
 const router = express.Router();
 
 // All routes require admin authentication
 router.use(isLoggedIn);
-router.use(authorisedRoles("ADMIN"));
+router.use(authorisedRoles("ADMIN", "SUPER_ADMIN"));
 
 // Get all users with filters and pagination
 router.get("/users", (req, res, next) => {
@@ -31,6 +32,9 @@ router.get("/users", (req, res, next) => {
 
 // Create new user
 router.post("/create", createUser);
+
+// Bulk import users
+router.post("/bulk-import", bulkImportUsers);
 
 // Get user details
 router.get("/users/:userId", getUserDetails);

@@ -20,6 +20,11 @@ import VideoProgressSliceReducer from "./Slices/VideoProgressSlice"
 import DeviceManagementSliceReducer from "./Slices/DeviceManagementSlice"
 import LiveMeetingSliceReducer from "./Slices/LiveMeetingSlice"
 import CourseAccessSliceReducer from "./Slices/CourseAccessSlice"
+import EssayExamSliceReducer from "./Slices/EssayExamSlice"
+import AttendanceSliceReducer from "./Slices/AttendanceSlice"
+import GroupsSliceReducer from "./Slices/GroupsSlice"
+import UsersSliceReducer from "./Slices/UsersSlice"
+import FinancialSliceReducer from "./Slices/FinancialSlice"
 
  const store = configureStore({
     reducer: {
@@ -46,7 +51,12 @@ import CourseAccessSliceReducer from "./Slices/CourseAccessSlice"
   payment: PaymentSliceReducer,
   videoProgress: VideoProgressSliceReducer,
   deviceManagement: DeviceManagementSliceReducer,
-  liveMeeting: LiveMeetingSliceReducer
+  liveMeeting: LiveMeetingSliceReducer,
+  essayExam: EssayExamSliceReducer,
+  attendance: AttendanceSliceReducer,
+  groups: GroupsSliceReducer,
+  users: UsersSliceReducer,
+  financial: FinancialSliceReducer
     },
     devTools: true
 })

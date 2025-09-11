@@ -397,7 +397,7 @@ const ExamModal = ({ isOpen, onClose, exam, courseId, lessonId, unitId, examType
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm">
       <div className="bg-gray-100 dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-6xl max-h-[95vh] overflow-hidden">
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6">
+        <div className="bg-gradient-to-r from-blue-600 to-blue-600 text-white p-6">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-2xl font-bold">{exam.title}</h2>

@@ -7,13 +7,13 @@ export default {
   theme: {
     extend: {
       fontFamily: {
+        'sans': ['Lemonada', 'cursive'],
+        'lemonada': ['Lemonada', 'cursive'],
         'inter': ['Inter', 'sans-serif'],
         'lato': ['Lato', 'sans-serif'],
         'nunito-sans': ['Nunito Sans', 'sans-serif'],
         'open-sans': ['Open Sans', 'sans-serif'],
         'roboto': ['Roboto', 'sans-serif'],
-        'oi': ['Oi', 'serif'],
-        'marhey': ['Marhey', 'sans-serif'],
       },
       colors: {
         'input-bg': '#ffffff',
@@ -21,11 +21,11 @@ export default {
         'input-border': '#d1d5db',
       },
       fontWeight: {
-        'marhey-light': '300',
-        'marhey-regular': '400',
-        'marhey-medium': '500',
-        'marhey-semibold': '600',
-        'marhey-bold': '700',
+        'lemonada-light': '300',
+        'lemonada-regular': '400',
+        'lemonada-medium': '500',
+        'lemonada-semibold': '600',
+        'lemonada-bold': '700',
       }
     },
   },

@@ -106,7 +106,7 @@ export default function CourseDetail() {
 
   // Fetch wallet balance only when user is logged in
   useEffect(() => {
-    if (user && isLoggedIn && user.role !== 'ADMIN') {
+    if (user && isLoggedIn && user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN') {
       dispatch(getWalletBalance());
     }
   }, [dispatch, user, isLoggedIn]);
@@ -204,7 +204,7 @@ export default function CourseDetail() {
 
   const isItemPurchased = (purchaseType, itemId) => {
     // Admin users have access to all content
-    if (user?.role === 'ADMIN') {
+    if (user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN') {
       return true;
     }
     
@@ -231,7 +231,7 @@ export default function CourseDetail() {
 
   // Block access if code-based access expired (only for code access, not purchased)
   useEffect(() => {
-    if (!user || user.role === 'ADMIN') return;
+    if (!user || user.role === 'ADMIN' || user.role === 'SUPER_ADMIN') return;
     if (!currentCourse) return;
     
     // Check if access has expired
@@ -266,7 +266,7 @@ export default function CourseDetail() {
     }
     
     // Admin users have access to all content, no need to purchase
-    if (user.role === 'ADMIN') {
+    if (user.role === 'ADMIN' || user.role === 'SUPER_ADMIN') {
       setAlertMessage('أنت مدير النظام - لديك صلاحية الوصول لجميع المحتوى');
       setShowSuccessAlert(true);
       return;
@@ -297,14 +297,28 @@ export default function CourseDetail() {
 
   const handleRedeemCode = async (e) => {
     e.preventDefault();
-    if (!redeemCode.trim()) return;
+    if (!redeemCode.trim()) {
+      setAlertMessage('يرجى إدخال الكود أولاً');
+      setShowErrorAlert(true);
+      return;
+    }
+
+    // Basic code format validation
+    const codeFormat = /^[A-Z0-9]{8,12}$/;
+    if (!codeFormat.test(redeemCode.trim().toUpperCase())) {
+      setAlertMessage('تنسيق الكود غير صحيح. يجب أن يتكون الكود من 8-12 حرف وأرقام باللغة الإنجليزية فقط');
+      setShowErrorAlert(true);
+      return;
+    }
+
     try {
       await dispatch(redeemCourseAccessCode({ 
-        code: redeemCode.trim(),
+        code: redeemCode.trim().toUpperCase(),
         courseId: currentCourse._id 
       })).unwrap();
+      
       setRedeemCode('');
-      setAlertMessage('تم تفعيل الوصول للكورس بنجاح لوقت محدد');
+      setAlertMessage('🎉 تم تفعيل الوصول للكورس بنجاح! يمكنك الآن الوصول لجميع محتويات الكورس');
       setShowSuccessAlert(true);
       
       // Clear the access alert since access is restored
@@ -313,7 +327,30 @@ export default function CourseDetail() {
       // Refresh course access status
       dispatch(checkCourseAccess(currentCourse._id));
     } catch (err) {
-      setAlertMessage(err?.message || 'تعذر تفعيل الكود');
+      // Enhanced error messages based on backend responses
+      let errorMessage = 'تعذر تفعيل الكود';
+      
+      if (err?.message) {
+        const message = err.message.toLowerCase();
+        
+        if (message.includes('invalid or expired code')) {
+          errorMessage = '❌ الكود غير صحيح أو منتهي الصلاحية. تأكد من كتابة الكود بشكل صحيح';
+        } else if (message.includes('not valid for this course')) {
+          errorMessage = '🚫 هذا الكود غير صالح لهذا الكورس. تأكد من أنك تستخدم الكود الصحيح للكورس المطلوب';
+        } else if (message.includes('expired for its access window')) {
+          errorMessage = '⏰ انتهت صلاحية هذا الكود. يرجى الحصول على كود جديد من المدرس';
+        } else if (message.includes('course not found')) {
+          errorMessage = '📚 الكورس المرتبط بهذا الكود غير موجود. يرجى التواصل مع الدعم الفني';
+        } else if (message.includes('code is required')) {
+          errorMessage = '📝 يرجى إدخال الكود';
+        } else if (message.includes('already used')) {
+          errorMessage = '🔒 تم استخدام هذا الكود من قبل. كل كود يمكن استخدامه مرة واحدة فقط';
+        } else {
+          errorMessage = `❌ ${err.message}`;
+        }
+      }
+      
+      setAlertMessage(errorMessage);
       setShowErrorAlert(true);
     }
   };
@@ -439,7 +476,7 @@ export default function CourseDetail() {
       <div className="flex items-center gap-2">
         <button 
           onClick={() => handlePreviewClick(item, purchaseType)}
-          className="text-purple-600 hover:text-purple-700 flex items-center gap-1"
+          className="text-blue-600 hover:text-blue-700 flex items-center gap-1"
         >
           <FaEye />
           <span>معاينة</span>
@@ -498,27 +535,27 @@ export default function CourseDetail() {
     <Layout>
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900" dir="rtl">
         {/* Back Button */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6">
           <Link
             to="/courses"
-            className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 transition-colors"
+            className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 transition-colors text-sm sm:text-base"
           >
-            <FaArrowLeft />
-            <span>العودة للكورسات </span>
+            <FaArrowLeft className="text-sm sm:text-base" />
+            <span>العودة للكورسات</span>
           </Link>
         </div>
 
         {/* Course Header */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
             {/* Course Hero Section */}
-            <div className="relative h-64 overflow-hidden">
+            <div className="relative h-48 sm:h-64 overflow-hidden">
               {currentCourse.image?.secure_url ? (
                 <>
                   <img
                     src={generateImageUrl(currentCourse.image?.secure_url)}
                     alt={currentCourse.title}
-                    className="w-full h-64 object-cover rounded-lg"
+                    className="w-full h-48 sm:h-64 object-cover rounded-lg"
                     onError={(e) => {
                       e.target.src = placeholderImages.course;
                     }}
@@ -527,89 +564,83 @@ export default function CourseDetail() {
                 </>
               ) : (
                 <>
-                  <div className="w-full h-full bg-gradient-to-br from-blue-500 to-purple-600"></div>
+                  <div className="w-full h-full bg-gradient-to-br from-blue-500 to-blue-600"></div>
                   <div className="absolute inset-0 bg-black bg-opacity-30"></div>
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <FaBookOpen className="text-8xl text-white opacity-80" />
+                    <FaBookOpen className="text-6xl sm:text-8xl text-white opacity-80" />
                   </div>
                 </>
               )}
               
               {/* Fallback gradient for broken images */}
-              <div className="hidden w-full h-full bg-gradient-to-br from-blue-500 to-purple-600">
+              <div className="hidden w-full h-full bg-gradient-to-br from-blue-500 to-blue-600">
                 <div className="absolute inset-0 bg-black bg-opacity-30"></div>
                 <div className="absolute inset-0 flex items-center justify-center">
                   <FaBookOpen className="text-8xl text-white opacity-80" />
                 </div>
               </div>
               
-              <div className="absolute top-6 right-6">
-                <span className="px-3 py-1 bg-white bg-opacity-90 text-gray-800 text-sm font-medium rounded-full">
+              <div className="absolute top-3 right-3 sm:top-6 sm:right-6">
+                <span className="px-2 py-1 sm:px-3 sm:py-1 bg-white bg-opacity-90 text-gray-800 text-xs sm:text-sm font-medium rounded-full">
                   {currentCourse.stage?.name || 'غير محدد'}
                 </span>
               </div>
             </div>
 
             {/* Course Info */}
-            <div className="p-8">
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="p-4 sm:p-8">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
                 {/* Main Content */}
                 <div className="lg:col-span-2">
-                  <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+                  <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
                     {currentCourse.title}
                   </h1>
                   
-                  <p className="text-lg text-gray-600 dark:text-gray-300 mb-6">
+                  <p className="text-base sm:text-lg text-gray-600 dark:text-gray-300 mb-6">
                     {currentCourse.description}
                   </p>
 
                   {/* Course Stats */}
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                    <div className="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                      <div className="text-2xl font-bold text-blue-600 mb-1">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 mb-6">
+                    <div className="text-center p-3 sm:p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                      <div className="text-xl sm:text-2xl font-bold text-blue-600 mb-1">
                         {getTotalLessons(currentCourse)}
                       </div>
-                      <div className="text-sm text-gray-600 dark:text-gray-400">درس</div>
+                      <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">درس</div>
                     </div>
-                    <div className="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                      <div className="text-2xl font-bold text-purple-600 mb-1">
+                    <div className="text-center p-3 sm:p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                      <div className="text-xl sm:text-2xl font-bold text-blue-600 mb-1">
                         {currentCourse.units?.length || 0}
                       </div>
-                      <div className="text-sm text-gray-600 dark:text-gray-400">وحدة</div>
-                    </div>
-                    <div className="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                      <div className="text-2xl font-bold text-yellow-600 mb-1">
-                        {currentCourse.directLessons?.length || 0}
-                      </div>
-                      <div className="text-sm text-gray-600 dark:text-gray-400">مقدمة</div>
+                      <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">وحدة</div>
                     </div>
                   </div>
 
                   {/* Instructor Info */}
-                  <div className="flex items-center gap-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg mb-6">
-                    <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center">
-                      <FaUser className="text-white text-xl" />
+                  <div className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg mb-6">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
+                      <FaUser className="text-white text-lg sm:text-xl" />
                     </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900 dark:text-white">
+                    <div className="min-w-0 flex-1">
+                      <h3 className="font-semibold text-gray-900 dark:text-white text-sm sm:text-base truncate">
                         {currentCourse.instructor?.name || 'غير محدد'}
                       </h3>
-                      <p className="text-gray-600 dark:text-gray-400">المدرس </p>
+                      <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm">المدرس</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Sidebar */}
                 <div className="lg:col-span-1">
-                  <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-6 sticky top-6">
+                  <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 sm:p-6 lg:sticky lg:top-6">
                                                                {/* Wallet Balance */}
-                      {user && isLoggedIn && user.role !== 'ADMIN' && (
-                        <div className="text-center mb-6 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                      {user && isLoggedIn && user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN' && (
+                        <div className="text-center mb-4 sm:mb-6 p-3 sm:p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
                           <div className="flex items-center justify-center gap-2 mb-2">
-                            <FaWallet className="text-green-600" />
-                            <span className="text-sm text-gray-600 dark:text-gray-400">رصيد المحفظة</span>
+                            <FaWallet className="text-green-600 text-sm sm:text-base" />
+                            <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">رصيد المحفظة</span>
                           </div>
-                          <div className="text-2xl font-bold text-green-600">
+                          <div className="text-xl sm:text-2xl font-bold text-green-600">
                             {walletBalance} جنيه
                           </div>
                         </div>
@@ -617,72 +648,138 @@ export default function CourseDetail() {
 
                                              {/* Remaining Days Label */}
                        {courseAccessState?.source === 'code' && courseAccessState?.accessEndAt && (
-                         <div className="mb-6">
+                         <div className="mb-4 sm:mb-6">
                            <RemainingDaysLabel 
                              accessEndAt={courseAccessState.accessEndAt}
-                             className="w-full justify-center"
+                             className="w-full justify-center text-sm sm:text-base"
                              showExpiredMessage={!courseAccessState?.hasAccess}
                            />
                          </div>
                        )}
 
-                    <div className="space-y-3 mb-6">
-                      <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                        <FaBookOpen className="text-gray-400" />
-                        <span>المادة: {currentCourse.subject?.title || 'غير محدد'}</span>
+                    <div className="space-y-2 sm:space-y-3 mb-4 sm:mb-6">
+                      <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                        <FaBookOpen className="text-gray-400 flex-shrink-0" />
+                        <span className="truncate">المادة: {currentCourse.subject?.title || 'غير محدد'}</span>
                       </div>
-                      <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                        <FaGraduationCap className="text-gray-400" />
-                        <span>المرحلة: {currentCourse.stage?.name || 'غير محدد'}</span>
+                      <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                        <FaGraduationCap className="text-gray-400 flex-shrink-0" />
+                        <span className="truncate">المرحلة: {currentCourse.stage?.name || 'غير محدد'}</span>
                       </div>
                     </div>
 
                                          {/* Redeem Access Code */}
-                     {user && isLoggedIn && user.role !== 'ADMIN' && (
+                     {user && isLoggedIn && user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN' && (
                        <div className="space-y-3">
                          {/* Show expired access warning */}
                          {courseAccessState?.source === 'code' && !courseAccessState?.hasAccess && courseAccessState?.accessEndAt && (
                            <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-lg">
                              <div className="flex items-center gap-2 text-red-700 dark:text-red-300">
                                <FaExclamationTriangle className="text-red-600" />
-                               <span className="text-sm font-medium">انتهت صلاحية الوصول</span>
+                               <span className="text-sm font-medium">خلاص الكود انتهى</span>
                              </div>
                              <p className="text-xs text-red-600 dark:text-red-400 mt-1">
-                               يرجى إدخال كود جديد لاستعادة الوصول للكورس
+                               لازم تدخل كود جديد عشان ترجع تدخل الكورس تاني
                              </p>
                            </div>
                          )}
                          
-                         <form onSubmit={handleRedeemCode} className="space-y-3">
-                           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                         <form onSubmit={handleRedeemCode} className="space-y-4">
+                           <label className="block text-sm sm:text-base font-medium text-gray-700 dark:text-gray-300 text-right">
                              {courseAccessState?.source === 'code' && !courseAccessState?.hasAccess 
-                               ? 'أدخل كود جديد لفتح الكورس' 
-                               : 'لديك كود لفتح الكورس؟'
+                               ? 'اكتب الكود الجديد هنا' 
+                               : 'معاك كود للكورس؟'
                              }
                            </label>
-                           <div className="flex gap-2">
+                           
+                           {/* Desktop Layout */}
+                           <div className="hidden sm:flex flex-col sm:flex-row gap-3">
                              <input
                                type="text"
                                value={redeemCode}
-                               onChange={(e) => setRedeemCode(e.target.value)}
-                               placeholder="أدخل الكود هنا"
-                               className="flex-1 px-3 py-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white"
+                               onChange={(e) => {
+                                 // Auto-format: uppercase and remove spaces/special chars
+                                 const formatted = e.target.value.replace(/[^A-Z0-9]/gi, '').toUpperCase();
+                                 if (formatted.length <= 12) {
+                                   setRedeemCode(formatted);
+                                 }
+                               }}
+                               onKeyDown={(e) => {
+                                 // Prevent space key
+                                 if (e.key === ' ') {
+                                   e.preventDefault();
+                                 }
+                               }}
+                               placeholder="زي كده: ABC123XYZ9"
+                               className="flex-1 min-w-0 px-4 py-3 rounded-lg bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-center font-mono text-lg tracking-wider"
+                               maxLength="12"
+                               style={{ letterSpacing: '0.1em' }}
                                required
                              />
                              <button
                                type="submit"
-                               className={`px-4 py-2 text-white rounded-lg ${
+                               className={`px-4 sm:px-6 py-3 text-white rounded-lg font-medium transition-all duration-200 flex-shrink-0 min-w-max ${
                                  courseAccessState?.source === 'code' && !courseAccessState?.hasAccess
-                                   ? 'bg-red-600 hover:bg-red-700'
-                                   : 'bg-green-600 hover:bg-green-700'
-                               }`}
+                                   ? 'bg-red-600 hover:bg-red-700 focus:ring-red-500'
+                                   : 'bg-green-600 hover:bg-green-700 focus:ring-green-500'
+                               } focus:ring-2 focus:ring-opacity-50`}
                              >
-                               {courseAccessState?.source === 'code' && !courseAccessState?.hasAccess ? 'إعادة التفعيل' : 'تفعيل'}
+                               {courseAccessState?.source === 'code' && !courseAccessState?.hasAccess ? 'فعّل تاني' : 'فعّل'}
                              </button>
                            </div>
-                           <p className="text-xs text-gray-500 dark:text-gray-400">
-                             يمنحك الكود وصولاً كاملاً للكورس لمدة محددة.
-                           </p>
+
+                           {/* Mobile Layout */}
+                           <div className="sm:hidden space-y-3">
+                             <input
+                               type="text"
+                               value={redeemCode}
+                               onChange={(e) => {
+                                 // Auto-format: uppercase and remove spaces/special chars
+                                 const formatted = e.target.value.replace(/[^A-Z0-9]/gi, '').toUpperCase();
+                                 if (formatted.length <= 12) {
+                                   setRedeemCode(formatted);
+                                 }
+                               }}
+                               onKeyDown={(e) => {
+                                 // Prevent space key
+                                 if (e.key === ' ') {
+                                   e.preventDefault();
+                                 }
+                               }}
+                               placeholder="زي كده: ABC123XYZ9"
+                               className="w-full px-4 py-3 rounded-lg bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-center font-mono text-lg tracking-wider"
+                               maxLength="12"
+                               style={{ letterSpacing: '0.1em' }}
+                               required
+                             />
+                             <button
+                               type="submit"
+                               className={`w-full px-4 py-3 text-white rounded-lg font-medium transition-all duration-200 ${
+                                 courseAccessState?.source === 'code' && !courseAccessState?.hasAccess
+                                   ? 'bg-red-600 hover:bg-red-700 focus:ring-red-500'
+                                   : 'bg-green-600 hover:bg-green-700 focus:ring-green-500'
+                               } focus:ring-2 focus:ring-opacity-50 text-base`}
+                             >
+                               {courseAccessState?.source === 'code' && !courseAccessState?.hasAccess ? 'فعّل تاني' : 'فعّل'}
+                             </button>
+                           </div>
+
+                           <div className="space-y-2">
+                             <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 text-right leading-relaxed">
+                               {courseAccessState?.source === 'code' && !courseAccessState?.hasAccess && courseAccessState?.accessEndAt && (
+                                 <span className="text-red-500">خلاص الكود انتهى</span>
+                               )}
+                               </p>
+                                                            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-3">
+                                 <h4 className="text-xs font-medium text-blue-900 dark:text-blue-100 mb-1">حاجات مهمة:</h4>
+                                 <ul className="text-xs text-blue-800 dark:text-blue-200 space-y-1">
+                                   <li>• الكود ده للكورس ده بس</li>
+                                   <li>• كل كود يتستعمل مرة واحدة بس</li>
+                                   <li>• الكود من 8-12 حرف وأرقام إنجليزي</li>
+                                   <li>• اتأكد إنك كاتب الكود صح</li>
+                                 </ul>
+                               </div>
+                           </div>
                          </form>
                        </div>
                      )}
@@ -695,21 +792,21 @@ export default function CourseDetail() {
 
          {/* Remaining Days Banner */}
          {courseAccessState?.source === 'code' && courseAccessState?.accessEndAt && (
-           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-6">
-             <div className={`border rounded-xl p-4 ${
+           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-4 sm:mb-6">
+             <div className={`border rounded-xl p-3 sm:p-4 ${
                courseAccessState?.hasAccess 
-                 ? 'bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border-blue-200 dark:border-blue-700'
-                 : 'bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 border-red-200 dark:border-red-700'
+                 ? 'bg-gradient-to-r from-blue-50 to-blue-50 dark:from-blue-900/20 dark:to-blue-900/20 border-blue-200 dark:border-blue-700'
+                 : 'bg-gradient-to-r from-red-50 to-blue-50 dark:from-red-900/20 dark:to-blue-900/20 border-red-200 dark:border-red-700'
              }`}>
-               <div className="flex items-center justify-center gap-3">
+               <div className="flex items-center justify-center gap-2 sm:gap-3">
                  {courseAccessState?.hasAccess ? (
-                   <FaClock className="text-blue-600 text-xl" />
+                   <FaClock className="text-blue-600 text-lg sm:text-xl flex-shrink-0" />
                  ) : (
-                   <FaExclamationTriangle className="text-red-600 text-xl" />
+                   <FaExclamationTriangle className="text-red-600 text-lg sm:text-xl flex-shrink-0" />
                  )}
                  <RemainingDaysLabel 
                    accessEndAt={courseAccessState.accessEndAt}
-                   className="text-lg font-semibold"
+                   className="text-base sm:text-lg font-semibold text-center"
                    showExpiredMessage={!courseAccessState?.hasAccess}
                  />
                </div>
@@ -718,48 +815,50 @@ export default function CourseDetail() {
          )}
  
          {/* هيكل الدورة */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
-            <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                <FaList />
+            <div className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                <FaList className="text-lg sm:text-xl" />
                 <span>هيكل الدرس</span>
               </h2>
             </div>
 
-            <div className="p-6">
+            <div className="p-4 sm:p-6">
               {/* درس */}
               {currentCourse.directLessons && currentCourse.directLessons.length > 0 && (
-                <div className="mb-8">
-                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+                <div className="mb-6 sm:mb-8">
+                  <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4">
                     المقدمة
                   </h3>
                   <div className="space-y-3">
                     {currentCourse.directLessons.map((lesson, index) => (
                       <div
                         key={lesson._id || index}
-                        className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg"
+                        className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 bg-gray-50 dark:bg-gray-700 rounded-lg gap-3 sm:gap-4"
                       >
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                        <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1">
+                          <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
                             <FaPlay className="text-white text-sm" />
                           </div>
-                          <div>
-                            <h4 className="font-medium text-gray-900 dark:text-white">
+                          <div className="min-w-0 flex-1">
+                            <h4 className="font-medium text-gray-900 dark:text-white text-sm sm:text-base truncate">
                               {lesson.title}
                             </h4>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">
+                            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 line-clamp-2 sm:line-clamp-1">
                               {lesson.description}
                             </p>
                           </div>
                         </div>
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4 flex-shrink-0">
                           {!hidePrices && lesson.price > 0 && (
-                            <span className="text-sm font-medium text-green-600">
+                            <span className="text-sm font-medium text-green-600 whitespace-nowrap">
                               {lesson.price} جنيه
                             </span>
                           )}
-                          {renderPurchaseButton(lesson, 'lesson')}
+                          <div className="flex-shrink-0">
+                            {renderPurchaseButton(lesson, 'lesson')}
+                          </div>
                         </div>
                       </div>
                     ))}
@@ -770,10 +869,10 @@ export default function CourseDetail() {
               {/* Units */}
               {currentCourse.units && currentCourse.units.length > 0 && (
                 <div>
-                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+                  <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4">
                     الوحدات التعليمية
                   </h3>
-                  <div className="space-y-4">
+                  <div className="space-y-3 sm:space-y-4">
                     {currentCourse.units.map((unit, unitIndex) => (
                       <div
                         key={unit._id || unitIndex}
@@ -781,65 +880,69 @@ export default function CourseDetail() {
                       >
                         {/* Unit Header */}
                         <div
-                          className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                          className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 bg-gray-50 dark:bg-gray-700 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors gap-3 sm:gap-4"
                           onClick={() => toggleUnit(unit._id || unitIndex)}
                         >
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center">
+                          <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1">
+                            <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
                               <FaBookOpen className="text-white text-sm" />
                             </div>
-                            <div>
-                              <h4 className="font-medium text-gray-900 dark:text-white">
+                            <div className="min-w-0 flex-1">
+                              <h4 className="font-medium text-gray-900 dark:text-white text-sm sm:text-base truncate">
                                 {unit.title}
                               </h4>
-                              <p className="text-sm text-gray-600 dark:text-gray-400">
+                              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 line-clamp-2 sm:line-clamp-1">
                                 {unit.description}
                               </p>
                             </div>
                           </div>
-                          <div className="flex items-center gap-4">
+                          <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4 flex-shrink-0">
                             {unit.price > 0 && (
-                              <span className="text-sm font-medium text-green-600">
+                              <span className="text-sm font-medium text-green-600 whitespace-nowrap">
                                 {unit.price} جنيه
                               </span>
-                                                        )}
-                            {expandedUnits.has(unit._id || unitIndex) ? (
-                              <FaChevronUp className="text-gray-400" />
-                            ) : (
-                              <FaChevronDown className="text-gray-400" />
                             )}
+                            <div className="flex-shrink-0">
+                              {expandedUnits.has(unit._id || unitIndex) ? (
+                                <FaChevronUp className="text-gray-400" />
+                              ) : (
+                                <FaChevronDown className="text-gray-400" />
+                              )}
+                            </div>
                           </div>
                         </div>
 
                         {/* Unit Lessons */}
                         {expandedUnits.has(unit._id || unitIndex) && unit.lessons && (
-                          <div className="p-4 bg-white dark:bg-gray-800">
+                          <div className="p-3 sm:p-4 bg-white dark:bg-gray-800">
                             <div className="space-y-3">
                               {unit.lessons.map((lesson, lessonIndex) => (
                                 <div
                                   key={lesson._id || lessonIndex}
-                                  className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg"
+                                  className="flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg gap-3 sm:gap-4"
                                 >
-                                  <div className="flex items-center gap-3">
-                                    <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center">
+                                  <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1">
+                                    <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
                                       <FaPlay className="text-white text-xs" />
                                     </div>
-                                    <div>
-                                      <h5 className="font-medium text-gray-900 dark:text-white">
+                                    <div className="min-w-0 flex-1">
+                                      <h5 className="font-medium text-gray-900 dark:text-white text-sm truncate">
                                         {lesson.title}
                                       </h5>
-                                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                                      <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2">
                                         {lesson.description}
                                       </p>
                                     </div>
                                   </div>
-                                  <div className="flex items-center gap-4">
+                                  <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4 flex-shrink-0">
                                     {!hidePrices && lesson.price > 0 && (
-                                      <span className="text-sm font-medium text-green-600">
+                                      <span className="text-sm font-medium text-green-600 whitespace-nowrap">
                                         {lesson.price} جنيه
                                       </span>
                                     )}
-                                    {renderPurchaseButton(lesson, 'lesson', true, unit._id)}
+                                    <div className="flex-shrink-0">
+                                      {renderPurchaseButton(lesson, 'lesson', true, unit._id)}
+                                    </div>
                                   </div>
                                 </div>
                               ))}
@@ -1031,7 +1134,7 @@ export default function CourseDetail() {
                        {previewItem.exams.slice(0, 2).map((exam, index) => (
                          <div key={index} className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                            <div className="flex items-center gap-2">
-                             <FaGraduationCap className="text-yellow-600" />
+                             <FaGraduationCap className="text-blue-600" />
                              <span className="text-sm text-gray-700 dark:text-gray-300">{exam.title}</span>
                            </div>
                          </div>
@@ -1084,7 +1187,7 @@ export default function CourseDetail() {
                        </span>
                      </div>
                      <div className="flex items-center gap-2">
-                       <FaClipboardList className="text-purple-600" />
+                       <FaClipboardList className="text-blue-600" />
                        <span className="text-blue-700 dark:text-blue-300">
                          {previewItem.examsCount || 0} اختبار
                        </span>

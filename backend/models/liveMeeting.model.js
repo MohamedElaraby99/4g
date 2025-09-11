@@ -1,4 +1,5 @@
 import { Schema, model } from 'mongoose';
+import { getCairoNow, toCairoTime } from '../utils/timezone.js';
 
 const liveMeetingSchema = new Schema({
   title: {
@@ -161,8 +162,8 @@ liveMeetingSchema.methods.removeAttendee = function(userId) {
 
 // Pre-save middleware to update status based on time
 liveMeetingSchema.pre('save', function(next) {
-  const now = new Date();
-  const scheduledTime = new Date(this.scheduledDate);
+  const now = getCairoNow();
+  const scheduledTime = toCairoTime(this.scheduledDate);
   const endTime = new Date(scheduledTime.getTime() + (this.duration * 60000));
 
   if (now >= scheduledTime && now <= endTime && this.status === 'scheduled') {

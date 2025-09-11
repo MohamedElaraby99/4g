@@ -1,4 +1,5 @@
 import { Schema, model } from "mongoose";
+import { getCairoNow, addCairoTime } from '../utils/timezone.js';
 
 const courseAccessCodeSchema = new Schema({
     code: {
@@ -20,7 +21,7 @@ const courseAccessCodeSchema = new Schema({
         type: Date,
         default: function () {
             // Default: 90 days
-            return new Date(Date.now() + 90 * 24 * 60 * 60 * 1000);
+            return addCairoTime(getCairoNow(), 90, 'days');
         }
     },
     isUsed: {

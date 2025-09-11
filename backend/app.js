@@ -17,23 +17,29 @@ import whatsappServiceRoutes from './routes/whatsappService.routes.js';
 import pdfConverterRoutes from './routes/pdfConverter.routes.js';
 import examRoutes from './routes/exam.routes.js';
 import examResultsRoutes from './routes/examResults.routes.js';
+import essayExamRoutes from './routes/essayExam.routes.js';
+import draftRoutes from './routes/draft.routes.js';
 import videoProgressRoutes from './routes/videoProgress.routes.js';
 import deviceManagementRoutes from './routes/deviceManagement.routes.js';
 import liveMeetingRoutes from './routes/liveMeeting.routes.js';
 import captchaRoutes from './routes/captcha.routes.js';
 import courseAccessRoutes from './routes/courseAccess.routes.js';
-
-
-
-
+import attendanceRoutes from './routes/attendance.routes.js';
+import groupRoutes from './routes/group.routes.js';
+import financialRoutes from './routes/financial.routes.js';
+import courseNotificationRoutes from './routes/courseNotification.routes.js';
+import achievementsRoutes from './routes/achievements.routes.js';
 
 import gradeRoutes from './routes/grade.routes.js';
+import offlineGradeRoutes from './routes/offlineGrade.routes.js';
+import achievementRoutes from './routes/achievement.routes.js';
 import instructorRoutes from './routes/instructor.routes.js';
 import stageRoutes from './routes/stage.routes.js';
 import express from 'express';
 import connectToDb from './config/db.config.js';
 import errorMiddleware from './middleware/error.middleware.js';
 import { checkDeviceAuthorization, logDeviceAccess } from './middleware/deviceAuth.middleware.js';
+import { toCairoISOString } from './utils/timezone.js';
 
 const app = express();
 
@@ -202,7 +208,7 @@ app.get('/api/health', async (req, res) => {
     
     res.json({
       status: 'healthy',
-      timestamp: new Date().toISOString(),
+      timestamp: toCairoISOString(),
       database: dbStatus,
       environment: process.env.NODE_ENV || 'unknown',
       cors: {
@@ -259,7 +265,7 @@ app.get('/api/test-featured', async (req, res) => {
     
     res.json({
       message: 'Featured endpoints test',
-      timestamp: new Date().toISOString(),
+      timestamp: toCairoISOString(),
       models: modelsStatus,
       environment: process.env.NODE_ENV || 'unknown'
     });
@@ -273,7 +279,7 @@ app.get('/api/test-featured', async (req, res) => {
   }
 });
 
-app.use('/api/v1/user', userRoutes); 
+app.use('/api/v1/users', userRoutes); 
 app.use('/api/v1/courses', courseRoutes);
 app.use('/api/v1/payments', paymentRoutes);
 console.log('Payment routes registered at /api/v1/payments');
@@ -288,25 +294,35 @@ app.use('/api/v1/whatsapp-services', whatsappServiceRoutes);
 app.use('/api/v1/pdf-converter', pdfConverterRoutes);
 app.use('/api/v1/exams', examRoutes);
 app.use('/api/v1/exam-results', examResultsRoutes);
+app.use('/api/v1/essay-exams', essayExamRoutes);
+app.use('/api/v1/drafts', draftRoutes);
 app.use('/api/v1/video-progress', videoProgressRoutes);
 app.use('/api/v1/device-management', deviceManagementRoutes);
 app.use('/api/v1/live-meetings', liveMeetingRoutes);
 app.use('/api/v1/captcha', captchaRoutes);
 app.use('/api/v1/course-access', courseAccessRoutes);
-
+app.use('/api/v1/attendance', attendanceRoutes);
+app.use('/api/v1/groups', groupRoutes);
+app.use('/api/v1/financial', financialRoutes);
+app.use('/api/v1/notifications', courseNotificationRoutes);
+app.use('/api/v1/achievements', achievementsRoutes);
 
 // Apply device authorization middleware to protected routes
 app.use('/api/v1/courses', checkDeviceAuthorization, logDeviceAccess);
 app.use('/api/v1/payments', checkDeviceAuthorization, logDeviceAccess);
 app.use('/api/v1/wallet', checkDeviceAuthorization, logDeviceAccess);
 app.use('/api/v1/exams', checkDeviceAuthorization, logDeviceAccess);
+app.use('/api/v1/essay-exams', checkDeviceAuthorization, logDeviceAccess);
 app.use('/api/v1/video-progress', checkDeviceAuthorization, logDeviceAccess);
 app.use('/api/v1/live-meetings', checkDeviceAuthorization, logDeviceAccess);
+app.use('/api/v1/groups', checkDeviceAuthorization, logDeviceAccess);
 
 // Note: Public routes like subjects, blogs, instructors don't need device authorization
 // They are accessible without authentication
 
 app.use('/api/v1/grades', gradeRoutes);
+app.use('/api/v1/offline-grades', offlineGradeRoutes);
+app.use('/api/v1/achievements', achievementRoutes);
 app.use('/api/v1/instructors', instructorRoutes);
 app.use('/api/v1/stages', stageRoutes);
  

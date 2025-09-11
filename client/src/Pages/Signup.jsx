@@ -10,7 +10,7 @@ import CaptchaComponent from "../Components/CaptchaComponent";
 import { FaUser, FaEnvelope, FaLock, FaEye, FaEyeSlash, FaUserPlus, FaGraduationCap, FaCamera, FaUpload, FaPhone, FaMapMarkerAlt, FaBook, FaExclamationTriangle, FaTimes, FaCheckCircle, FaInfoCircle } from "react-icons/fa";
 import { axiosInstance } from "../Helpers/axiosInstance";
 import { useEffect } from "react";
-import { egyptianGovernorates } from "../utils/governorateMapping";
+import { egyptianCities } from "../utils/governorateMapping";
 import { generateDeviceFingerprint, getDeviceType, getBrowserInfo, getOperatingSystem } from "../utils/deviceFingerprint";
 import logo from "../assets/logo.png";
 
@@ -24,11 +24,12 @@ export default function Signup() {
   const [stages, setStages] = useState([]);
   const [captchaSessionId, setCaptchaSessionId] = useState("");
   const [isCaptchaVerified, setIsCaptchaVerified] = useState(false);
+  const [captchaReset, setCaptchaReset] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(true);
   const [termsAccepted, setTermsAccepted] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState({});
   const [signupData, setSignupData] = useState({
     fullName: "",
-    username: "",
     email: "",
     password: "",
     phoneNumber: "",
@@ -39,6 +40,9 @@ export default function Signup() {
     avatar: "",
     adminCode: "",
   });
+
+  // Check if this is an admin registration
+  const isAdminRegistration = signupData.adminCode === 'ADMIN123';
 
   // Fetch stages on component mount
   useEffect(() => {
@@ -60,10 +64,22 @@ export default function Signup() {
   function handleUserInput(e) {
     const { name, value } = e.target;
     
+    // Remove spaces from specific fields for easier signup/signin
+    const fieldsToCleanSpaces = ['email', 'password', 'phoneNumber', 'fatherPhoneNumber', 'adminCode'];
+    const cleanValue = fieldsToCleanSpaces.includes(name) ? value.replace(/\s+/g, '') : value;
+    
     setSignupData({
       ...signupData,
-      [name]: value,
+      [name]: cleanValue,
     });
+    
+    // Clear field error when user starts typing
+    if (fieldErrors[name]) {
+      setFieldErrors({
+        ...fieldErrors,
+        [name]: null
+      });
+    }
   }
 
   function getImage(event) {
@@ -87,91 +103,180 @@ export default function Signup() {
   // CAPTCHA handlers
   function handleCaptchaVerified(sessionId) {
     console.log('CAPTCHA verified with session ID:', sessionId);
+    console.log('Setting captchaSessionId to:', sessionId);
+    console.log('Setting isCaptchaVerified to true');
     setCaptchaSessionId(sessionId);
     setIsCaptchaVerified(true);
+    
+    // Add a small delay to ensure state is updated
+    setTimeout(() => {
+      console.log('State update delay completed');
+      console.log('Current captchaSessionId:', sessionId);
+      console.log('Current isCaptchaVerified:', true);
+    }, 100);
   }
 
   function handleCaptchaError(error) {
     console.log('CAPTCHA error:', error);
+    console.log('Setting isCaptchaVerified to false');
+    console.log('Clearing captchaSessionId');
     setIsCaptchaVerified(false);
     setCaptchaSessionId("");
+  }
+
+  // Enhanced error handler function
+  function validateForm() {
+    const errors = [];
+    const newFieldErrors = {};
+    
+    // Check CAPTCHA verification
+    if (!isCaptchaVerified || !captchaSessionId) {
+      errors.push("🔒 يرجى التحقق من رمز الأمان أولاً");
+    }
+    
+    if (!termsAccepted) {
+      errors.push("📋 لازم توافق على الشروط والأحكام الأول");
+    }
+    
+    // Basic required fields for all users
+    if (!signupData.fullName || signupData.fullName.trim() === "") {
+      errors.push("👤 اكتب اسمك كامل - لازم يكون اسمك الثلاثي أو الرباعي");
+      newFieldErrors.fullName = "اكتب اسمك كامل";
+    } else if (signupData.fullName.length < 3) {
+      errors.push("👤 الاسم ده قصير أوي - لازم يكون 3 حروف على الأقل");
+      newFieldErrors.fullName = "الاسم قصير أوي";
+    }
+    
+    if (!signupData.password || signupData.password.trim() === "") {
+      errors.push("🔑 اختار كلمة سر قوية عشان تحمي حسابك");
+      newFieldErrors.password = "اختار كلمة سر";
+    } else if (signupData.password.length < 6) {
+      errors.push("🔑 كلمة السر دي ضعيفة - لازم تكون 6 حروف على الأقل");
+      newFieldErrors.password = "كلمة السر ضعيفة";
+    }
+    
+    // Role-specific validation
+    if (isAdminRegistration) {
+      // For admin users: email is required
+      if (!signupData.email || signupData.email.trim() === "") {
+        errors.push("📧 اكتب الإيميل بتاعك - ده مطلوب للمشرفين");
+        newFieldErrors.email = "اكتب الإيميل بتاعك";
+      } else if (!signupData.email.match(/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/g)) {
+        errors.push("📧 الإيميل ده مش صح - اكتبه صح كده (مثال: ahmed@gmail.com)");
+        newFieldErrors.email = "الإيميل مش صح";
+      }
+    } else {
+      // For regular users: phone number is required, email is optional
+      if (!signupData.phoneNumber || signupData.phoneNumber.trim() === "") {
+        errors.push("📱 اكتب رقم التليفون بتاعك - ده هيبقى اسم المستخدم بتاعك");
+        newFieldErrors.phoneNumber = "اكتب رقم التليفون";
+      } else if (!signupData.phoneNumber.match(/^(\+20|0)?1[0125][0-9]{8}$/)) {
+        errors.push("📱 رقم التليفون ده مش صح - اكتب رقم مصري صح (مثال: 01234567890)");
+        newFieldErrors.phoneNumber = "رقم التليفون مش صح";
+      }
+      
+      if (!signupData.governorate || signupData.governorate.trim() === "") {
+        errors.push("🏙️ اختار المدينة اللي انت ساكن فيها");
+        newFieldErrors.governorate = "اختار مدينتك";
+      }
+      
+      if (!signupData.stage || signupData.stage.trim() === "") {
+        errors.push("🎓 اختار السنة الدراسية بتاعتك");
+        newFieldErrors.stage = "اختار سنتك الدراسية";
+      }
+      
+      if (!signupData.age || signupData.age.trim() === "") {
+        errors.push("🎂 اكتب عمرك الحقيقي");
+        newFieldErrors.age = "اكتب عمرك";
+      } else {
+        const age = parseInt(signupData.age);
+        if (isNaN(age) || age < 5 || age > 100) {
+          errors.push("🎂 العمر ده مش معقول - لازم يكون ما بين 5 و 100 سنة");
+          newFieldErrors.age = "عمر مش معقول";
+        }
+      }
+      
+      // Validate email if provided (optional for regular users)
+      if (signupData.email && signupData.email.trim() !== "" && !signupData.email.match(/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/g)) {
+        errors.push("📧 الإيميل ده مش صح - اكتبه صح كده (مثال: ahmed@gmail.com)");
+        newFieldErrors.email = "الإيميل مش صح";
+      }
+      
+      // father phone optional - validate only if provided
+      if (signupData.fatherPhoneNumber && signupData.fatherPhoneNumber.trim() !== "" && !signupData.fatherPhoneNumber.match(/^(\+20|0)?1[0125][0-9]{8}$/)) {
+        errors.push("📞 رقم تليفون ولي الأمر مش صح - اكتب رقم مصري صح (مثال: 01012345678)");
+        newFieldErrors.fatherPhoneNumber = "رقم ولي الأمر مش صح";
+      }
+    }
+    
+    // Update field errors state
+    setFieldErrors(newFieldErrors);
+    
+    return errors;
   }
 
   async function createNewAccount(event) {
     event.preventDefault();
     
+    // Prevent double submission
+    if (isLoading) {
+      return;
+    }
+    
+    setIsLoading(true);
+    
     // Check CAPTCHA verification first
+    console.log('=== FORM SUBMISSION DEBUG ===');
     console.log('Form submission - CAPTCHA verified:', isCaptchaVerified);
     console.log('Form submission - CAPTCHA session ID:', captchaSessionId);
+    console.log('Form submission - CAPTCHA session ID type:', typeof captchaSessionId);
+    console.log('Form submission - CAPTCHA session ID length:', captchaSessionId ? captchaSessionId.length : 0);
+    console.log('Form submission - Terms accepted:', termsAccepted);
+    console.log('Form submission - Form data:', signupData);
+    console.log('=== END DEBUG ===');
     
-    if (!isCaptchaVerified) {
-      toast.error("يرجى التحقق من رمز الأمان أولاً");
-      return;
-    }
+    // Validate form and get all errors
+    const validationErrors = validateForm();
     
-    if (!termsAccepted) {
-      toast.error("يرجى الموافقة على الشروط والأحكام أولاً");
-      setShowTermsModal(true);
-      return;
-    }
-    
-    // Check if this is an admin registration
-    const isAdminRegistration = signupData.adminCode === 'ADMIN123';
-    
-    // Basic required fields for all users
-    if (!signupData.email || !signupData.password || !signupData.fullName || !signupData.username) {
-      toast.error("الاسم، اسم المستخدم، البريد الإلكتروني، وكلمة المرور مطلوبة");
-      return;
-    }
-    
-    // For regular users, check all required fields
-    if (!isAdminRegistration) {
-      if (!signupData.phoneNumber || !signupData.governorate || !signupData.stage || !signupData.age) {
-        toast.error("يرجى ملء جميع الحقول المطلوبة");
-        return;
-      }
-    }
-
-    // checking name field length
-    if (signupData.fullName.length < 3) {
-      toast.error("يجب أن يكون الاسم 3 أحرف على الأقل");
-      return;
-    }
-    // checking username field length
-    if (signupData.username.length < 3) {
-      toast.error("يجب أن يكون اسم المستخدم 3 أحرف على الأقل");
-      return;
-    }
-    // checking username format
-    if (!signupData.username.match(/^[a-zA-Z0-9_]+$/)) {
-      toast.error("يمكن أن يحتوي اسم المستخدم على أحرف وأرقام وشرطة سفلية فقط");
-      return;
-    }
-    // checking valid email
-    if (!signupData.email.match(/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/g)) {
-      toast.error("بريد إلكتروني غير صحيح");
-      return;
-    }
-    // For regular users, validate additional fields
-    if (!isAdminRegistration) {
-      // checking valid phone numbers
-      if (!signupData.phoneNumber.match(/^(\+20|0)?1[0125][0-9]{8}$/)) {
-        toast.error("يرجى إدخال رقم هاتف مصري صحيح");
-        return;
-      }
-      // father phone optional - validate only if provided
-      if (signupData.fatherPhoneNumber && !signupData.fatherPhoneNumber.match(/^(\+20|0)?1[0125][0-9]{8}$/)) {
-        toast.error("يرجى إدخال رقم هاتف ولي الامرالصحيح");
-        return;
-      }
-      // checking valid age
-      const age = parseInt(signupData.age);
-      if (isNaN(age) || age < 5 || age > 100) {
-        toast.error("يرجى إدخال عمر صحيح بين 5 و 100");
-        return;
+    if (validationErrors.length > 0) {
+      // Show first error
+      toast.error(validationErrors[0]);
+      
+      // If there are multiple errors, show a summary after a delay
+      if (validationErrors.length > 1) {
+        setTimeout(() => {
+          const remainingErrors = validationErrors.slice(1);
+          const errorSummary = `📝 فيه ${remainingErrors.length} مشكلة تانية:\n\n${remainingErrors.join('\n\n')}`;
+          toast.error(errorSummary, { 
+            duration: 8000,
+            style: {
+              background: '#FEF2F2',
+              border: '1px solid #FECACA',
+              color: '#DC2626',
+              fontSize: '14px',
+              lineHeight: '1.5',
+              textAlign: 'right',
+              direction: 'rtl'
+            }
+          });
+        }, 2500);
       }
       
-
+      // If terms not accepted, show modal
+      if (!termsAccepted) {
+        setShowTermsModal(true);
+      }
+      
+      // Reset CAPTCHA verification ONLY if CAPTCHA was the issue
+      if (!isCaptchaVerified || !captchaSessionId) {
+        setIsCaptchaVerified(false);
+        setCaptchaSessionId("");
+        setCaptchaReset(true);
+        setTimeout(() => setCaptchaReset(false), 100);
+      }
+      
+      setIsLoading(false);
+      return;
     }
 
     // Generate device information for fingerprinting
@@ -192,17 +297,22 @@ export default function Signup() {
     // Create request data with device info as JSON object
     const requestData = {
       fullName: signupData.fullName,
-      username: signupData.username,
-      email: signupData.email,
       password: signupData.password,
       adminCode: signupData.adminCode,
       captchaSessionId: captchaSessionId,
       deviceInfo: deviceInfo
     };
     
-    // Only add additional fields for regular users
-    if (!isAdminRegistration) {
+    // Add role-specific fields
+    if (isAdminRegistration) {
+      // For admin users: email is required
+      requestData.email = signupData.email;
+    } else {
+      // For regular users: phone number is required, email is optional
       requestData.phoneNumber = signupData.phoneNumber;
+      if (signupData.email) {
+        requestData.email = signupData.email; // Include email if provided
+      }
       if (signupData.fatherPhoneNumber) {
         requestData.fatherPhoneNumber = signupData.fatherPhoneNumber;
       }
@@ -216,62 +326,126 @@ export default function Signup() {
       const formData = new FormData();
       formData.append("avatar", signupData.avatar);
       
+      // Add captchaSessionId at the top level for middleware access
+      formData.append("captchaSessionId", captchaSessionId);
+      
+      // Add device info as separate fields for device fingerprint middleware
+      formData.append("deviceInfo[platform]", deviceInfo.platform);
+      formData.append("deviceInfo[screenResolution]", deviceInfo.screenResolution);
+      formData.append("deviceInfo[timezone]", deviceInfo.timezone);
+      formData.append("deviceInfo[additionalInfo][browser]", deviceInfo.additionalInfo.browser);
+      formData.append("deviceInfo[additionalInfo][browserVersion]", deviceInfo.additionalInfo.browserVersion);
+      formData.append("deviceInfo[additionalInfo][os]", deviceInfo.additionalInfo.os);
+      formData.append("deviceInfo[additionalInfo][language]", deviceInfo.additionalInfo.language);
+      formData.append("deviceInfo[additionalInfo][colorDepth]", deviceInfo.additionalInfo.colorDepth);
+      formData.append("deviceInfo[additionalInfo][touchSupport]", deviceInfo.additionalInfo.touchSupport);
+      
       // Add all other data as JSON string
       formData.append("data", JSON.stringify(requestData));
       
+      // Debug: Log what's being sent
+      console.log('=== SENDING FORMDATA REQUEST ===');
+      console.log('FormData contents:');
+      for (let [key, value] of formData.entries()) {
+        console.log(`${key}:`, value);
+      }
+      console.log('captchaSessionId from state:', captchaSessionId);
+      console.log('=== END DEBUG ===');
+      
       // dispatch create account action with FormData
-      const response = await dispatch(createAccount(formData));
-      if (response?.payload?.success) {
-        setSignupData({
-          fullName: "",
-          username: "",
-          email: "",
-          password: "",
-          phoneNumber: "",
-          fatherPhoneNumber: "",
-          governorate: "",
-          stage: "",
-          age: "",
-          avatar: "",
-          adminCode: "",
-        });
+      try {
+        const response = await dispatch(createAccount(formData));
+        if (response?.payload?.success) {
+          setSignupData({
+            fullName: "",
+            email: "",
+            password: "",
+            phoneNumber: "",
+            fatherPhoneNumber: "",
+            governorate: "",
+            stage: "",
+            age: "",
+            avatar: "",
+            adminCode: "",
+          });
 
-        setPreviewImage("");
+          setPreviewImage("");
+          setIsCaptchaVerified(false);
+          setCaptchaSessionId("");
+          setCaptchaReset(true);
+          setTimeout(() => setCaptchaReset(false), 100);
+
+          navigate("/");
+        } else {
+          // If signup failed, reset CAPTCHA for security
+          setIsCaptchaVerified(false);
+          setCaptchaSessionId("");
+          setCaptchaReset(true);
+          setTimeout(() => setCaptchaReset(false), 100);
+          setIsLoading(false);
+        }
+      } catch (error) {
+        console.error('Signup error:', error);
+        // Reset CAPTCHA on error
         setIsCaptchaVerified(false);
         setCaptchaSessionId("");
-
-        navigate("/");
+        setCaptchaReset(true);
+        setTimeout(() => setCaptchaReset(false), 100);
+        setIsLoading(false);
       }
     } else {
       // No avatar file, send as JSON
-      const response = await dispatch(createAccount(requestData));
-      if (response?.payload?.success) {
-        setSignupData({
-          fullName: "",
-          username: "",
-          email: "",
-          password: "",
-          phoneNumber: "",
-          fatherPhoneNumber: "",
-          governorate: "",
-          stage: "",
-          age: "",
-          avatar: "",
-          adminCode: "",
-        });
+      console.log('=== SENDING JSON REQUEST ===');
+      console.log('Request data:', requestData);
+      console.log('captchaSessionId from state:', captchaSessionId);
+      console.log('=== END DEBUG ===');
+      
+      try {
+        const response = await dispatch(createAccount(requestData));
+        if (response?.payload?.success) {
+          setSignupData({
+            fullName: "",
+            email: "",
+            password: "",
+            phoneNumber: "",
+            fatherPhoneNumber: "",
+            governorate: "",
+            stage: "",
+            age: "",
+            avatar: "",
+            adminCode: "",
+          });
 
-        setPreviewImage("");
+          setPreviewImage("");
+          setIsCaptchaVerified(false);
+          setCaptchaSessionId("");
+          setCaptchaReset(true);
+          setTimeout(() => setCaptchaReset(false), 100);
+
+          navigate("/");
+        } else {
+          // If signup failed, reset CAPTCHA for security
+          setIsCaptchaVerified(false);
+          setCaptchaSessionId("");
+          setCaptchaReset(true);
+          setTimeout(() => setCaptchaReset(false), 100);
+          setIsLoading(false);
+        }
+      } catch (error) {
+        console.error('Signup error:', error);
+        // Reset CAPTCHA on error
         setIsCaptchaVerified(false);
         setCaptchaSessionId("");
-
-        navigate("/");
+        setCaptchaReset(true);
+        setTimeout(() => setCaptchaReset(false), 100);
+        setIsLoading(false);
       }
     }
   }
 
   return (
     <Layout>
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8" dir="rtl">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8" dir="rtl">
         <div className="max-w-md w-full space-y-8">
           {/* Enhanced Header with Logo */}
           <div className="text-center">
@@ -279,24 +453,24 @@ export default function Signup() {
             <div className="flex justify-center items-center mb-8">
               <div className="relative">
                 {/* Glowing Background Effect */}
-                <div className="absolute inset-0 bg-gradient-to-r from-purple-400 via-blue-500 to-indigo-600 rounded-full blur-2xl opacity-30 animate-pulse"></div>
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-400 via-blue-500 to-indigo-600 rounded-full blur-2xl opacity-30 animate-pulse"></div>
                 
                 {/* Logo Container */}
-                <div className="relative bg-white dark:bg-gray-800 rounded-full p-4 shadow-2xl border-4 border-purple-200 dark:border-purple-700 transform hover:scale-110 transition-all duration-500">
+                <div className="relative bg-white dark:bg-gray-800 rounded-full p-4 shadow-2xl border-4 border-blue-200 dark:border-blue-700 transform hover:scale-110 transition-all duration-500">
                   <img 
                     src={logo} 
-                    alt="4G Logo" 
+                    alt="منصة  the4g Logo" 
                     className="w-16 h-16 object-contain drop-shadow-lg"
                   />
                 </div>
                 
                 {/* Floating Decorative Elements */}
-                <div className="absolute -top-2 -right-2 w-4 h-4 bg-yellow-400 rounded-full animate-bounce z-10 shadow-lg"></div>
+                <div className="absolute -top-2 -right-2 w-4 h-4 bg-blue-400 rounded-full animate-bounce z-10 shadow-lg"></div>
                 <div className="absolute -bottom-2 -left-2 w-3 h-3 bg-pink-400 rounded-full animate-pulse z-10 shadow-lg"></div>
               </div>
             </div>
             
-            <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-3 bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+            <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-3 bg-gradient-to-r from-blue-600 to-blue-600 bg-clip-text text-transparent">
               انضم إلى منصتنا التعليمية
             </h2>
             <p className="text-lg text-gray-600 dark:text-gray-300">
@@ -305,7 +479,7 @@ export default function Signup() {
           </div>
 
           {/* Enhanced Modern Form */}
-          <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-3xl shadow-2xl p-8 border border-purple-200/50 dark:border-purple-700/50 transform hover:scale-[1.02] transition-all duration-500">
+          <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-3xl shadow-2xl p-8 border border-blue-200/50 dark:border-blue-700/50 transform hover:scale-[1.02] transition-all duration-500">
             <form onSubmit={createNewAccount} className="space-y-6">
               {/* Full Name Field */}
               <div className="group">
@@ -314,66 +488,104 @@ export default function Signup() {
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
-                    <FaUser className="h-5 w-5 text-purple-500 group-focus-within:text-purple-600 transition-colors duration-200" />
+                    <FaUser className="h-5 w-5 text-blue-500 group-focus-within:text-blue-600 transition-colors duration-200" />
                   </div>
                   <input
                     id="fullName"
                     name="fullName"
                     type="text"
                     required
-                    className="block w-full pr-12 pl-4 py-4 border-2 border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-purple-500/20 focus:border-purple-500 transition-all duration-300 text-right shadow-sm hover:shadow-md"
+                    className={`block w-full pr-12 pl-4 py-4 border-2 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-4 transition-all duration-300 text-right shadow-sm hover:shadow-md ${
+                      fieldErrors.fullName 
+                        ? 'border-red-500 focus:ring-red-500/20 focus:border-red-500' 
+                        : 'border-gray-200 dark:border-gray-600 focus:ring-blue-500/20 focus:border-blue-500'
+                    }`}
                     placeholder="أدخل اسمك الكامل"
                     value={signupData.fullName}
                     onChange={handleUserInput}
                   />
+                  {fieldErrors.fullName && (
+                    <p className="text-red-500 text-xs mt-1 text-right flex items-center gap-1">
+                      <FaExclamationTriangle className="text-xs" />
+                      {fieldErrors.fullName}
+                    </p>
+                  )}
                 </div>
               </div>
 
-              {/* Username Field */}
-              <div className="group">
-                <label htmlFor="username" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 text-right">
-                  اسم المستخدم
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
-                    <FaUser className="h-5 w-5 text-purple-500 group-focus-within:text-purple-600 transition-colors duration-200" />
+               {/* Phone Number Field - Only for regular users */}
+               {!isAdminRegistration && (
+                <div className="group">
+                  <label htmlFor="phoneNumber" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 text-right">
+                    رقم الهاتف *
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                      <FaPhone className="h-5 w-5 text-blue-500 group-focus-within:text-blue-600 transition-colors duration-200" />
+                    </div>
+                    <input
+                      id="phoneNumber"
+                      name="phoneNumber"
+                      type="tel"
+                      required
+                      className={`block w-full pr-12 pl-4 py-4 border-2 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-4 transition-all duration-300 text-right shadow-sm hover:shadow-md ${
+                        fieldErrors.phoneNumber 
+                          ? 'border-red-500 focus:ring-red-500/20 focus:border-red-500' 
+                          : 'border-gray-200 dark:border-gray-600 focus:ring-blue-500/20 focus:border-blue-500'
+                      }`}
+                      placeholder="اكتب رقم تليفونك"
+                      value={signupData.phoneNumber}
+                      onChange={handleUserInput}
+                    />
+                    {fieldErrors.phoneNumber && (
+                      <p className="text-red-500 text-xs mt-1 text-right flex items-center gap-1">
+                        <FaExclamationTriangle className="text-xs" />
+                        {fieldErrors.phoneNumber}
+                      </p>
+                    )}
                   </div>
-                  <input
-                    id="username"
-                    name="username"
-                    type="text"
-                    required
-                    className="block w-full pr-12 pl-4 py-4 border-2 border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-purple-500/20 focus:border-purple-500 transition-all duration-300 text-right shadow-sm hover:shadow-md"
-                    placeholder="أدخل اسم المستخدم"
-                    value={signupData.username}
-                    onChange={handleUserInput}
-                  />
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 text-right">
+                    الرقم ده هيبقى اسم المستخدم بتاعك عشان تدخل بيه
+                  </p>
                 </div>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 text-right">
-                  يمكن استخدام الأحرف والأرقام والشرطة السفلية فقط
-                </p>
-              </div>
+              )}
+
 
               {/* Email Field */}
               <div className="group">
                 <label htmlFor="email" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 text-right">
-                  البريد الإلكتروني
+                  البريد الإلكتروني {!isAdminRegistration && "(اختياري)"}
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
-                    <FaEnvelope className="h-5 w-5 text-purple-500 group-focus-within:text-purple-600 transition-colors duration-200" />
+                    <FaEnvelope className="h-5 w-5 text-blue-500 group-focus-within:text-blue-600 transition-colors duration-200" />
                   </div>
                   <input
                     id="email"
                     name="email"
                     type="email"
-                    required
-                    className="block w-full pr-12 pl-4 py-4 border-2 border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-purple-500/20 focus:border-purple-500 transition-all duration-300 text-right shadow-sm hover:shadow-md"
-                    placeholder="أدخل بريدك الإلكتروني"
+                    required={isAdminRegistration}
+                    className={`block w-full pr-12 pl-4 py-4 border-2 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-4 transition-all duration-300 text-right shadow-sm hover:shadow-md ${
+                      fieldErrors.email 
+                        ? 'border-red-500 focus:ring-red-500/20 focus:border-red-500' 
+                        : 'border-gray-200 dark:border-gray-600 focus:ring-blue-500/20 focus:border-blue-500'
+                    }`}
+                    placeholder={isAdminRegistration ? "أدخل بريدك الإلكتروني" : "أدخل بريدك الإلكتروني (اختياري)"}
                     value={signupData.email}
                     onChange={handleUserInput}
                   />
+                  {fieldErrors.email && (
+                    <p className="text-red-500 text-xs mt-1 text-right flex items-center gap-1">
+                      <FaExclamationTriangle className="text-xs" />
+                      {fieldErrors.email}
+                    </p>
+                  )}
                 </div>
+                {!isAdminRegistration && (
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 text-right">
+                    ممكن تسيب الخانة دي فاضية لو مش عايز تستعمل إيميل
+                  </p>
+                )}
               </div>
 
               {/* Password Field */}
@@ -383,18 +595,28 @@ export default function Signup() {
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
-                    <FaLock className="h-5 w-5 text-purple-500 group-focus-within:text-purple-600 transition-colors duration-200" />
+                    <FaLock className="h-5 w-5 text-blue-500 group-focus-within:text-blue-600 transition-colors duration-200" />
                   </div>
                   <input
                     id="password"
                     name="password"
                     type={showPassword ? "text" : "password"}
                     required
-                    className="block w-full pr-12 pl-12 py-4 border-2 border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-purple-500/20 focus:border-purple-500 transition-all duration-300 text-right shadow-sm hover:shadow-md"
+                    className={`block w-full pr-12 pl-12 py-4 border-2 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-4 transition-all duration-300 text-right shadow-sm hover:shadow-md ${
+                      fieldErrors.password 
+                        ? 'border-red-500 focus:ring-red-500/20 focus:border-red-500' 
+                        : 'border-gray-200 dark:border-gray-600 focus:ring-blue-500/20 focus:border-blue-500'
+                    }`}
                     placeholder="أنشئ كلمة مرور قوية"
                     value={signupData.password}
                     onChange={handleUserInput}
                   />
+                  {fieldErrors.password && (
+                    <p className="text-red-500 text-xs mt-1 text-right flex items-center gap-1">
+                      <FaExclamationTriangle className="text-xs" />
+                      {fieldErrors.password}
+                    </p>
+                  )}
                   <button
                     type="button"
                     className="absolute inset-y-0 left-0 pl-4 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors duration-200"
@@ -409,98 +631,98 @@ export default function Signup() {
                 </div>
               </div>
 
-              {/* Phone Number Field - Only for regular users */}
-              {!signupData.adminCode && (
-                <div className="group">
-                  <label htmlFor="phoneNumber" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 text-right">
-                    رقم الهاتف
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
-                      <FaPhone className="h-5 w-5 text-purple-500 group-focus-within:text-purple-600 transition-colors duration-200" />
-                    </div>
-                    <input
-                      id="phoneNumber"
-                      name="phoneNumber"
-                      type="tel"
-                      required={!signupData.adminCode}
-                      className="block w-full pr-12 pl-4 py-4 border-2 border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-purple-500/20 focus:border-purple-500 transition-all duration-300 text-right shadow-sm hover:shadow-md"
-                      placeholder="أدخل رقم هاتفك"
-                      value={signupData.phoneNumber}
-                      onChange={handleUserInput}
-                    />
-                  </div>
-                </div>
-              )}
-
               {/* Father's Phone Number Field - Only for regular users */}
-              {!signupData.adminCode && (
+              {!isAdminRegistration && (
                 <div className="group">
                   <label htmlFor="fatherPhoneNumber" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 text-right">
-                    رقم هاتف ولي الامر <span className="text-gray-400 text-xs">(اختياري) </span>
+                    رقم هاتف ولي الامر
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
-                      <FaPhone className="h-5 w-5 text-purple-500 group-focus-within:text-purple-600 transition-colors duration-200" />
+                      <FaPhone className="h-5 w-5 text-blue-500 group-focus-within:text-blue-600 transition-colors duration-200" />
                     </div>
                     <input
                       id="fatherPhoneNumber"
                       name="fatherPhoneNumber"
                       type="tel"
                       required={false}
-                      className="block w-full pr-12 pl-4 py-4 border-2 border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-purple-500/20 focus:border-purple-500 transition-all duration-300 text-right shadow-sm hover:shadow-md"
-                      placeholder="أدخل رقم هاتف ولي الامر(اختياري)"
+                      className={`block w-full pr-12 pl-4 py-4 border-2 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-4 transition-all duration-300 text-right shadow-sm hover:shadow-md ${
+                        fieldErrors.fatherPhoneNumber 
+                          ? 'border-red-500 focus:ring-red-500/20 focus:border-red-500' 
+                          : 'border-gray-200 dark:border-gray-600 focus:ring-blue-500/20 focus:border-blue-500'
+                      }`}
+                      placeholder="اكتب رقم تليفون ولي أمرك"
                       value={signupData.fatherPhoneNumber}
                       onChange={handleUserInput}
                     />
+                    {fieldErrors.fatherPhoneNumber && (
+                      <p className="text-red-500 text-xs mt-1 text-right flex items-center gap-1">
+                        <FaExclamationTriangle className="text-xs" />
+                        {fieldErrors.fatherPhoneNumber}
+                      </p>
+                    )}
                   </div>
                 </div>
               )}
 
               {/* Governorate Field - Only for regular users */}
-              {!signupData.adminCode && (
+              {!isAdminRegistration && (
                 <div className="group">
                   <label htmlFor="governorate" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 text-right">
-                    المحافظة
+                    المدينة
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
-                      <FaMapMarkerAlt className="h-5 w-5 text-purple-500 group-focus-within:text-purple-600 transition-colors duration-200" />
+                      <FaMapMarkerAlt className="h-5 w-5 text-blue-500 group-focus-within:text-blue-600 transition-colors duration-200" />
                     </div>
                     <select
                       id="governorate"
                       name="governorate"
-                      required={!signupData.adminCode}
-                      className="block w-full pr-12 pl-4 py-4 border-2 border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-purple-500/20 focus:border-purple-500 transition-all duration-300 text-right shadow-sm hover:shadow-md"
+                      required
+                      className={`block w-full pr-12 pl-4 py-4 border-2 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-4 transition-all duration-300 text-right shadow-sm hover:shadow-md ${
+                        fieldErrors.governorate 
+                          ? 'border-red-500 focus:ring-red-500/20 focus:border-red-500' 
+                          : 'border-gray-200 dark:border-gray-600 focus:ring-blue-500/20 focus:border-blue-500'
+                      }`}
                       value={signupData.governorate}
                       onChange={handleUserInput}
                     >
-                      <option value="">اختر المحافظة</option>
-                      {egyptianGovernorates.map((gov) => (
+                      <option value="">اختر المدينة</option>
+                      {egyptianCities.map((gov) => (
                         <option key={gov.value} value={gov.value}>
                           {gov.label}
                         </option>
                       ))}
                     </select>
+                    {fieldErrors.governorate && (
+                      <p className="text-red-500 text-xs mt-1 text-right flex items-center gap-1">
+                        <FaExclamationTriangle className="text-xs" />
+                        {fieldErrors.governorate}
+                      </p>
+                    )}
                   </div>
                 </div>
               )}
 
               {/* Stage Field - Only for regular users */}
-              {!signupData.adminCode && (
+              {!isAdminRegistration && (
                 <div className="group">
                   <label htmlFor="stage" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 text-right">
                     المرحلة الدراسية
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
-                      <FaBook className="h-5 w-5 text-purple-500 group-focus-within:text-purple-600 transition-colors duration-200" />
+                      <FaBook className="h-5 w-5 text-blue-500 group-focus-within:text-blue-600 transition-colors duration-200" />
                     </div>
                     <select
                       id="stage"
                       name="stage"
-                      required={!signupData.adminCode}
-                      className="block w-full pr-12 pl-4 py-4 border-2 border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-purple-500/20 focus:border-purple-500 transition-all duration-300 text-right shadow-sm hover:shadow-md"
+                      required
+                      className={`block w-full pr-12 pl-4 py-4 border-2 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-4 transition-all duration-300 text-right shadow-sm hover:shadow-md ${
+                        fieldErrors.stage 
+                          ? 'border-red-500 focus:ring-red-500/20 focus:border-red-500' 
+                          : 'border-gray-200 dark:border-gray-600 focus:ring-blue-500/20 focus:border-blue-500'
+                      }`}
                       value={signupData.stage}
                       onChange={handleUserInput}
                     >
@@ -511,19 +733,25 @@ export default function Signup() {
                         </option>
                       ))}
                     </select>
+                    {fieldErrors.stage && (
+                      <p className="text-red-500 text-xs mt-1 text-right flex items-center gap-1">
+                        <FaExclamationTriangle className="text-xs" />
+                        {fieldErrors.stage}
+                      </p>
+                    )}
                   </div>
                 </div>
               )}
 
               {/* Age Field - Only for regular users */}
-              {!signupData.adminCode && (
+              {!isAdminRegistration && (
                 <div className="group">
                   <label htmlFor="age" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 text-right">
                     العمر
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
-                      <FaUser className="h-5 w-5 text-purple-500 group-focus-within:text-purple-600 transition-colors duration-200" />
+                      <FaUser className="h-5 w-5 text-blue-500 group-focus-within:text-blue-600 transition-colors duration-200" />
                     </div>
                     <input
                       id="age"
@@ -531,12 +759,22 @@ export default function Signup() {
                       type="number"
                       min="5"
                       max="100"
-                      required={!signupData.adminCode}
-                      className="block w-full pr-12 pl-4 py-4 border-2 border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-purple-500/20 focus:border-purple-500 transition-all duration-300 text-right shadow-sm hover:shadow-md"
+                      required
+                      className={`block w-full pr-12 pl-4 py-4 border-2 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-4 transition-all duration-300 text-right shadow-sm hover:shadow-md ${
+                        fieldErrors.age 
+                          ? 'border-red-500 focus:ring-red-500/20 focus:border-red-500' 
+                          : 'border-gray-200 dark:border-gray-600 focus:ring-blue-500/20 focus:border-blue-500'
+                      }`}
                       placeholder="أدخل عمرك"
                       value={signupData.age}
                       onChange={handleUserInput}
                     />
+                    {fieldErrors.age && (
+                      <p className="text-red-500 text-xs mt-1 text-right flex items-center gap-1">
+                        <FaExclamationTriangle className="text-xs" />
+                        {fieldErrors.age}
+                      </p>
+                    )}
                   </div>
                 </div>
               )}
@@ -544,11 +782,11 @@ export default function Signup() {
               {/* Enhanced Avatar Upload */}
               <div className="group">
                 <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 text-right">
-                  الصورة الشخصية <span className="text-gray-500 text-xs">(اختياري)</span>
+                  الصورة الشخصية (اختياري)
                 </label>
                 <div className="flex items-center space-x-reverse space-x-4">
                   <div className="relative">
-                    <div className="w-20 h-20 rounded-full bg-gradient-to-r from-purple-100 to-blue-100 dark:from-purple-900/20 dark:to-blue-900/20 flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300">
+                    <div className="w-20 h-20 rounded-full bg-gradient-to-r from-blue-100 to-blue-100 dark:from-blue-900/20 dark:to-blue-900/20 flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300">
                       {previewImage ? (
                         <img 
                           src={previewImage} 
@@ -567,8 +805,8 @@ export default function Signup() {
                   </div>
                   <div className="flex-1">
                     <label htmlFor="image_uploads" className="cursor-pointer">
-                      <div className="flex items-center justify-center px-6 py-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl hover:border-purple-400 dark:hover:border-purple-400 transition-all duration-300 hover:shadow-md bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600">
-                        <FaUpload className="w-5 h-5 text-purple-500 ml-2" />
+                      <div className="flex items-center justify-center px-6 py-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl hover:border-blue-400 dark:hover:border-blue-400 transition-all duration-300 hover:shadow-md bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600">
+                        <FaUpload className="w-5 h-5 text-blue-500 ml-2" />
                         <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
                           {previewImage ? "تغيير الصورة" : "رفع صورة"}
                         </span>
@@ -589,16 +827,17 @@ export default function Signup() {
               <CaptchaComponent
                 onVerified={handleCaptchaVerified}
                 onError={handleCaptchaError}
+                reset={captchaReset}
               />
 
               {/* Enhanced Submit Button */}
               <button
                 type="submit"
                 disabled={isLoading || !isCaptchaVerified}
-                className="group relative w-full flex justify-center py-4 px-6 border border-transparent text-lg font-semibold rounded-xl text-white bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 hover:from-purple-700 hover:via-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-4 focus:ring-purple-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-[1.02] hover:shadow-xl shadow-lg overflow-hidden"
+                className="group relative w-full flex justify-center py-4 px-6 border border-transparent text-lg font-semibold rounded-xl text-white bg-gradient-to-r from-blue-600 via-blue-600 to-indigo-600 hover:from-blue-700 hover:via-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-4 focus:ring-blue-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-[1.02] hover:shadow-xl shadow-lg overflow-hidden"
               >
                 {/* Button Background Glow */}
-                <div className="absolute inset-0 bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 rounded-xl blur opacity-75 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-600 via-blue-500 to-blue-600 rounded-xl blur opacity-75 group-hover:opacity-100 transition-opacity duration-300"></div>
                 
                 <span className="relative flex items-center gap-3">
                   {isLoading ? (
@@ -615,7 +854,7 @@ export default function Signup() {
                 </span>
                 
                 {/* Creative Button Border Animation */}
-                <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-purple-400 via-blue-400 to-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-sm"></div>
+                <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-400 via-blue-500 to-blue-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-sm"></div>
               </button>
             </form>
 
@@ -627,7 +866,7 @@ export default function Signup() {
                 </div>
                 <div className="relative flex justify-center text-sm">
                   <span className="px-4 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 font-medium">
-                    لديك حساب بالفعل؟
+                    عندك حساب خلاص؟
                   </span>
                 </div>
               </div>
@@ -637,9 +876,9 @@ export default function Signup() {
             <div className="mt-6 text-center">
               <Link
                 to="/login"
-                className="inline-flex items-center gap-2 font-semibold text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 transition-all duration-200 hover:scale-105"
+                className="inline-flex items-center gap-2 font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-all duration-200 hover:scale-105"
               >
-                <span>تسجيل الدخول إلى حسابك</span>
+                <span>ادخل على حسابك</span>
                 <svg className="w-4 h-4 transform group-hover:translate-x-1 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
@@ -650,14 +889,14 @@ export default function Signup() {
           {/* Enhanced Footer */}
           <div className="text-center">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-full border border-gray-200 dark:border-gray-700">
-              <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
+              <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
               <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">
                 بإنشاء حساب، فإنك توافق على{" "}
-                <Link to="/terms" className="text-purple-600 dark:text-purple-400 hover:underline font-semibold">
+                <Link to="/terms" className="text-blue-600 dark:text-blue-400 hover:underline font-semibold">
                   شروط الخدمة
                 </Link>{" "}
                 و{" "}
-                <Link to="/privacy" className="text-purple-600 dark:text-purple-400 hover:underline font-semibold">
+                <Link to="/privacy" className="text-blue-600 dark:text-blue-400 hover:underline font-semibold">
                   سياسة الخصوصية
                 </Link>
               </p>
@@ -721,37 +960,35 @@ export default function Signup() {
                   <div className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                     <span className="bg-gray-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-medium flex-shrink-0">2</span>
                     <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed text-right">
-                      <strong>حفظ كلمة المرور:</strong> لازم تحفظ الباسورد بتاعك وتحافظ عليه في مكان آمن.
+                      <strong>حد الجهاز:</strong> <span className="text-red-600 dark:text-red-400 font-bold">مش هتقدر تفتح الحساب إلا على  اول جهازين بس.</span> اختار الجهاز اللي هتستخدمه بعناية عشان لو غيرت الجهاز مش هتعرف تخش أو تفتح الحساب إلا منه.
                     </p>
                   </div>
-
-
 
                   <div className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                     <span className="bg-gray-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-medium flex-shrink-0">3</span>
                     <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed text-right">
-                      <strong>الالتزام:</strong> يجب الالتزام بمشاهدة الفيديوهات وحل الواجب والامتحانات في المواعيد المحددة.
+                      <strong>حفظ كلمة المرور:</strong> لازم تحفظ الباسورد بتاعك وتحافظ عليه في مكان آمن.
                     </p>
                   </div>
 
                   <div className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                     <span className="bg-gray-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-medium flex-shrink-0">4</span>
                     <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed text-right">
-                      <strong>تقارير ولي الأمر:</strong> يتم إرسال تقرير دوري بالمستوى لولي الأمر لمتابعة مستواك الدراسي.
+                      <strong>الالتزام:</strong> يجب الالتزام بمشاهدة الفيديوهات وحل الواجب والامتحانات في المواعيد المحددة.
                     </p>
                   </div>
 
                   <div className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                     <span className="bg-gray-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-medium flex-shrink-0">5</span>
                     <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed text-right">
-                      <strong>عدم الالتزام:</strong> أي طالب غير ملتزم مش هيكمل معانا وسيتم إنهاء اشتراكه فوراً.
+                      <strong>تقارير ولي الأمر:</strong> يتم إرسال تقرير دوري بالمستوى لولي الأمر لمتابعة مستواك الدراسي.
                     </p>
                   </div>
 
                   <div className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                     <span className="bg-gray-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-medium flex-shrink-0">6</span>
                     <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed text-right">
-                      <strong>احتساب المشاهدة:</strong> مشاهدة الفيديو بتتحسب بعد مشاهدة 80% من مدة الفيديو كاملة.
+                      <strong>عدم الالتزام:</strong> أي طالب غير ملتزم مش هيكمل معانا وسيتم إنهاء اشتراكه فوراً.
                     </p>
                   </div>
 
@@ -796,7 +1033,7 @@ export default function Signup() {
                     disabled={!termsAccepted}
                     className={`flex-1 px-4 py-2.5 rounded-lg font-medium text-sm transition-all duration-200 flex items-center justify-center gap-2 ${
                       termsAccepted
-                        ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-sm hover:shadow-md'
+                        ? 'bg-gradient-to-r from-blue-500 to-blue-500 hover:from-blue-600 hover:to-blue-600 text-white shadow-sm hover:shadow-md'
                         : 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
                     }`}
                   >

@@ -304,7 +304,7 @@ const CourseStructureModal = ({ courseId, onClose, isOpen }) => {
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">درس</h3>
               <button
                 onClick={() => setShowAddDirectLesson(true)}
-                className="flex items-center gap-2 bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700"
+                className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
               >
                 <FaPlus className="text-sm" />
 اضافة درس

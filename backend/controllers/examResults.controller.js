@@ -51,7 +51,7 @@ const getAllExamResults = async (req, res, next) => {
 
         // Get exam results with populated data
         let query = ExamResult.find(filter)
-            .populate('user', 'fullName email username stage')
+            .populate('user', 'fullName email stage')
             .populate('course', 'title instructor stage subject');
 
         // Apply sorting
@@ -466,7 +466,7 @@ const exportExamResults = async (req, res, next) => {
 
         // Get all results without pagination for export
         const results = await ExamResult.find(matchFilter)
-            .populate('user', 'fullName username email phoneNumber')
+            .populate('user', 'fullName email phoneNumber')
             .populate('course', 'title')
             .sort(sort);
 
@@ -576,6 +576,39 @@ const getUserExamHistory = asyncHandler(async (req, res) => {
     }
 });
 
+// Get user exam results for student report
+const getUserExamResults = asyncHandler(async (req, res) => {
+    const { userId } = req.params;
+
+    try {
+        const results = await ExamResult.find({ user: userId })
+            .populate('course', 'title subject')
+            .sort({ completedAt: -1 });
+
+        // Format results for student report
+        const formattedResults = results.map(result => ({
+            examName: result.lessonTitle || 'امتحان',
+            subject: result.course?.subject || result.course?.title || 'غير محدد',
+            score: result.correctAnswers || 0,
+            totalMarks: result.totalQuestions || 0,
+            percentage: result.score || 0,
+            date: result.completedAt,
+            passed: result.passed
+        }));
+
+        res.status(200).json({
+            success: true,
+            data: formattedResults
+        });
+    } catch (error) {
+        console.error('Error getting user exam results:', error);
+        res.status(200).json({
+            success: true,
+            data: []
+        });
+    }
+});
+
 // Get exam statistics
 const getExamStatistics = asyncHandler(async (req, res) => {
     try {
@@ -650,7 +683,7 @@ const searchExamResults = asyncHandler(async (req, res) => {
         // Get completed exam results
         const totalCompleted = await ExamResult.countDocuments(filter);
         const completedResults = await ExamResult.find(filter)
-            .populate('user', 'fullName username email')
+            .populate('user', 'fullName email')
             .populate('course', 'title')
             .sort({ completedAt: -1 })
             .skip(skip)
@@ -834,6 +867,7 @@ const searchExamResults = asyncHandler(async (req, res) => {
     }
 });
 
+
 export {
     getAllExamResults,
     getExamResultsStats,
@@ -841,6 +875,7 @@ export {
     exportExamResults,
     getExamResults,
     getUserExamHistory,
+    getUserExamResults,
     getExamStatistics,
     searchExamResults
 };

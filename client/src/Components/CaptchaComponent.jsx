@@ -3,7 +3,7 @@ import { FaSyncAlt, FaShieldAlt, FaCheck, FaTimes } from 'react-icons/fa';
 import { axiosInstance } from '../Helpers/axiosInstance';
 import { toast } from 'react-hot-toast';
 
-const CaptchaComponent = ({ onVerified, onError }) => {
+const CaptchaComponent = ({ onVerified, onError, reset }) => {
   const [captchaData, setCaptchaData] = useState(null);
   const [userAnswer, setUserAnswer] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -26,14 +26,14 @@ const CaptchaComponent = ({ onVerified, onError }) => {
         console.log('CAPTCHA generated successfully:', response.data.data);
       } else {
         console.error('CAPTCHA generation failed:', response.data);
-        toast.error('فشل في إنشاء رمز التحقق');
+        toast.error('فشل في إنشاء كود الأمان');
       }
     } catch (error) {
       console.error('Error generating CAPTCHA:', error);
       console.error('Error details:', error.response?.data);
       
       // Show more specific error message
-      const errorMessage = error.response?.data?.message || 'خطأ في تحميل رمز التحقق';
+      const errorMessage = error.response?.data?.message || 'خطأ في تحميل كود الأمان';
       toast.error(errorMessage);
       
       if (onError) onError(error);
@@ -66,9 +66,12 @@ const CaptchaComponent = ({ onVerified, onError }) => {
       
       if (response.data.success) {
         setIsVerified(true);
-        toast.success('تم التحقق بنجاح');
-        console.log('CAPTCHA verified successfully');
+        toast.success('تمام، كده تمت الموافقة');
+        console.log('CAPTCHA verified successfully with session ID:', captchaData.sessionId);
+        
+        // Call the callback with the session ID immediately after verification
         if (onVerified) {
+          console.log('Calling onVerified with session ID:', captchaData.sessionId);
           onVerified(captchaData.sessionId);
         }
       }
@@ -116,6 +119,15 @@ const CaptchaComponent = ({ onVerified, onError }) => {
     generateCaptcha();
   }, []);
 
+  // Handle reset from parent component
+  useEffect(() => {
+    if (reset) {
+      setIsVerified(false);
+      setUserAnswer('');
+      generateCaptcha();
+    }
+  }, [reset]);
+
   // Debug useEffect to track state changes
   useEffect(() => {
     console.log('CAPTCHA State Changed:', {
@@ -129,7 +141,7 @@ const CaptchaComponent = ({ onVerified, onError }) => {
   return (
     <div className="space-y-4">
       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-        التحقق الأمني
+        تأكيد الأمان
       </label>
       
       <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
@@ -138,7 +150,7 @@ const CaptchaComponent = ({ onVerified, onError }) => {
           <div className="flex items-center gap-2">
             <FaShieldAlt className="text-blue-500" />
             <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              رمز التحقق
+              كود الأمان
             </span>
           </div>
           <button
@@ -146,7 +158,7 @@ const CaptchaComponent = ({ onVerified, onError }) => {
             onClick={generateCaptcha}
             disabled={isLoading}
             className="p-2 text-gray-500 hover:text-blue-500 dark:text-gray-400 dark:hover:text-blue-400 transition-colors disabled:opacity-50"
-            title="تحديث رمز التحقق"
+            title="تحديث كود الأمان"
           >
             <FaSyncAlt className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
           </button>
@@ -158,7 +170,7 @@ const CaptchaComponent = ({ onVerified, onError }) => {
             <div className="text-center">
               <div className="flex items-center justify-center space-x-2">
                 <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
-                <span className="text-gray-600 dark:text-gray-400">جاري تحميل رمز التحقق...</span>
+                <span className="text-gray-600 dark:text-gray-400">جاري تحميل كود الأمان...</span>
               </div>
             </div>
           </div>
@@ -174,7 +186,7 @@ const CaptchaComponent = ({ onVerified, onError }) => {
           <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-3 mb-3 border-2 border-dashed border-red-300 dark:border-red-600">
             <div className="text-center">
               <p className="text-sm text-red-600 dark:text-red-400">
-                فشل في تحميل رمز التحقق. يرجى الضغط على زر التحديث.
+                فشل في تحميل كود الأمان. يرجى الضغط على زر التحديث.
               </p>
             </div>
           </div>
@@ -220,11 +232,11 @@ const CaptchaComponent = ({ onVerified, onError }) => {
           {isVerified ? (
             <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
               <FaCheck className="w-4 h-4" />
-              <span>تم التحقق بنجاح</span>
+              <span>تمام</span>
             </div>
           ) : (
             <p className="text-gray-600 dark:text-gray-400">
-              يرجى حل المسألة الحسابية أعلاه للمتابعة
+              حل المسألة دي عشان تكمل
             </p>
           )}
         </div>

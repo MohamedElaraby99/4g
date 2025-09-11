@@ -1,15 +1,18 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import { FaTimes, FaFilePdf, FaVideo, FaClipboardList, FaDumbbell, FaPlay, FaEye, FaSpinner, FaCheckCircle, FaTrophy, FaClock } from 'react-icons/fa';
 import CustomVideoPlayer from './CustomVideoPlayer';
 import PDFViewer from './PDFViewer';
 import ExamModal from './Exam/ExamModal';
+import EssayExamModal from './EssayExamModal';
 import useLessonData from '../Helpers/useLessonData';
 import { generateFileUrl } from "../utils/fileUtils";
 import RemainingDaysLabel from './RemainingDaysLabel';
 
 const OptimizedLessonContentModal = ({ isOpen, onClose, courseId, lessonId, unitId = null, lessonTitle = "درس", courseAccessState = null }) => {
   const { data: userData } = useSelector((state) => state.auth);
+  const navigate = useNavigate();
   const { lesson, courseInfo, loading, error, refetch } = useLessonData(courseId, lessonId, unitId);
   
   // Check if access has expired
@@ -20,6 +23,8 @@ const OptimizedLessonContentModal = ({ isOpen, onClose, courseId, lessonId, unit
   const [examModalOpen, setExamModalOpen] = useState(false);
   const [selectedExam, setSelectedExam] = useState(null);
   const [currentExamType, setCurrentExamType] = useState('exam');
+  const [essayExamModalOpen, setEssayExamModalOpen] = useState(false);
+  const [selectedEssayExam, setSelectedEssayExam] = useState(null);
   
   // CustomVideoPlayer state
   const [videoPlayerOpen, setVideoPlayerOpen] = useState(false);
@@ -36,6 +41,7 @@ const OptimizedLessonContentModal = ({ isOpen, onClose, courseId, lessonId, unit
       if (lesson.videos?.length > 0) setSelectedTab('video');
       else if (lesson.pdfs?.length > 0) setSelectedTab('pdf');
       else if (lesson.exams?.length > 0) setSelectedTab('exam');
+      else if (lesson.essayExams?.length > 0) setSelectedTab('essayExam');
       else if (lesson.trainings?.length > 0) setSelectedTab('training');
     }
   }, [lesson]);
@@ -44,7 +50,8 @@ const OptimizedLessonContentModal = ({ isOpen, onClose, courseId, lessonId, unit
     switch (type) {
       case 'video': return <FaVideo className="text-blue-500" />;
       case 'pdf': return <FaFilePdf className="text-red-500" />;
-      case 'exam': return <FaClipboardList className="text-purple-500" />;
+      case 'exam': return <FaClipboardList className="text-blue-500" />;
+      case 'essayExam': return <FaClipboardList className="text-purple-500" />;
       case 'training': return <FaDumbbell className="text-green-500" />;
       default: return null;
     }
@@ -55,6 +62,7 @@ const OptimizedLessonContentModal = ({ isOpen, onClose, courseId, lessonId, unit
       case 'video': return 'الفيديوهات';
       case 'pdf': return 'الملفات';
       case 'exam': return 'الامتحانات';
+      case 'essayExam': return 'الامتحانات المقالية';
       case 'training': return 'التدريبات';
       default: return '';
     }
@@ -303,14 +311,14 @@ const OptimizedLessonContentModal = ({ isOpen, onClose, courseId, lessonId, unit
   const renderExamContent = () => (
     <div className="space-y-4">
       {lesson.exams?.map((exam, index) => (
-        <div key={exam._id} className="bg-gradient-to-br from-purple-50 to-indigo-100 dark:from-gray-800 dark:to-gray-900 p-4 sm:p-6 rounded-xl border border-purple-200 dark:border-gray-700">
+        <div key={exam._id} className="bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-800 dark:to-gray-900 p-4 sm:p-6 rounded-xl border border-blue-200 dark:border-gray-700">
           <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 bg-purple-100 dark:bg-purple-900 rounded-lg">
-              <FaClipboardList className="text-purple-600 dark:text-purple-400 text-lg sm:text-xl" />
+            <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
+              <FaClipboardList className="text-blue-600 dark:text-blue-400 text-lg sm:text-xl" />
             </div>
             <div className="flex-1 min-w-0">
               <div className="font-semibold text-lg sm:text-xl text-gray-800 dark:text-gray-200 break-words">{exam.title}</div>
-              <div className="text-sm text-purple-600 dark:text-purple-400 font-medium">امتحان </div>
+              <div className="text-sm text-blue-600 dark:text-blue-400 font-medium">امتحان </div>
             </div>
             {exam.userResult?.hasTaken && (
               <div className="text-right">
@@ -365,7 +373,7 @@ const OptimizedLessonContentModal = ({ isOpen, onClose, courseId, lessonId, unit
                 </div>
               ) : exam.examStatus === 'not_open' ? (
                 <div className="space-y-3">
-                  <div className="flex items-center justify-center gap-2 text-orange-600">
+                  <div className="flex items-center justify-center gap-2 text-blue-600">
                     <FaClock />
                     <span>الامتحان غير متاح بعد</span>
                   </div>
@@ -404,7 +412,7 @@ const OptimizedLessonContentModal = ({ isOpen, onClose, courseId, lessonId, unit
                      }
                      handleStartExam(exam, 'exam');
                    }}
-                   className="bg-purple-600 hover:bg-purple-700 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg transition-all duration-200 hover:shadow-lg font-medium text-sm sm:text-base w-full sm:w-auto"
+                   className="bg-blue-600 hover:bg-blue-700 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg transition-all duration-200 hover:shadow-lg font-medium text-sm sm:text-base w-full sm:w-auto"
                    disabled={isAccessExpired}
                  >
                    بدء الامتحان
@@ -489,7 +497,7 @@ const OptimizedLessonContentModal = ({ isOpen, onClose, courseId, lessonId, unit
             <div className="text-center">
               {training.trainingStatus === 'not_open' ? (
                 <div className="space-y-3">
-                  <div className="flex items-center justify-center gap-2 text-orange-600">
+                  <div className="flex items-center justify-center gap-2 text-blue-600">
                     <FaClock />
                     <span>التدريب غير متاح بعد</span>
                   </div>
@@ -518,6 +526,175 @@ const OptimizedLessonContentModal = ({ isOpen, onClose, courseId, lessonId, unit
                    {training.attemptCount > 0 ? 'إعادة التدريب' : 'بدء التدريب'}
                  </button>
               )}
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+
+  const renderEssayExamContent = () => (
+    <div className="space-y-4">
+      {lesson.essayExams?.map((exam, index) => (
+        <div key={exam._id} className="bg-gradient-to-br from-purple-50 to-indigo-100 dark:from-gray-800 dark:to-gray-900 p-4 sm:p-6 rounded-xl border border-purple-200 dark:border-gray-700">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-2 bg-purple-100 dark:bg-purple-900 rounded-lg">
+              <FaClipboardList className="text-purple-600 dark:text-purple-400 text-lg sm:text-xl" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="font-semibold text-lg sm:text-xl text-gray-800 dark:text-gray-200 break-words">{exam.title}</div>
+              <div className="text-sm text-purple-600 dark:text-purple-400 font-medium">امتحان مقالي</div>
+            </div>
+            {(() => {
+              const userId = userData?._id?.toString();
+              const userSubs = (exam.submissions || []).filter(s => (s.user?._id || s.user)?.toString() === userId);
+              const hasSubmitted = userSubs.length > 0;
+              const totalQuestions = exam.questions?.length || 0;
+              const gradedCount = userSubs.filter(s => s.grade != null || s.status === 'graded').length;
+              const fullyGraded = hasSubmitted && totalQuestions > 0 && gradedCount >= totalQuestions;
+              if (!hasSubmitted) return null;
+              return (
+                <div className="text-right">
+                  <div className={`text-sm ${fullyGraded ? 'text-green-600' : 'text-gray-500'}`}>{fullyGraded ? 'تم التصحيح' : 'تم التقديم'}</div>
+                  <div className="text-lg font-bold text-green-600">✓</div>
+                </div>
+              );
+            })()}
+          </div>
+          
+          <div className="mb-4 text-gray-600 dark:text-gray-300 leading-relaxed text-sm sm:text-base">{exam.description}</div>
+          
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-4 sm:p-6 border border-gray-200 dark:border-gray-600">
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div className="text-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                <div className="text-sm text-gray-600 dark:text-gray-300">عدد الأسئلة</div>
+                <div className="text-lg font-semibold">{exam.questions?.length || 0}</div>
+              </div>
+              <div className="text-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                <div className="text-sm text-gray-600 dark:text-gray-300">المدة المحددة</div>
+                <div className="text-lg font-semibold">{exam.timeLimit || 60} دقيقة</div>
+              </div>
+            </div>
+            
+            {/* Date Information */}
+            {(exam.openDate || exam.closeDate) && (
+              <div className="mb-4 p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                <div className="text-sm font-medium text-purple-800 dark:text-purple-300 mb-2">معلومات التواريخ:</div>
+                <div className="space-y-1 text-xs text-purple-700 dark:text-purple-400">
+                  {exam.openDate && (
+                    <div>يفتح في: {new Date(exam.openDate).toLocaleDateString('ar')} {new Date(exam.openDate).toLocaleTimeString('ar', { hour: '2-digit', minute: '2-digit' })}</div>
+                  )}
+                  {exam.closeDate && (
+                    <div>يغلق في: {new Date(exam.closeDate).toLocaleDateString('ar')} {new Date(exam.closeDate).toLocaleTimeString('ar', { hour: '2-digit', minute: '2-digit' })}</div>
+                  )}
+                </div>
+              </div>
+            )}
+            
+            <div className="text-center">
+              {(() => {
+                const userId = userData?._id?.toString();
+                const userSubs = (exam.submissions || []).filter(s => (s.user?._id || s.user)?.toString() === userId);
+                const hasSubmitted = userSubs.length > 0;
+                const totalQuestions = exam.questions?.length || 0;
+                const gradedCount = userSubs.filter(s => s.grade != null || s.status === 'graded').length;
+                const fullyGraded = hasSubmitted && totalQuestions > 0 && gradedCount >= totalQuestions;
+
+                if (hasSubmitted) {
+                  return (
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-center gap-2 text-green-600">
+                        <FaCheckCircle />
+                        <span>{fullyGraded ? 'تم تصحيح الامتحان' : 'تم تقديم الامتحان'}</span>
+                      </div>
+                      {fullyGraded ? (
+                        (() => {
+                          const totalGrade = userSubs.reduce((sum, s) => sum + (s.grade ?? 0), 0);
+                          const maxTotalGrade = (exam.questions || []).reduce((sum, q) => sum + (q.maxGrade || 0), 0);
+                          const feedbackItems = userSubs
+                            .map((s) => {
+                              const question = (exam.questions || [])[s.questionIndex] || {};
+                              return {
+                                idx: s.questionIndex,
+                                text: s.feedback || '',
+                                grade: s.grade ?? null,
+                                max: question.maxGrade || 0
+                              };
+                            })
+                            .filter(f => f.text || f.grade != null);
+                          return (
+                            <div className="space-y-2">
+                              <div className="text-sm text-gray-700 dark:text-gray-300">
+                                درجتك: {totalGrade} / {maxTotalGrade}
+                              </div>
+                              {feedbackItems.length > 0 && (
+                                <div className="text-right bg-purple-50 dark:bg-gray-700/40 rounded-md p-3">
+                                  <div className="text-sm font-medium text-purple-700 dark:text-purple-300 mb-1">ملاحظات المدرس:</div>
+                                  <ul className="space-y-1">
+                                    {feedbackItems.sort((a,b)=>a.idx-b.idx).map((f) => (
+                                      <li key={f.idx} className="text-sm text-gray-700 dark:text-gray-200">
+                                        <span className="font-medium">السؤال {f.idx + 1}:</span>
+                                        {f.text ? <span> {f.text}</span> : null}
+                                        {f.grade != null && (
+                                          <span className="ml-2 text-xs text-gray-600 dark:text-gray-300">({f.grade} / {f.max})</span>
+                                        )}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })()
+                      ) : (
+                        <div className="text-sm text-gray-600">انتظر تقييم المدرس</div>
+                      )}
+                    </div>
+                  );
+                }
+
+                if (exam.openDate && new Date(exam.openDate) > new Date()) {
+                  return (
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-center gap-2 text-blue-600">
+                        <FaClock />
+                        <span>الامتحان غير متاح بعد</span>
+                      </div>
+                      <button disabled className="bg-gray-400 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-medium text-sm sm:text-base w-full sm:w-auto cursor-not-allowed">
+                        الامتحان غير متاح
+                      </button>
+                    </div>
+                  );
+                }
+
+                if (exam.closeDate && new Date(exam.closeDate) < new Date()) {
+                  return (
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-center gap-2 text-red-600">
+                        <FaTimes />
+                        <span>الامتحان مغلق</span>
+                      </div>
+                      <button disabled className="bg-gray-400 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-medium text-sm sm:text-base w-full sm:w-auto cursor-not-allowed">
+                        الامتحان مغلق
+                      </button>
+                    </div>
+                  );
+                }
+
+                return (
+                  <button
+                    onClick={() => {
+                      if (isAccessExpired) return;
+                      setSelectedEssayExam(exam);
+                      setEssayExamModalOpen(true);
+                    }}
+                    className="bg-purple-600 hover:bg-purple-700 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg transition-all duration-200 hover:shadow-lg font-medium text-sm sm:text-base w-full sm:w-auto"
+                    disabled={isAccessExpired}
+                  >
+                    بدء الامتحان المقالي
+                  </button>
+                );
+              })()}
             </div>
           </div>
         </div>
@@ -560,15 +737,43 @@ const OptimizedLessonContentModal = ({ isOpen, onClose, courseId, lessonId, unit
   }
 
   if (error) {
+    // Debug: Log the error to see what we're getting
+    console.log('Error received:', error);
+    
+    // Check if it's an authentication error - be more comprehensive
+    const isAuthError = error.includes('تسجيل الدخول') || 
+                       error.includes('لازم تسجل دخول') ||
+                       error.includes('Unauthorized') || 
+                       error.includes('401') ||
+                       error.includes('Authentication') ||
+                       error.includes('Token') ||
+                       error.includes('Login required') ||
+                       error.toLowerCase().includes('unauthorized');
+    
+    console.log('Is Auth Error:', isAuthError);
+    
+    const handleRetry = () => {
+      if (isAuthError) {
+        onClose(); // Close the modal first
+        navigate('/login'); // Navigate to login page
+      } else {
+        refetch(); // Normal retry
+      }
+    };
+
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm">
         <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl p-8 text-center max-w-md">
           <div className="text-red-500 text-4xl mb-4">⚠️</div>
-          <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2">خطأ في التحميل</h3>
+          <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2">مشكلة في التحميل</h3>
           <p className="text-gray-600 dark:text-gray-300 mb-4">{error}</p>
-          <div className="flex gap-2">
-            <button onClick={refetch} className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg">إعادة المحاولة</button>
-            <button onClick={onClose} className="flex-1 bg-gray-600 text-white px-4 py-2 rounded-lg">إغلاق</button>
+          <div className="flex flex-col gap-2">
+            <div className="flex gap-2">
+              <button onClick={handleRetry} className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg">
+                {isAuthError ? 'تسجيل الدخول' : 'إعادة المحاولة'}
+              </button>
+              <button onClick={onClose} className="flex-1 bg-gray-600 text-white px-4 py-2 rounded-lg">إغلاق</button>
+            </div>
           </div>
         </div>
       </div>
@@ -581,7 +786,7 @@ const OptimizedLessonContentModal = ({ isOpen, onClose, courseId, lessonId, unit
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm p-2 sm:p-4">
       <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-5xl max-h-[95vh] overflow-hidden relative">
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 sm:p-6 rounded-t-2xl">
+        <div className="bg-gradient-to-r from-blue-600 to-blue-600 text-white p-4 sm:p-6 rounded-t-2xl">
           <div className="flex items-start justify-between gap-3">
             <div className="flex-1 min-w-0">
               <h2 className="text-lg sm:text-xl md:text-2xl font-bold leading-tight break-words">{lesson.title}</h2>
@@ -616,7 +821,8 @@ const OptimizedLessonContentModal = ({ isOpen, onClose, courseId, lessonId, unit
             {[
               { key: 'video', label: 'الفيديوهات', icon: <FaVideo className="text-blue-500" />, count: lesson.videos?.length || 0 },
               { key: 'pdf', label: 'الملفات', icon: <FaFilePdf className="text-red-500" />, count: lesson.pdfs?.length || 0 },
-              { key: 'exam', label: 'الامتحانات', icon: <FaClipboardList className="text-purple-500" />, count: lesson.exams?.length || 0 },
+              { key: 'exam', label: 'الامتحانات', icon: <FaClipboardList className="text-blue-500" />, count: lesson.exams?.length || 0 },
+              { key: 'essayExam', label: 'الامتحانات المقالية', icon: <FaClipboardList className="text-purple-500" />, count: lesson.essayExams?.length || 0 },
               { key: 'training', label: 'التدريبات', icon: <FaDumbbell className="text-green-500" />, count: lesson.trainings?.length || 0 }
             ].filter(tab => tab.count > 0).map((tab) => (
               <button
@@ -642,11 +848,12 @@ const OptimizedLessonContentModal = ({ isOpen, onClose, courseId, lessonId, unit
             {selectedTab === 'video' && renderVideoContent()}
             {selectedTab === 'pdf' && renderPdfContent()}
             {selectedTab === 'exam' && renderExamContent()}
+            {selectedTab === 'essayExam' && renderEssayExamContent()}
             {selectedTab === 'training' && renderTrainingContent()}
           </div>
 
           {/* Empty State */}
-          {(!lesson.videos?.length && !lesson.pdfs?.length && !lesson.exams?.length && !lesson.trainings?.length) && (
+          {(!lesson.videos?.length && !lesson.pdfs?.length && !lesson.exams?.length && !lesson.essayExams?.length && !lesson.trainings?.length) && (
             <div className="text-center py-8 sm:py-12">
               <div className="text-gray-400 text-4xl sm:text-6xl mb-4">📚</div>
               <div className="text-lg sm:text-xl font-medium text-gray-600 dark:text-gray-300 mb-2">
@@ -662,7 +869,7 @@ const OptimizedLessonContentModal = ({ isOpen, onClose, courseId, lessonId, unit
 
       {/* Custom Video Player */}
       {videoPlayerOpen && currentVideo && (() => {
-        const userName = userData?.name || userData?.username || "User";
+        const userName = userData?.fullName || userData?.name || "User";
         return (
           <CustomVideoPlayer
             video={currentVideo}
@@ -724,6 +931,23 @@ const OptimizedLessonContentModal = ({ isOpen, onClose, courseId, lessonId, unit
           lessonId={lessonId}
           unitId={unitId}
           examType={currentExamType}
+        />
+      )}
+
+      {/* Essay Exam Modal */}
+      {essayExamModalOpen && selectedEssayExam && (
+        <EssayExamModal
+          examId={selectedEssayExam._id}
+          onClose={() => {
+            setEssayExamModalOpen(false);
+            setSelectedEssayExam(null);
+            refetch(); // Refresh lesson data to show updated submission status
+          }}
+          onSuccess={() => {
+            setEssayExamModalOpen(false);
+            setSelectedEssayExam(null);
+            refetch(); // Refresh lesson data to show updated submission status
+          }}
         />
       )}
     </div>

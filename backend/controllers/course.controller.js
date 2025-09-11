@@ -1,5 +1,6 @@
 import Course from '../models/course.model.js';
 import AppError from '../utils/error.utils.js';
+import { getCairoNow, toCairoTime } from '../utils/timezone.js';
 
 import fs from 'fs';
 import path from 'path';
@@ -470,7 +471,7 @@ export const getLessonById = async (req, res, next) => {
       ) : null;
 
       // Check exam availability based on dates
-      const now = new Date();
+      const now = getCairoNow();
       let examStatus = 'available';
       let statusMessage = '';
       
@@ -516,7 +517,7 @@ export const getLessonById = async (req, res, next) => {
       ) : [];
 
       // Check training availability based on dates
-      const now = new Date();
+      const now = getCairoNow();
       let trainingStatus = 'available';
       let statusMessage = '';
       
@@ -553,23 +554,18 @@ export const getLessonById = async (req, res, next) => {
     });
 
     // Optimized lesson response with only necessary data
-    const now = new Date();
-    console.log('🔍 Current time for filtering:', now.toISOString());
-    console.log('🔍 Current time local:', now.toString());
-    console.log('🔍 Current timezone offset:', now.getTimezoneOffset());
+    const now = getCairoNow();
+    console.log('🔍 Current time for filtering (Cairo):', now.toISOString());
     
     const filteredVideos = lesson.videos.filter(video => {
       if (!video.publishDate) {
         console.log(`✅ Video ${video.title || video._id}: No publishDate - showing`);
         return true;
       }
-      const publishDate = new Date(video.publishDate);
-      // Normalize both dates to UTC for comparison
-      const nowUTC = new Date(now.getTime() - (now.getTimezoneOffset() * 60000));
-      const publishDateUTC = new Date(publishDate.getTime() - (publishDate.getTimezoneOffset() * 60000));
-      const shouldShow = nowUTC >= publishDateUTC;
-      console.log(`🔍 Video ${video.title || video._id}: publishDate=${publishDate.toISOString()}, publishDate local=${publishDate.toString()}, shouldShow=${shouldShow}`);
-      console.log(`🔍 Video timezone comparison: nowUTC=${nowUTC.toISOString()}, publishDateUTC=${publishDateUTC.toISOString()}`);
+      const publishDate = toCairoTime(video.publishDate);
+      // Both dates are now in Cairo timezone for comparison
+      const shouldShow = now >= publishDate;
+      console.log(`🔍 Video ${video.title || video._id}: publishDate=${publishDate.toISOString()} (Cairo), shouldShow=${shouldShow}`);
       return shouldShow;
     });
     
@@ -578,13 +574,10 @@ export const getLessonById = async (req, res, next) => {
         console.log(`✅ PDF ${pdf.title || pdf._id}: No publishDate - showing`);
         return true;
       }
-      const publishDate = new Date(pdf.publishDate);
-      // Normalize both dates to UTC for comparison
-      const nowUTC = new Date(now.getTime() - (now.getTimezoneOffset() * 60000));
-      const publishDateUTC = new Date(publishDate.getTime() - (publishDate.getTimezoneOffset() * 60000));
-      const shouldShow = nowUTC >= publishDateUTC;
-      console.log(`🔍 PDF ${pdf.title || pdf._id}: publishDate=${publishDate.toISOString()}, publishDate local=${publishDate.toString()}, shouldShow=${shouldShow}`);
-      console.log(`🔍 PDF timezone comparison: nowUTC=${nowUTC.toISOString()}, publishDateUTC=${publishDateUTC.toISOString()}`);
+      const publishDate = toCairoTime(pdf.publishDate);
+      // Both dates are now in Cairo timezone for comparison
+      const shouldShow = now >= publishDate;
+      console.log(`🔍 PDF ${pdf.title || pdf._id}: publishDate=${publishDate.toISOString()} (Cairo), shouldShow=${shouldShow}`);
       return shouldShow;
     });
     
@@ -929,24 +922,52 @@ export const updateLessonContent = async (req, res, next) => {
     const { unitId, videos, pdfs, exams, trainings } = req.body;
     const course = await Course.findById(courseId);
     if (!course) return res.status(404).json({ success: false, message: 'Course not found' });
+    
     let lesson;
-        if (unitId) {
+    if (unitId) {
       const unit = course.units.id(unitId);
       if (!unit) return res.status(404).json({ success: false, message: 'Unit not found' });
       lesson = unit.lessons.id(lessonId);
-        } else {
+    } else {
       lesson = course.directLessons.id(lessonId);
     }
     if (!lesson) return res.status(404).json({ success: false, message: 'Lesson not found' });
+    
+    // Store old lesson data for comparison
+    const oldLesson = {
+      videos: lesson.videos || [],
+      pdfs: lesson.pdfs || [],
+      exams: lesson.exams || [],
+      trainings: lesson.trainings || []
+    };
+    
+    // Update lesson content
     if (videos !== undefined) lesson.videos = videos;
     if (pdfs !== undefined) lesson.pdfs = pdfs;
     if (exams !== undefined) lesson.exams = exams;
     if (trainings !== undefined) lesson.trainings = trainings;
-        await course.save();
-    return res.status(200).json({ success: true, message: 'Lesson content updated', data: { lesson } });
-    } catch (error) {
-        return next(new AppError(error.message, 500));
+    
+    await course.save();
+    
+    // Import notification helper and detect changes
+    const { notifyUsersOfNewContent, detectContentChanges } = await import('../utils/notificationHelper.js');
+    
+    // Detect what content was added
+    const changes = detectContentChanges(oldLesson, lesson);
+    
+    // Send notifications for each type of new content
+    for (const change of changes) {
+      await notifyUsersOfNewContent(course, change.type, change.details);
     }
+    
+    if (changes.length > 0) {
+      console.log('🔔 Sent notifications for', changes.length, 'content changes in course:', course.title);
+    }
+    
+    return res.status(200).json({ success: true, message: 'Lesson content updated', data: { lesson } });
+  } catch (error) {
+    return next(new AppError(error.message, 500));
+  }
 };
 
 // Delete a lesson by lesson ID
@@ -1118,7 +1139,7 @@ export const takeExam = async (req, res, next) => {
     }
 
     // Check if exam is open
-    const now = new Date();
+    const now = getCairoNow();
     if (exam.openDate && now < new Date(exam.openDate)) {
       return res.status(400).json({ success: false, message: 'Exam is not open yet' });
     }
@@ -1244,7 +1265,7 @@ export const submitTrainingAttempt = async (req, res, next) => {
     if (!training) return res.status(404).json({ success: false, message: 'Training not found' });
 
     // Check if training is open
-    const now = new Date();
+    const now = getCairoNow();
     if (training.openDate && now < new Date(training.openDate)) {
       return res.status(400).json({ success: false, message: 'Training is not open yet' });
     }

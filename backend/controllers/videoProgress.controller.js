@@ -198,7 +198,7 @@ const getCourseProgress = async (req, res, next) => {
     }
 
     const progress = await videoProgressModel.find({ userId, courseId })
-      .populate('userId', 'username fullName')
+      .populate('userId', 'fullName')
       .sort({ updatedAt: -1 });
 
     res.status(200).json({
@@ -218,12 +218,12 @@ const getVideoProgressForAllUsers = async (req, res, next) => {
     const { role } = req.user;
 
     // Only admins can see all users' progress
-    if (role !== 'ADMIN') {
+    if (role !== 'ADMIN' && role !== 'SUPER_ADMIN') {
       return next(new AppError("Unauthorized access", 403));
     }
 
     const progress = await videoProgressModel.find({ videoId })
-      .populate('userId', 'username fullName email')
+      .populate('userId', 'fullName email')
       .sort({ lastWatched: -1 });
 
     // Transform the data to include user information
@@ -243,7 +243,6 @@ const getVideoProgressForAllUsers = async (req, res, next) => {
       updatedAt: item.updatedAt,
       user: {
         _id: item.userId._id,
-        username: item.userId.username,
         fullName: item.userId.fullName,
         email: item.userId.email
       }
@@ -274,7 +273,7 @@ const resetVideoProgress = async (req, res, next) => {
     }
 
     // Only allow reset if user owns the progress or is admin
-    if (progress.userId.toString() !== userId && role !== 'ADMIN') {
+    if (progress.userId.toString() !== userId && role !== 'ADMIN' && role !== 'SUPER_ADMIN') {
       return next(new AppError("Unauthorized access", 403));
     }
 
@@ -309,7 +308,7 @@ const getUserVideoTracking = async (req, res, next) => {
     const requestingUserRole = req.user.role;
     
     // 🔒 SECURITY: Only allow users to see their own data or admins to see any data
-    if (userId !== requestingUserId.toString() && requestingUserRole !== 'ADMIN') {
+    if (userId !== requestingUserId.toString() && requestingUserRole !== 'ADMIN' && requestingUserRole !== 'SUPER_ADMIN') {
       return next(new AppError("Unauthorized access to user tracking data", 403));
     }
     
@@ -552,7 +551,7 @@ const getAllUsersProgressSummary = async (req, res, next) => {
     const { page = 1, limit = 20, courseId, stageId, search, sortBy = 'lastWatched', sortOrder = 'desc' } = req.query;
 
     // Only admins can access this data
-    if (role !== 'ADMIN') {
+    if (role !== 'ADMIN' && role !== 'SUPER_ADMIN') {
       return next(new AppError("Unauthorized access", 403));
     }
 
@@ -630,7 +629,7 @@ const getAllUsersProgressSummary = async (req, res, next) => {
         $match: {
           $or: [
             { 'user.fullName': { $regex: search, $options: 'i' } },
-            { 'user.username': { $regex: search, $options: 'i' } },
+            { 'user.phoneNumber': { $regex: search, $options: 'i' } },
             { 'user.email': { $regex: search, $options: 'i' } }
           ]
         }
@@ -667,7 +666,6 @@ const getAllUsersProgressSummary = async (req, res, next) => {
       user: {
         _id: item.user._id,
         fullName: item.user.fullName,
-        username: item.user.username,
         email: item.user.email,
         phoneNumber: item.user.phoneNumber,
         stage: item.user.stage,

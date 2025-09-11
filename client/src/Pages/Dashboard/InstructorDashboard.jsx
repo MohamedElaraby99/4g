@@ -171,16 +171,16 @@ const InstructorDashboard = () => {
       stars.push(
         <FaStar
           key={i}
-          className={`text-sm ${i <= rating ? 'text-yellow-400' : 'text-gray-300'}`}
+          className={`text-sm ${i <= rating ? 'text-blue-400' : 'text-gray-300'}`}
         />
       );
     }
     return stars;
   };
 
-  if (role !== 'ADMIN') {
+  if (role !== 'ADMIN' && role !== 'SUPER_ADMIN') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">
             غير مصرح لك بالوصول إلى هذه الصفحة
@@ -195,7 +195,7 @@ const InstructorDashboard = () => {
 
   return (
     <Layout>
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900" dir="rtl">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900" dir="rtl">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-center mb-8">
@@ -257,7 +257,7 @@ const InstructorDashboard = () => {
               className="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300"
             >
               {/* Instructor Header */}
-              <div className="relative p-6 bg-gradient-to-r from-blue-500 to-purple-600">
+              <div className="relative p-6 bg-gradient-to-r from-blue-500 to-blue-600">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
                     {instructor.profileImage?.secure_url ? (
@@ -277,7 +277,7 @@ const InstructorDashboard = () => {
                     </div>
                   </div>
                   {instructor.featured && (
-                    <span className="bg-yellow-400 text-yellow-900 px-2 py-1 rounded-full text-xs font-semibold">
+                    <span className="bg-blue-400 text-blue-900 px-2 py-1 rounded-full text-xs font-semibold">
                       مميز
                     </span>
                   )}

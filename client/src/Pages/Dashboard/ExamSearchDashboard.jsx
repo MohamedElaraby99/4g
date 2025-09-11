@@ -45,8 +45,8 @@ const ExamSearchDashboard = () => {
   const getScoreColor = (score) => {
     if (score >= 90) return 'text-green-600';
     if (score >= 80) return 'text-blue-600';
-    if (score >= 70) return 'text-yellow-600';
-    if (score >= 50) return 'text-orange-600';
+    if (score >= 70) return 'text-blue-600';
+    if (score >= 50) return 'text-blue-600';
     return 'text-red-600';
   };
 
@@ -88,7 +88,7 @@ const ExamSearchDashboard = () => {
 
   return (
     <Layout>
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
         <div className="container mx-auto px-4 py-8">
           {/* Header */}
           <div className="mb-8">
@@ -178,7 +178,7 @@ const ExamSearchDashboard = () => {
                           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                             examData.examType === 'training' 
                               ? 'bg-green-100 text-green-800' 
-                              : 'bg-purple-100 text-purple-800'
+                              : 'bg-blue-100 text-blue-800'
                           }`}>
                             {examData.examType === 'training' ? 'تدريب' : 'امتحان نهائي'}
                           </span>
@@ -397,10 +397,10 @@ const ExamSearchDashboard = () => {
                         <div className="text-red-700 dark:text-red-300">راسبون</div>
                       </div>
                       <div className="text-center">
-                        <div className="text-2xl font-bold text-purple-600">
+                        <div className="text-2xl font-bold text-blue-600">
                           {Math.round(selectedExam.students.reduce((sum, s) => sum + s.percentage, 0) / selectedExam.students.length)}%
                         </div>
-                        <div className="text-purple-700 dark:text-purple-300">متوسط النتيجة</div>
+                        <div className="text-blue-700 dark:text-blue-300">متوسط النتيجة</div>
                       </div>
                     </div>
                   </div>

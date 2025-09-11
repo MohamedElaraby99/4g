@@ -15,7 +15,7 @@ const isLoggedIn = async (req, res, next) => {
 
     if (!token) {
         console.log('No token found in cookies');
-        return next(new AppError("Unauthenticated, please login again", 400))
+        return next(new AppError("لازم تسجل دخول الأول عشان تكمل", 400))
     }
 
     try {
@@ -27,7 +27,7 @@ const isLoggedIn = async (req, res, next) => {
         next();
     } catch (error) {
         console.log('JWT verification failed:', error.message);
-        return next(new AppError("Invalid token, please login again", 400));
+        return next(new AppError("الرمز غير صالح، يرجى تسجيل الدخول مرة أخرى", 400));
     }
 }
 
@@ -41,9 +41,15 @@ const authorisedRoles = (...roles) => async (req, res, next) => {
     console.log('URL:', req.url);
     console.log('Method:', req.method);
     
+    // SUPER_ADMIN has access to all admin routes
+    if (currentUserRoles === 'SUPER_ADMIN') {
+        console.log('ACCESS GRANTED: User is SUPER_ADMIN');
+        return next();
+    }
+    
     if (!roles.includes(currentUserRoles)) {
         console.log('ACCESS DENIED: User role not in required roles');
-        return next(new AppError("You do not have permission to access this routes", 403))
+        return next(new AppError("ليس لديك صلاحية للوصول إلى هذه الطريقة", 403))
     }
     console.log('ACCESS GRANTED: User has required role');
     next();
@@ -60,7 +66,7 @@ const authorizeSubscriber = async (req, res, next) => {
     
     if (!user) {
         console.log('User not found in database');
-        return next(new AppError('User not found', 404));
+        return next(new AppError('المستخدم غير موجود', 404));
     }
     
     const subscriptionStatus = user.subscription?.status;
@@ -68,7 +74,7 @@ const authorizeSubscriber = async (req, res, next) => {
     console.log('User subscription object:', user.subscription);
     
     // For now, allow all logged-in users to access courses (temporary fix)
-    if (role !== 'ADMIN' && subscriptionStatus !== 'active') {
+    if (!['ADMIN', 'SUPER_ADMIN'].includes(role) && subscriptionStatus !== 'active') {
         console.log('ACCESS DENIED: User needs subscription, but allowing access for now');
         // return next(
         //     new AppError('Please subscribce to access this route!', 403)
@@ -90,7 +96,7 @@ const checkDeviceAuthorization = async (req, res, next) => {
     }
 
     // Skip device check for admin users
-    if (req.user && req.user.role === 'ADMIN') {
+    if (req.user && ['ADMIN', 'SUPER_ADMIN'].includes(req.user.role)) {
         console.log('Skipping device check for admin user');
         return next();
     }
@@ -118,7 +124,7 @@ const checkDeviceAuthorization = async (req, res, next) => {
         if (!authorizedDevice) {
             console.log('Device not authorized');
             return next(new AppError(
-                "هذا الجهاز غير مصرح له بالوصول. يرجى التواصل مع الإدارة لإعادة تعيين الأجهزة المصرحة.",
+                "هذا الجهاز غير مصرح له بالوصول. يرجى التواصل مع الإدارة لإعادة تعيين الأجهزة المصرحة",
                 403,
                 "DEVICE_NOT_AUTHORIZED"
             ));
@@ -141,8 +147,8 @@ const checkDeviceAuthorization = async (req, res, next) => {
 
 // Admin role check middleware
 const requireAdmin = async (req, res, next) => {
-    if (req.user.role !== 'ADMIN') {
-        return next(new AppError("Access denied. Admin role required.", 403));
+    if (!['ADMIN', 'SUPER_ADMIN'].includes(req.user.role)) {
+        return next(new AppError("ليس لديك صلاحية للوصول إلى هذه الطريقة", 403));
     }
     next();
 };

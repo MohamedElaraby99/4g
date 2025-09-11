@@ -447,7 +447,7 @@ const getAllExamResults = asyncHandler(async (req, res) => {
     sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
     
     const results = await ExamResult.find(filter)
-        .populate('user', 'fullName username email phoneNumber')
+        .populate('user', 'fullName email phoneNumber')
         .populate('course', 'title instructor stage subject')
         .sort(sort)
         .skip(skip)

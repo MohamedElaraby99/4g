@@ -1,4 +1,5 @@
 import { model, Schema } from "mongoose";
+import { getCairoNow } from '../utils/timezone.js';
 
 const examResultSchema = new Schema({
     user: {
@@ -88,7 +89,7 @@ const examResultSchema = new Schema({
     ],
     completedAt: {
         type: Date,
-        default: Date.now
+        default: getCairoNow
     }
 }, {
     timestamps: true

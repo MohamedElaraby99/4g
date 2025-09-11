@@ -18,6 +18,12 @@ export const checkDeviceAuthorization = async (req, res, next) => {
             return next();
         }
 
+        // Skip device check in development environment
+        if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'dev') {
+            console.log('Skipping device authorization check in development environment');
+            return next();
+        }
+
         const { deviceInfo } = req.body;
         
         if (!deviceInfo) {

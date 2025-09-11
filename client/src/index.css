@@ -1,60 +1,62 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Lato:wght@300;400&family=Nunito+Sans:opsz,wght@6..12,300;6..12,400;6..12,500;6..12,600&family=Open+Sans:wght@300;400&family=Roboto:wght@300&display=swap');
+/* Lemonada font is imported in index.html */
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Oi Font Class */
-.oi-regular {
-  font-family: "Oi", serif;
-  font-weight: 400;
-  font-style: normal;
-}
-
-/* Marhey Font Classes */
-.marhey-light {
-  font-family: "Marhey", sans-serif;
+/* Lemonada Font Classes */
+.lemonada-light {
+  font-family: "Lemonada", cursive;
   font-optical-sizing: auto;
   font-weight: 300;
   font-style: normal;
 }
 
-.marhey-regular {
-  font-family: "Marhey", sans-serif;
+.lemonada-regular {
+  font-family: "Lemonada", cursive;
   font-optical-sizing: auto;
   font-weight: 400;
   font-style: normal;
 }
 
-.marhey-medium {
-  font-family: "Marhey", sans-serif;
+.lemonada-medium {
+  font-family: "Lemonada", cursive;
   font-optical-sizing: auto;
   font-weight: 500;
   font-style: normal;
 }
 
-.marhey-semibold {
-  font-family: "Marhey", sans-serif;
+.lemonada-semibold {
+  font-family: "Lemonada", cursive;
   font-optical-sizing: auto;
   font-weight: 600;
   font-style: normal;
 }
 
-.marhey-bold {
-  font-family: "Marhey", sans-serif;
+.lemonada-bold {
+  font-family: "Lemonada", cursive;
   font-optical-sizing: auto;
   font-weight: 700;
   font-style: normal;
 }
 
-/* Global Marhey Font Application */
+/* Global Lemonada Font Application */
 html {
-  font-family: 'Marhey', sans-serif;
+  font-family: 'Lemonada', cursive;
 }
 
-/* Ensure all text elements use Marhey */
+/* Set default font weight for better readability */
+body {
+  font-family: 'Lemonada', cursive;
+  font-weight: 400;
+  font-optical-sizing: auto;
+  font-style: normal;
+}
+
+/* Ensure all text elements use Lemonada */
 h1, h2, h3, h4, h5, h6, p, span, div, button, input, textarea, select, label, a {
-  font-family: 'Marhey', sans-serif;
+  font-family: 'Lemonada', cursive;
+  font-optical-sizing: auto;
 }
 
 * {

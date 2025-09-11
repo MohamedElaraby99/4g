@@ -40,6 +40,7 @@ const CustomVideoPlayer = ({
   savedProgress = null
 }) => {
   const { role } = useSelector((state) => state.auth);
+  const userData = useSelector((state) => state.auth.data);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(1);
@@ -803,7 +804,9 @@ const CustomVideoPlayer = ({
   // Watermark system for video protection
   const startWatermarkTimer = () => {
     clearWatermarkTimer();
-    setDisplayUserName(userName);
+    // Use fullName from userData, fallback to userName prop, then to 'User'
+    const displayName = userData?.fullName || userName || 'User';
+    setDisplayUserName(displayName);
     
     // Change watermark position every 5 seconds
     watermarkTimerRef.current = setInterval(() => {
@@ -1019,7 +1022,7 @@ const CustomVideoPlayer = ({
           </div>
 
           {/* Always Visible Play Button (Fallback) */}
-          {!showControls && playerReady && (
+          {!showControls && playerReady && !isPlaying && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-auto z-30">
               <button
                 onClick={() => {
@@ -1028,11 +1031,7 @@ const CustomVideoPlayer = ({
                 }}
                 className="bg-white/20 backdrop-blur-sm rounded-full p-6 hover:bg-white/30 transition-colors"
               >
-                {isPlaying ? (
-                  <FaPause className="text-white text-4xl" />
-                ) : (
-                  <FaPlay className="text-white text-4xl ml-2" />
-                )}
+                <FaPlay className="text-white text-4xl ml-2" />
               </button>
             </div>
           )}
@@ -1333,7 +1332,7 @@ const CustomVideoPlayer = ({
         )}
 
         {/* All Users Progress Component (Admin Only) */}
-        {showProgress && courseId && getCleanVideoId(video) && role === 'ADMIN' && (
+        {showProgress && courseId && getCleanVideoId(video) && (role === 'ADMIN' || role === 'SUPER_ADMIN') && (
           <div className="w-full max-w-6xl mt-6 flex-shrink-0">
             <VideoUserProgress
               videoId={getCleanVideoId(video)}

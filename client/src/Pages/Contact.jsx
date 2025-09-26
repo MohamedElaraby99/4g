@@ -75,11 +75,7 @@ export default function Contact() {
 
   const socialMedia = [
     { name: "Facebook", icon: FaFacebook, url: "https://www.facebook.com/ali.alyan.92", color: "hover:text-blue-600" },
-    { name: "LinkedIn", icon: FaLinkedin, url: "https://www.linkedin.com/in/%D8%B9%D9%84%D9%8A-%D9%85%D8%AD%D9%85%D8%AF-%D9%85%D8%B9%D9%84%D9%8A%D8%A7%D9%86-a42859105/", color: "hover:text-blue-700" },
-    { name: "Instagram", icon: FaInstagram, url: "https://www.instagram.com/ali23121982/", color: "hover:text-pink-500" },
-    { name: "YouTube", icon: FaYoutube, url: "https://www.youtube.com/@%D8%A3.%D8%B9%D9%84%D9%8A%D9%85%D8%AD%D9%85%D8%AF%D8%B9%D9%84%D9%8A%D8%A7%D9%86", color: "hover:text-red-500" },
-    { name: "WhatsApp", icon: FaWhatsapp, url: `https://wa.me/${contactInfo.whatsapp.replace('+', '')}`, color: "hover:text-green-500" },
-    { name: "WhatsApp 2", icon: FaWhatsapp, url: `https://wa.me/${contactInfo.whatsapp1.replace('+', '')}`, color: "hover:text-green-500" }
+    { name: "WhatsApp", icon: FaWhatsapp, url: `https://wa.me/${contactInfo.whatsapp.replace('+', '')}`, color: "hover:text-green-500" }
   ];
 
   return (
@@ -148,75 +144,6 @@ export default function Contact() {
                     </a>
                   </div>
                 </div>
-              </div>
-
-              {/* Contact Form */}
-              <div className="mt-12">
-                <div className="text-center mb-8">
-                  <h3 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
-                    أرسل لنا رسالة
-                  </h3>
-                  <p className="text-gray-600 dark:text-gray-300">
-                    املأ النموذج أدناه وسنرد عليك في أقرب وقت ممكن
-                  </p>
-                </div>
-                
-                <form onSubmit={onFormSubmit} className="max-w-2xl mx-auto space-y-6">
-                  <div>
-                    <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      الاسم *
-                    </label>
-                    <InputBox
-                      id="name"
-                      name="name"
-                      type="text"
-                      placeholder="أدخل اسمك"
-                      value={userInput.name}
-                      onChange={handleInputChange}
-                      required
-                    />
-                  </div>
-                  
-                  <div>
-                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      البريد الإلكتروني *
-                    </label>
-                    <InputBox
-                      id="email"
-                      name="email"
-                      type="email"
-                      placeholder="أدخل بريدك الإلكتروني"
-                      value={userInput.email}
-                      onChange={handleInputChange}
-                      required
-                    />
-                  </div>
-                  
-                  <div>
-                    <label htmlFor="message" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      الرسالة *
-                    </label>
-                    <TextArea
-                      id="message"
-                      name="message"
-                      placeholder="أدخل رسالتك"
-                      value={userInput.message}
-                      onChange={handleInputChange}
-                      rows={5}
-                      required
-                    />
-                  </div>
-                  
-                  <div className="text-center">
-                    <button
-                      type="submit"
-                      disabled={isLoading}
-                      className="px-8 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
-                    >
-                      {isLoading ? 'جاري الإرسال...' : 'إرسال الرسالة'}
-                    </button>
-                  </div>
-                </form>
               </div>
 
               {/* Social Media */}

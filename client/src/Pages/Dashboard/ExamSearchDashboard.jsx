@@ -462,7 +462,7 @@ const ExamSearchDashboard = () => {
                                 </td>
                                 <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                                   <div className="flex items-center gap-2">
-                                    <FaStopwatch className="text-blue-400" />
+                                    <FaStopwatch className="text-orange-400" />
                                     <div>
                                       <div className="font-medium">
                                         {formatSubmissionTime(student.completedAt)}
@@ -567,7 +567,7 @@ const ExamSearchDashboard = () => {
                           {formatSubmissionTime(exam.completedAt)}
                         </div>
                         {exam.timeTaken && (
-                          <div className="text-xs text-blue-600 dark:text-blue-400">
+                          <div className="text-xs text-orange-600 dark:text-orange-400">
                             استغرق {exam.timeTaken} دقيقة
                           </div>
                         )}

@@ -167,10 +167,10 @@ export default function HomePage() {
   };
 
   const stats = [
-    { icon: FaUsers, number: "10K+", label: "طالب مسجل", color: "text-blue-600" },
+    { icon: FaUsers, number: "10K+", label: "طالب مسجل", color: "text-orange-600" },
     { icon: FaGraduationCap, number: "100+", label: "مادة متاحة", color: "text-green-600" },
-    { icon: FaStar, number: "4.9", label: "متوسط التقييم", color: "text-blue-600" },
-    { icon: FaAward, number: "50+", label: "مدرس مدرس", color: "text-blue-600" }
+    { icon: FaStar, number: "4.9", label: "متوسط التقييم", color: "text-orange-600" },
+    { icon: FaAward, number: "50+", label: "مدرس مدرس", color: "text-orange-600" }
   ];
 
   const features = [
@@ -178,8 +178,8 @@ export default function HomePage() {
       icon: FaRocket,
       title: "تعلم بوتيرتك الخاصة",
       description: "جداول تعلم مرنة تناسب نمط حياتك والتزاماتك.",
-      color: "text-blue-600",
-      bgColor: "bg-blue-50 dark:bg-blue-900/20"
+      color: "text-orange-600",
+      bgColor: "bg-orange-50 dark:bg-orange-900/20"
     },
     {
       icon: FaLightbulb,
@@ -192,23 +192,23 @@ export default function HomePage() {
       icon: FaShieldAlt,
       title: "التعلم المعتمد",
       description: "احصل على شهادات معترف بها من أفضل الشركات في العالم.",
-      color: "text-blue-600",
-      bgColor: "bg-blue-50 dark:bg-blue-900/20"
+      color: "text-orange-600",
+      bgColor: "bg-orange-50 dark:bg-orange-900/20"
     },
     {
       icon: FaGlobe,
       title: "المجتمع العالمي",
       description: "تواصل مع المتعلمين من جميع أنحاء العالم وشارك الخبرات.",
-      color: "text-blue-600",
-      bgColor: "bg-blue-50 dark:bg-blue-900/20"
+      color: "text-orange-600",
+      bgColor: "bg-orange-50 dark:bg-orange-900/20"
     }
   ];
 
   const categories = [
-    { icon: FaCode, name: "البرمجة", count: "150+ دورة", color: "bg-blue-500" },
-    { icon: FaPalette, name: "التصميم", count: "120+ دورة", color: "bg-blue-500" },
+    { icon: FaCode, name: "البرمجة", count: "150+ دورة", color: "bg-orange-500" },
+    { icon: FaPalette, name: "التصميم", count: "120+ دورة", color: "bg-orange-500" },
     { icon: FaChartLine, name: "الأعمال", count: "200+ دورة", color: "bg-green-500" },
-    { icon: FaBookOpen, name: "التسويق", count: "180+ دورة", color: "bg-blue-500" }
+    { icon: FaBookOpen, name: "التسويق", count: "180+ دورة", color: "bg-orange-500" }
   ];
 
   return (
@@ -247,7 +247,7 @@ export default function HomePage() {
 
           {featuredLoading ? (
             <div className="text-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto mb-4"></div>
               <p className="text-gray-600 dark:text-gray-400">جاري تحميل المواد المميزة...</p>
             </div>
           ) : featuredCourses && featuredCourses.length > 0 ? (
@@ -294,7 +294,7 @@ export default function HomePage() {
                     ) : null}
                     
                     {/* Fallback gradient for missing/broken images */}
-                    <div className={`w-full h-full bg-gradient-to-br from-blue-600 via-purple-600 to-blue-800 ${course.image?.secure_url ? 'hidden' : 'flex'} items-center justify-center`}>
+                    <div className={`w-full h-full bg-gradient-to-br from-orange-600 via-purple-600 to-orange-800 ${course.image?.secure_url ? 'hidden' : 'flex'} items-center justify-center`}>
                       <FaBookOpen className="text-8xl text-white opacity-40" />
                     </div>
                   </div>
@@ -375,7 +375,7 @@ export default function HomePage() {
                       </Link>
                       <Link
                         to="/courses"
-                        className="p-3.5 bg-blue-600/90 backdrop-blur-md hover:bg-blue-600 text-white rounded-xl transition-all duration-300 flex items-center justify-center border border-blue-500/50 hover:border-blue-400 hover:scale-105 shadow-lg"
+                        className="p-3.5 bg-orange-600/90 backdrop-blur-md hover:bg-orange-600 text-white rounded-xl transition-all duration-300 flex items-center justify-center border border-orange-500/50 hover:border-orange-400 hover:scale-105 shadow-lg"
                       >
                         <FaArrowRight className="w-4 h-4" />
                       </Link>
@@ -384,7 +384,7 @@ export default function HomePage() {
 
                   {/* Hover Effect Indicator */}
                   <div className="absolute top-4 left-4 opacity-0 group-hover:opacity-100 transition-all duration-500 z-20">
-                    <div className="w-3 h-3 bg-blue-400 rounded-full animate-pulse shadow-lg"></div>
+                    <div className="w-3 h-3 bg-orange-400 rounded-full animate-pulse shadow-lg"></div>
                   </div>
 
                   {/* Bottom gradient for better text readability */}
@@ -409,7 +409,7 @@ export default function HomePage() {
             <div className="text-center mt-12">
               <Link
                 to="/courses"
-                className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-blue-500 via-blue-600 to-blue-500 hover:from-blue-600 hover:via-blue-700 hover:to-blue-600 text-white font-semibold rounded-xl text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
+                className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-orange-500 via-orange-600 to-orange-500 hover:from-orange-600 hover:via-orange-700 hover:to-orange-600 text-white font-semibold rounded-xl text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
               >
                 <span>عرض جميع المواد  </span>
                 <FaArrowRight />
@@ -452,8 +452,8 @@ export default function HomePage() {
       dir="rtl"
       style={{ transitionDelay: '400ms' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* blue Strip */}
-          <div className="w-full h-2 bg-blue-400 mb-8"></div>
+          {/* orange Strip */}
+          <div className="w-full h-2 bg-orange-400 mb-8"></div>
           
           {/* Section Header */}
           <div className={`text-center mb-16 transition-all duration-700 ease-out ${
@@ -477,7 +477,7 @@ export default function HomePage() {
             }`}
             style={{ transitionDelay: '800ms' }}>
               <div className="absolute top-4 right-4">
-                <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center">
+                <div className="w-12 h-12 bg-orange-500 rounded-lg flex items-center justify-center">
                   <FaChartLine className="text-white text-xl" />
                 </div>
               </div>
@@ -497,7 +497,7 @@ export default function HomePage() {
             }`}
             style={{ transitionDelay: '900ms' }}>
               <div className="absolute top-4 right-4">
-                <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center">
+                <div className="w-12 h-12 bg-orange-500 rounded-lg flex items-center justify-center">
                   <FaAward className="text-white text-xl" />
                 </div>
               </div>
@@ -517,7 +517,7 @@ export default function HomePage() {
             }`}
             style={{ transitionDelay: '1000ms' }}>
               <div className="absolute top-4 right-4">
-                <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center">
+                <div className="w-12 h-12 bg-orange-500 rounded-lg flex items-center justify-center">
                   <FaCheckCircle className="text-white text-xl" />
                 </div>
               </div>
@@ -537,7 +537,7 @@ export default function HomePage() {
             }`}
             style={{ transitionDelay: '1100ms' }}>
               <div className="absolute top-4 right-4">
-                <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center">
+                <div className="w-12 h-12 bg-orange-500 rounded-lg flex items-center justify-center">
                   <FaClock className="text-white text-xl" />
                 </div>
               </div>
@@ -557,7 +557,7 @@ export default function HomePage() {
             }`}
             style={{ transitionDelay: '1200ms' }}>
               <div className="absolute top-4 right-4">
-                <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center">
+                <div className="w-12 h-12 bg-orange-500 rounded-lg flex items-center justify-center">
                   <FaComments className="text-white text-xl" />
                 </div>
               </div>
@@ -577,7 +577,7 @@ export default function HomePage() {
             }`}
             style={{ transitionDelay: '1300ms' }}>
               <div className="absolute top-4 right-4">
-                <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center">
+                <div className="w-12 h-12 bg-orange-500 rounded-lg flex items-center justify-center">
                   <FaGraduationCap className="text-white text-xl" />
                 </div>
               </div>
@@ -740,7 +740,7 @@ export default function HomePage() {
                       
                       <Link
                         to={`/blog/${blog._id}`}
-                        className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium flex items-center gap-1 group"
+                        className="text-orange-600 hover:text-orange-700 dark:text-orange-400 dark:hover:text-orange-300 font-medium flex items-center gap-1 group"
                       >
                         اقرأ المزيد
                         <FaArrowRight className="group-hover:translate-x-1 transition-transform duration-300" />
@@ -765,7 +765,7 @@ export default function HomePage() {
       </section>
 
       {/* CTA Section */}
-      <section className={`py-20 bg-gradient-to-r from-blue-500 via-blue-600 to-blue-500 transition-all duration-700 ease-out ${
+      <section className={`py-20 bg-gradient-to-r from-orange-500 via-orange-600 to-orange-500 transition-all duration-700 ease-out ${
         heroLoaded 
           ? 'opacity-100 translate-y-0' 
           : 'opacity-0 translate-y-8'
@@ -781,7 +781,7 @@ export default function HomePage() {
             <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
                           هل أنت مستعد لبدء رحلة التعلم؟
             </h2>
-            <p className="text-xl text-blue-100 mb-8 max-w-3xl mx-auto">
+            <p className="text-xl text-orange-100 mb-8 max-w-3xl mx-auto">
               انضم إلى آلاف المتعلمين الذين نجحوا بالفعل في تغيير حياتهم المهنية من خلال موادنا التدريبية التي يقدمها خبراؤنا.
             </p>
           </div>
@@ -792,13 +792,13 @@ export default function HomePage() {
           }`}
           style={{ transitionDelay: '4000ms' }}>
             <Link to="/signup">
-              <button className="px-8 py-4 bg-gradient-to-r from-blue-500 via-blue-600 to-blue-500 hover:from-blue-600 hover:via-blue-700 hover:to-blue-600 text-white font-semibold rounded-full text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300">
+              <button className="px-8 py-4 bg-gradient-to-r from-orange-500 via-orange-600 to-orange-500 hover:from-orange-600 hover:via-orange-700 hover:to-orange-600 text-white font-semibold rounded-full text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300">
                 ابدأ مجاناً
               </button>
             </Link>
             
             <Link to="/qa">
-              <button className="px-8 py-4 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-full text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 flex items-center gap-2">
+              <button className="px-8 py-4 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-full text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 flex items-center gap-2">
                 <FaQuestionCircle className="w-5 h-5" />
                 اطرح سؤالاً
               </button>
@@ -809,7 +809,7 @@ export default function HomePage() {
 
 
       {/* Mobile App Download Section */}
-      <section className="py-20 bg-gradient-to-br from-green-50 via-blue-50 to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900" dir="rtl">
+      <section className="py-20 bg-gradient-to-br from-green-50 via-orange-50 to-orange-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900" dir="rtl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             
@@ -823,7 +823,7 @@ export default function HomePage() {
                 
                 <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white leading-tight">
                   حمّل التطبيق
-                  <span className="block text-transparent bg-clip-text bg-gradient-to-r from-green-600 to-blue-600">
+                  <span className="block text-transparent bg-clip-text bg-gradient-to-r from-green-600 to-orange-600">
                     وتعلم في أي مكان
                   </span>
                 </h2>
@@ -843,22 +843,22 @@ export default function HomePage() {
                 </div>
                 
                 <div className="flex items-center space-x-3">
-                  <div className="flex-shrink-0 w-8 h-8 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center">
-                    <FaPlay className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                  <div className="flex-shrink-0 w-8 h-8 bg-orange-100 dark:bg-orange-900/20 rounded-full flex items-center justify-center">
+                    <FaPlay className="w-4 h-4 text-orange-600 dark:text-orange-400" />
                   </div>
                   <span className="text-gray-700 dark:text-gray-300 mr-3">فيديوهات عالية الجودة</span>
                 </div>
                 
                 <div className="flex items-center space-x-3">
-                  <div className="flex-shrink-0 w-8 h-8 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center">
-                    <FaBookOpen className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                  <div className="flex-shrink-0 w-8 h-8 bg-orange-100 dark:bg-orange-900/20 rounded-full flex items-center justify-center">
+                    <FaBookOpen className="w-4 h-4 text-orange-600 dark:text-orange-400" />
                   </div>
                   <span className="text-gray-700 dark:text-gray-300 mr-3">مكتبة شاملة</span>
                 </div>
                 
                 <div className="flex items-center space-x-3">
-                  <div className="flex-shrink-0 w-8 h-8 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center">
-                    <FaCheckCircle className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                  <div className="flex-shrink-0 w-8 h-8 bg-orange-100 dark:bg-orange-900/20 rounded-full flex items-center justify-center">
+                    <FaCheckCircle className="w-4 h-4 text-orange-600 dark:text-orange-400" />
                   </div>
                   <span className="text-gray-700 dark:text-gray-300 mr-3">تتبع التقدم</span>
                 </div>
@@ -883,9 +883,9 @@ export default function HomePage() {
                 {/* Google Play Store Button (Future) */}
                 <button
                   onClick={handlePlayStoreRedirect}
-                  className="group relative overflow-hidden bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-8 py-4 rounded-2xl font-semibold text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 flex items-center justify-center space-x-3"
+                  className="group relative overflow-hidden bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white px-8 py-4 rounded-2xl font-semibold text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 flex items-center justify-center space-x-3"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-r from-blue-700 to-blue-800 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  <div className="absolute inset-0 bg-gradient-to-r from-orange-700 to-orange-800 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                   <FaGooglePlay className="w-6 h-6 relative z-10 ml-3" />
                   <div className="text-right relative z-10">
                     <div className="text-sm opacity-90">قريباً على</div>
@@ -897,7 +897,7 @@ export default function HomePage() {
               {/* Download Stats */}
               <div className="flex items-center space-x-8 pt-6 text-sm text-gray-600 dark:text-gray-400">
                 <div className="flex items-center space-x-2">
-                  <FaStar className="w-4 h-4 text-blue-500 ml-1" />
+                  <FaStar className="w-4 h-4 text-orange-500 ml-1" />
                   <span>4.8 تقييم</span>
                 </div>
                 <div className="flex items-center space-x-2">
@@ -905,7 +905,7 @@ export default function HomePage() {
                   <span>+10k تحميل</span>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <FaUsers className="w-4 h-4 text-blue-500 ml-1" />
+                  <FaUsers className="w-4 h-4 text-orange-500 ml-1" />
                   <span>مجاني 100%</span>
                 </div>
               </div>
@@ -931,7 +931,7 @@ export default function HomePage() {
                     <div className="p-6 space-y-6">
                       {/* App Header */}
                       <div className="flex items-center space-x-4" dir="rtl">
-                        <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
+                        <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center">
                           <img src={logo} alt="logo" className="w-12 h-12" />
                         </div>
                         <div>
@@ -942,27 +942,27 @@ export default function HomePage() {
 
                       {/* Course Cards Preview */}
                       <div className="space-y-4">
-                        <div className="bg-gradient-to-r from-blue-50 to-blue-50 rounded-xl p-4">
+                        <div className="bg-gradient-to-r from-orange-50 to-orange-50 rounded-xl p-4">
                           <div className="flex justify-between items-start mb-2">
                             <h4 className="font-semibold text-gray-900">The 4G</h4>
                             <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">جديد</span>
                           </div>
                           <p className="text-sm text-gray-600 mb-3"> The 4G </p>
                           <div className="flex justify-between items-center">
-                            <span className="text-sm text-blue-600 font-medium">30% مكتمل</span>
-                            <button className="bg-blue-600 text-white px-4 py-1 rounded-full text-xs">متابعة</button>
+                            <span className="text-sm text-orange-600 font-medium">30% مكتمل</span>
+                            <button className="bg-orange-600 text-white px-4 py-1 rounded-full text-xs">متابعة</button>
                           </div>
                         </div>
 
-                        <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-xl p-4">
+                        <div className="bg-gradient-to-r from-green-50 to-orange-50 rounded-xl p-4">
                           <div className="flex justify-between items-start mb-2">
                             <h4 className="font-semibold text-gray-900">The 4G </h4>
-                            <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">شائع</span>
+                            <span className="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded-full">شائع</span>
                           </div>
                           <p className="text-sm text-gray-600 mb-3">  The 4G </p>
                           <div className="flex justify-between items-center">
                             <span className="text-sm text-green-600 font-medium">75% مكتمل</span>
-                            <button className="bg-blue-600 text-white px-4 py-1 rounded-full text-xs">متابعة</button>
+                            <button className="bg-orange-600 text-white px-4 py-1 rounded-full text-xs">متابعة</button>
                           </div>
                         </div>
                       </div>
@@ -990,11 +990,11 @@ export default function HomePage() {
                 </div>
 
                 {/* Floating Elements */}
-                <div className="absolute -top-6 -right-6 w-20 h-20 bg-gradient-to-br from-blue-400 to-blue-500 rounded-full flex items-center justify-center shadow-lg animate-bounce">
+                <div className="absolute -top-6 -right-6 w-20 h-20 bg-gradient-to-br from-orange-400 to-orange-500 rounded-full flex items-center justify-center shadow-lg animate-bounce">
                   <FaDownload className="text-white text-2xl" />
                 </div>
                 
-                <div className="absolute -bottom-6 -left-6 w-16 h-16 bg-gradient-to-br from-green-400 to-blue-500 rounded-full flex items-center justify-center shadow-lg animate-pulse">
+                <div className="absolute -bottom-6 -left-6 w-16 h-16 bg-gradient-to-br from-green-400 to-orange-500 rounded-full flex items-center justify-center shadow-lg animate-pulse">
                   <FaMobile className="text-white text-xl" />
                 </div>
               </div>
@@ -1004,7 +1004,7 @@ export default function HomePage() {
       </section>
 
       {/* Static FAQ Section */}
-      <section className="py-16 px-4 lg:px-20 bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-gray-800" dir="rtl">
+      <section className="py-16 px-4 lg:px-20 bg-gradient-to-br from-gray-50 to-orange-50 dark:from-gray-900 dark:to-gray-800" dir="rtl">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold text-gray-800 dark:text-white mb-4 text-right">
@@ -1047,12 +1047,12 @@ export default function HomePage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Phone */}
               <div className="flex items-center p-4 bg-gray-50 dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300">
-                <div className="flex-shrink-0 w-12 h-12 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center mr-4">
-                  <FaPhone className="text-blue-600 dark:text-blue-400 text-xl" />
+                <div className="flex-shrink-0 w-12 h-12 bg-orange-100 dark:bg-orange-900/20 rounded-full flex items-center justify-center mr-4">
+                  <FaPhone className="text-orange-600 dark:text-orange-400 text-xl" />
                 </div>
                 <div>
                   <h3 className="font-semibold text-gray-900 dark:text-white">الهاتف</h3>
-                  <a href="tel:" className="text-blue-600 dark:text-blue-400 hover:underline">
+                  <a href="tel:" className="text-orange-600 dark:text-orange-400 hover:underline">
                     
                   </a>
                 </div>
@@ -1082,7 +1082,7 @@ export default function HomePage() {
                   href="https://www.facebook.com/people/MrMahmoud-Abdel-Aziz/100070094625467/?mibextid=ZbWKwL"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="group flex flex-col items-center p-4 bg-gray-50 dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:text-blue-600 hover:scale-105"
+                  className="group flex flex-col items-center p-4 bg-gray-50 dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:text-orange-600 hover:scale-105"
                   title="Facebook"
                 >
                   <div className="w-12 h-12 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mb-2 group-hover:bg-opacity-80 transition-colors">
@@ -1096,7 +1096,7 @@ export default function HomePage() {
                   href="https://www.youtube.com/@mahmoudAbdel_Aziz"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="group flex flex-col items-center p-4 bg-gray-50 dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:text-blue-600 hover:scale-105"
+                  className="group flex flex-col items-center p-4 bg-gray-50 dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:text-orange-600 hover:scale-105"
                   title="YouTube"
                 >
                   <div className="w-12 h-12 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mb-2 group-hover:bg-opacity-80 transition-colors">
@@ -1125,14 +1125,14 @@ export default function HomePage() {
 
             {/* Additional Info */}
             <div className="mt-12 text-center">
-              <div className="bg-gradient-to-r from-blue-50 to-blue-50 dark:from-blue-900/20 dark:to-blue-900/20 rounded-2xl p-8">
+              <div className="bg-gradient-to-r from-orange-50 to-orange-50 dark:from-orange-900/20 dark:to-orange-900/20 rounded-2xl p-8">
                 <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
                   لماذا تختار منصتنا؟
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
                   <div className="text-center">
-                    <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <FaUser className="text-2xl text-blue-600 dark:text-blue-400" />
+                    <div className="w-16 h-16 bg-orange-100 dark:bg-orange-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <FaUser className="text-2xl text-orange-600 dark:text-orange-400" />
                     </div>
                     <h4 className="font-semibold text-gray-900 dark:text-white mb-2">دعم متخصص</h4>
                     <p className="text-gray-600 dark:text-gray-300">
@@ -1140,8 +1140,8 @@ export default function HomePage() {
                     </p>
                   </div>
                   <div className="text-center">
-                    <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <FaGlobe className="text-2xl text-blue-600 dark:text-blue-400" />
+                    <div className="w-16 h-16 bg-orange-100 dark:bg-orange-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <FaGlobe className="text-2xl text-orange-600 dark:text-orange-400" />
                     </div>
                     <h4 className="font-semibold text-gray-900 dark:text-white mb-2">مجتمع عالمي</h4>
                     <p className="text-gray-600 dark:text-gray-300">
@@ -1149,8 +1149,8 @@ export default function HomePage() {
                     </p>
                   </div>
                   <div className="text-center">
-                    <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <FaComments className="text-2xl text-blue-600 dark:text-blue-400" />
+                    <div className="w-16 h-16 bg-orange-100 dark:bg-orange-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <FaComments className="text-2xl text-orange-600 dark:text-orange-400" />
                     </div>
                     <h4 className="font-semibold text-gray-900 dark:text-white mb-2">استجابة سريعة</h4>
                     <p className="text-gray-600 dark:text-gray-300">
@@ -1177,7 +1177,7 @@ export default function HomePage() {
                 href="https://fikra.solutions/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                className="font-semibold text-orange-600 hover:text-orange-700 dark:text-orange-400 dark:hover:text-orange-300"
               >
                 Fikra Software
               </a>
@@ -1199,7 +1199,7 @@ export default function HomePage() {
       {showScrollTop && (
         <button
           onClick={scrollToTop}
-          className="fixed bottom-8 right-8 z-50 p-4 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-full shadow-lg hover:shadow-xl transform hover:scale-110 transition-all duration-300 group"
+          className="fixed bottom-8 right-8 z-50 p-4 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-full shadow-lg hover:shadow-xl transform hover:scale-110 transition-all duration-300 group"
           aria-label="Scroll to top"
         >
           <FaArrowUp className="w-5 h-5 group-hover:animate-bounce" />

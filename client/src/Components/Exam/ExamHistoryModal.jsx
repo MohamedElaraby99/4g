@@ -255,9 +255,9 @@ const ExamHistoryModal = ({ isOpen, onClose, exam, courseId, lessonId, examType 
 
         {/* Explanation */}
         {showAnswers && question.explanation && (
-          <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-700">
-            <h4 className="font-semibold text-blue-800 dark:text-blue-200 mb-2">التفسير:</h4>
-            <p className="text-blue-700 dark:text-blue-300">{question.explanation}</p>
+          <div className="mt-4 p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg border border-orange-200 dark:border-orange-700">
+            <h4 className="font-semibold text-orange-800 dark:text-orange-200 mb-2">التفسير:</h4>
+            <p className="text-orange-700 dark:text-orange-300">{question.explanation}</p>
           </div>
         )}
       </div>

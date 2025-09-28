@@ -37,7 +37,7 @@ const InstructorSection = () => {
       stars.push(
         <FaStar
           key={i}
-          className={`text-sm ${i <= rating ? 'text-blue-400' : 'text-gray-300'}`}
+          className={`text-sm ${i <= rating ? 'text-orange-400' : 'text-gray-300'}`}
         />
       );
     }
@@ -52,7 +52,7 @@ const InstructorSection = () => {
             <h2 className="text-4xl lg:text-5xl font-bold text-gray-800 dark:text-white mb-6">
             تعلم من أفضل الخبراء للتعلم
             </h2>
-            <div className="w-24 h-1 bg-gradient-to-r from-blue-500 to-blue-500 mx-auto mb-6"></div>
+            <div className="w-24 h-1 bg-gradient-to-r from-orange-500 to-orange-500 mx-auto mb-6"></div>
             <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto leading-relaxed">
               مدرسونا لديهم خبرة واسعة ونهج تعليمي متميز لضمان تجربة تعليمية استثنائية
             </p>
@@ -81,7 +81,7 @@ const InstructorSection = () => {
             <h2 className="text-4xl lg:text-5xl font-bold text-gray-800 dark:text-white mb-6">
               تعلم من أفضل الخبراء  
             </h2>
-            <div className="w-24 h-1 bg-gradient-to-r from-blue-500 to-blue-500 mx-auto mb-6"></div>
+            <div className="w-24 h-1 bg-gradient-to-r from-orange-500 to-orange-500 mx-auto mb-6"></div>
             <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto leading-relaxed">
               مدرسونا لديهم خبرة واسعة ونهج تعليمي متميز لضمان تجربة تعليمية استثنائية
             </p>
@@ -92,7 +92,7 @@ const InstructorSection = () => {
             {featuredInstructors.map((instructor, index) => (
               <div
                 key={instructor._id}
-                className="group bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 overflow-hidden border border-gray-100 dark:border-gray-700 hover:border-blue-200 dark:hover:border-blue-600 cursor-pointer"
+                className="group bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 overflow-hidden border border-gray-100 dark:border-gray-700 hover:border-orange-200 dark:hover:border-orange-600 cursor-pointer"
                 onClick={() => handleInstructorClick(instructor)}
               >
                 {/* Large Instructor Photo - modern and fully visible */}
@@ -114,12 +114,12 @@ const InstructorSection = () => {
                 {/* Card Content */}
                 <div className="p-6">
                   {/* Instructor Name */}
-                  <h3 className="text-2xl font-bold text-gray-800 dark:text-white mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                  <h3 className="text-2xl font-bold text-gray-800 dark:text-white mb-2 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
                     {instructor.name}
                   </h3>
                   
                   {/* Role/Specialization */}
-                  <div className="inline-flex items-center px-3 py-1 rounded-full bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-200 border border-blue-200 dark:border-blue-700 mb-3">
+                  <div className="inline-flex items-center px-3 py-1 rounded-full bg-orange-50 text-orange-700 dark:bg-orange-900/30 dark:text-orange-200 border border-orange-200 dark:border-orange-700 mb-3">
                     {instructor.specialization}
                   </div>
                   
@@ -130,7 +130,7 @@ const InstructorSection = () => {
 
                   {/* Clickable Arrow Icon */}
                   <div className="flex justify-end">
-                    <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-500 hover:from-blue-600 hover:to-blue-600 text-white rounded-full flex items-center justify-center transition-colors duration-200 group-hover:scale-110">
+                    <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-orange-500 hover:from-orange-600 hover:to-orange-600 text-white rounded-full flex items-center justify-center transition-colors duration-200 group-hover:scale-110">
                       <FaArrowRight className="text-sm" />
                     </div>
                   </div>
@@ -143,7 +143,7 @@ const InstructorSection = () => {
           <div className="text-center mt-16">
             <Link
               to="/instructors"
-              className="inline-flex items-center px-8 py-3 bg-gradient-to-r from-blue-500 via-blue-600 to-blue-500 hover:from-blue-600 hover:via-blue-700 hover:to-blue-600 text-white rounded-xl font-semibold transition-all duration-200 transform hover:scale-105"
+              className="inline-flex items-center px-8 py-3 bg-gradient-to-r from-orange-500 via-orange-600 to-orange-500 hover:from-orange-600 hover:via-orange-700 hover:to-orange-600 text-white rounded-xl font-semibold transition-all duration-200 transform hover:scale-105"
             >
               عرض جميع المدرسين
               <FaGraduationCap className="mr-2" />
@@ -190,7 +190,7 @@ const InstructorSection = () => {
                   {selectedInstructor.name}
                 </h3>
                 
-                <div className="inline-flex items-center bg-gradient-to-r from-blue-100 to-blue-100 dark:from-blue-900/30 dark:to-blue-900/30 text-blue-700 dark:text-blue-300 px-4 py-2 rounded-full font-semibold mb-4">
+                <div className="inline-flex items-center bg-gradient-to-r from-orange-100 to-orange-100 dark:from-orange-900/30 dark:to-orange-900/30 text-orange-700 dark:text-orange-300 px-4 py-2 rounded-full font-semibold mb-4">
                   <FaGraduationCap className="ml-2" />
                   {selectedInstructor.specialization}
                 </div>
@@ -244,7 +244,7 @@ const InstructorSection = () => {
                           href={selectedInstructor.socialLinks.linkedin}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-500 hover:from-blue-600 hover:to-blue-600 text-white rounded-full flex items-center justify-center transition-colors"
+                          className="w-12 h-12 bg-gradient-to-r from-orange-500 to-orange-500 hover:from-orange-600 hover:to-orange-600 text-white rounded-full flex items-center justify-center transition-colors"
                         >
                           <FaLinkedin className="text-sm" />
                         </a>
@@ -254,7 +254,7 @@ const InstructorSection = () => {
                           href={selectedInstructor.socialLinks.twitter}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-500 hover:from-blue-600 hover:to-blue-600 text-white rounded-full flex items-center justify-center transition-colors"
+                          className="w-12 h-12 bg-gradient-to-r from-orange-500 to-orange-500 hover:from-orange-600 hover:to-orange-600 text-white rounded-full flex items-center justify-center transition-colors"
                         >
                           <FaTwitter className="text-sm" />
                         </a>
@@ -264,7 +264,7 @@ const InstructorSection = () => {
                            href={selectedInstructor.socialLinks.facebook}
                            target="_blank"
                            rel="noopener noreferrer"
-                           className="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-500 hover:from-blue-600 hover:to-blue-600 text-white rounded-full flex items-center justify-center transition-colors"
+                           className="w-12 h-12 bg-gradient-to-r from-orange-500 to-orange-500 hover:from-orange-600 hover:to-orange-600 text-white rounded-full flex items-center justify-center transition-colors"
                          >
                            <FaFacebook className="text-sm" />
                          </a>
@@ -287,7 +287,7 @@ const InstructorSection = () => {
               {/* Featured Badge */}
               {selectedInstructor.featured && (
                 <div className="text-center mb-6">
-                  <div className="inline-flex items-center bg-gradient-to-r from-blue-400 to-blue-500 text-white px-6 py-3 rounded-full font-bold">
+                  <div className="inline-flex items-center bg-gradient-to-r from-orange-400 to-orange-500 text-white px-6 py-3 rounded-full font-bold">
                     <FaAward className="ml-2" />
                     مدرس مميز
                   </div>

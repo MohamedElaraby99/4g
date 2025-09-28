@@ -19,8 +19,7 @@ export default function Signup() {
   const navigate = useNavigate();
 
   const [previewImage, setPreviewImage] = useState("");
-  const [previewIdFront, setPreviewIdFront] = useState("");
-  const [previewIdBack, setPreviewIdBack] = useState("");
+  const [previewIdPhoto, setPreviewIdPhoto] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [stages, setStages] = useState([]);
@@ -40,8 +39,7 @@ export default function Signup() {
     stage: "",
     age: "",
     avatar: "",
-    idFront: "",
-    idBack: "",
+    idPhoto: "",
     adminCode: "",
   });
 
@@ -104,35 +102,30 @@ export default function Signup() {
     }
   }
 
-  function getIdFrontImage(event) {
+  function getIdPhoto(event) {
     event.preventDefault();
     const file = event.target.files[0];
-    if (file) {
-      setSignupData({
-        ...signupData,
-        idFront: file,
-      });
+    console.log('=== ID PHOTO UPLOAD DEBUG ===');
+    console.log('File selected:', file);
+    console.log('File name:', file?.name);
+    console.log('File size:', file?.size);
+    console.log('File type:', file?.type);
+    console.log('File instanceof File:', file instanceof File);
+    
+    if (file && file instanceof File) {
+      setSignupData(prevData => ({
+        ...prevData,
+        idPhoto: file,
+      }));
+      console.log('File set in signupData.idPhoto:', file);
       const reader = new FileReader();
       reader.readAsDataURL(file);
       reader.addEventListener("load", function () {
-        setPreviewIdFront(this.result);
+        setPreviewIdPhoto(this.result);
+        console.log('Preview set successfully');
       });
-    }
-  }
-
-  function getIdBackImage(event) {
-    event.preventDefault();
-    const file = event.target.files[0];
-    if (file) {
-      setSignupData({
-        ...signupData,
-        idBack: file,
-      });
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.addEventListener("load", function () {
-        setPreviewIdBack(this.result);
-      });
+    } else {
+      console.log('Invalid file object:', file);
     }
   }
 
@@ -170,13 +163,10 @@ export default function Signup() {
       errors.push("🔒 يرجى التحقق من رمز الأمان أولاً");
     }
 
-    // Require ID images for regular users
+    // Require ID photo for regular users
     if (!isAdminRegistration) {
-      if (!signupData.idFront) {
-        errors.push("🪪 لازم ترفع صورة بطاقة (الوجه)");
-      }
-      if (!signupData.idBack) {
-        errors.push("🪪 لازم ترفع صورة بطاقة (الظهر)");
+      if (!signupData.idPhoto) {
+        errors.push("🪪 لازم ترفع صورة بطاقة الهوية أو شهادة الميلاد");
       }
     }
     
@@ -371,11 +361,30 @@ export default function Signup() {
     {
       const formData = new FormData();
       if (signupData.avatar) formData.append("avatar", signupData.avatar);
-      if (signupData.idFront) {
-        formData.append("idFront", signupData.idFront);
-      }
-      if (signupData.idBack) {
-        formData.append("idBack", signupData.idBack);
+      
+      // Debug the idPhoto before appending
+      console.log('=== ID PHOTO DEBUG BEFORE APPEND ===');
+      console.log('signupData.idPhoto:', signupData.idPhoto);
+      console.log('typeof signupData.idPhoto:', typeof signupData.idPhoto);
+      console.log('signupData.idPhoto instanceof File:', signupData.idPhoto instanceof File);
+      console.log('signupData.idPhoto.name:', signupData.idPhoto?.name);
+      console.log('signupData.idPhoto.size:', signupData.idPhoto?.size);
+      
+      if (signupData.idPhoto && signupData.idPhoto instanceof File && signupData.idPhoto.name) {
+        console.log('Appending idPhoto file:', signupData.idPhoto);
+        formData.append("idPhoto", signupData.idPhoto);
+      } else {
+        console.log('idPhoto is not a valid File object:', signupData.idPhoto);
+        console.log('This will cause the backend to reject the request');
+        
+        // Try to get the file directly from the input element as a fallback
+        const fileInput = document.getElementById('id_photo_upload');
+        if (fileInput && fileInput.files && fileInput.files[0]) {
+          console.log('Found file in input element, using that instead');
+          formData.append("idPhoto", fileInput.files[0]);
+        } else {
+          console.log('No file found in input element either');
+        }
       }
       
       // Add captchaSessionId at the top level for middleware access
@@ -397,6 +406,9 @@ export default function Signup() {
       
       // Debug: Log what's being sent
       console.log('=== SENDING FORMDATA REQUEST ===');
+      console.log('signupData.idPhoto from state:', signupData.idPhoto);
+      console.log('signupData.idPhoto type:', typeof signupData.idPhoto);
+      console.log('signupData.idPhoto name:', signupData.idPhoto?.name);
       console.log('FormData contents:');
       for (let [key, value] of formData.entries()) {
         console.log(`${key}:`, value);
@@ -418,14 +430,12 @@ export default function Signup() {
             stage: "",
             age: "",
             avatar: "",
-            idFront: "",
-            idBack: "",
+            idPhoto: "",
             adminCode: "",
           });
 
           setPreviewImage("");
-          setPreviewIdFront("");
-          setPreviewIdBack("");
+          setPreviewIdPhoto("");
           setIsCaptchaVerified(false);
           setCaptchaSessionId("");
           setCaptchaReset(true);
@@ -542,7 +552,7 @@ export default function Signup() {
                           ? 'border-red-500 focus:ring-red-500/20 focus:border-red-500' 
                           : 'border-gray-200 dark:border-gray-600 focus:ring-orange-500/20 focus:border-orange-500'
                       }`}
-                      placeholder="اكتب رقم تليفونك"
+                      placeholder=" رقم تلفونك مش تلفون صاحبك"
                       value={signupData.phoneNumber}
                       onChange={handleUserInput}
                     />
@@ -660,7 +670,7 @@ export default function Signup() {
                           ? 'border-red-500 focus:ring-red-500/20 focus:border-red-500' 
                           : 'border-gray-200 dark:border-gray-600 focus:ring-orange-500/20 focus:border-orange-500'
                       }`}
-                      placeholder="اكتب رقم تليفون ولي أمرك"
+                      placeholder=" رقم تلفون باباك مش رقم الديليفري"
                       value={signupData.fatherPhoneNumber}
                       onChange={handleUserInput}
                     />
@@ -788,101 +798,58 @@ export default function Signup() {
                 </div>
               )}
 
-              {/* ID Photos Upload (Optional) */}
-              <div className="group">
-                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 text-right">
-                  صورة البطاقة — الوجه والظهر
-                </label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Front Side */}
+              {/* ID Photo Upload - Only for regular users */}
+              {!isAdminRegistration && (
+                <div className="group">
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 text-right">
+                    صورة البطاقة أو شهادة الميلاد *
+                  </label>
                   <div className="flex items-center space-x-reverse space-x-4">
                     <div className="relative">
-                      <div className="w-28 h-20 rounded-xl bg-gradient-to-r from-orange-100 to-orange-100 dark:from-orange-900/20 dark:to-orange-900/20 flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300">
-                        {previewIdFront ? (
+                      <div className="w-32 h-24 rounded-xl bg-gradient-to-r from-orange-100 to-orange-100 dark:from-orange-900/20 dark:to-orange-900/20 flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300">
+                        {previewIdPhoto ? (
                           <img 
-                            src={previewIdFront} 
-                            alt="ID Front preview" 
+                            src={previewIdPhoto} 
+                            alt="ID Photo preview" 
                             className="w-full h-full object-cover"
                           />
                         ) : (
                           <div className="flex flex-col items-center justify-center text-gray-400">
-                            <FaIdCard className="w-8 h-8" />
-                            <span className="text-[10px] mt-1">الوجه</span>
+                            <FaIdCard className="w-10 h-10" />
+                            <span className="text-xs mt-1">صورة الهوية</span>
                           </div>
                         )}
                       </div>
-                      {previewIdFront && (
-                        <div className="absolute -top-1 -left-1 w-7 h-7 bg-green-500 rounded-full flex items-center justify-center shadow-lg">
-                          <FaCamera className="w-4 h-4 text-white" />
+                      {previewIdPhoto && (
+                        <div className="absolute -top-1 -left-1 w-8 h-8 bg-green-500 rounded-full flex items-center justify-center shadow-lg">
+                          <FaCamera className="w-5 h-5 text-white" />
                         </div>
                       )}
                     </div>
                     <div className="flex-1">
-                      <label htmlFor="id_front_upload" className="cursor-pointer">
-                        <div className="flex items-center justify-center px-6 py-3 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl hover:border-orange-400 dark:hover:border-orange-400 transition-all duration-300 hover:shadow-md bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600">
-                          <FaUpload className="w-5 h-5 text-orange-500 ml-2" />
+                      <label htmlFor="id_photo_upload" className="cursor-pointer">
+                        <div className="flex items-center justify-center px-6 py-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl hover:border-orange-400 dark:hover:border-orange-400 transition-all duration-300 hover:shadow-md bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600">
+                          <FaUpload className="w-6 h-6 text-orange-500 ml-3" />
                           <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
-                            {previewIdFront ? "تغيير صورة الوجه" : "رفع صورة الوجه"}
+                            {previewIdPhoto ? "تغيير الصورة" : "رفع صورة البطاقة أو شهادة الميلاد"}
                           </span>
                         </div>
                       </label>
                       <input
-                        id="id_front_upload"
-                        onChange={getIdFrontImage}
+                        id="id_photo_upload"
+                        onChange={getIdPhoto}
                         type="file"
                         accept=".jpg, .jpeg, .png, image/*"
                         className="hidden"
+                        required={!isAdminRegistration}
                       />
                     </div>
                   </div>
-
-                  {/* Back Side */}
-                  <div className="flex items-center space-x-reverse space-x-4">
-                    <div className="relative">
-                      <div className="w-28 h-20 rounded-xl bg-gradient-to-r from-orange-100 to-orange-100 dark:from-orange-900/20 dark:to-orange-900/20 flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300">
-                        {previewIdBack ? (
-                          <img 
-                            src={previewIdBack} 
-                            alt="ID Back preview" 
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <div className="flex flex-col items-center justify-center text-gray-400">
-                            <FaIdCard className="w-8 h-8" />
-                            <span className="text-[10px] mt-1">الظهر</span>
-                          </div>
-                        )}
-                      </div>
-                      {previewIdBack && (
-                        <div className="absolute -top-1 -left-1 w-7 h-7 bg-green-500 rounded-full flex items-center justify-center shadow-lg">
-                          <FaCamera className="w-4 h-4 text-white" />
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex-1">
-                      <label htmlFor="id_back_upload" className="cursor-pointer">
-                        <div className="flex items-center justify-center px-6 py-3 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl hover:border-orange-400 dark:hover:border-orange-400 transition-all duration-300 hover:shadow-md bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600">
-                          <FaUpload className="w-5 h-5 text-orange-500 ml-2" />
-                          <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
-                            {previewIdBack ? "تغيير صورة الظهر" : "رفع صورة الظهر"}
-                          </span>
-                        </div>
-                      </label>
-                      <input
-                        id="id_back_upload"
-                        onChange={getIdBackImage}
-                        type="file"
-                        accept=".jpg, .jpeg, .png, image/*"
-                        className="hidden"
-                      />
-                    </div>
-                  </div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 text-right">
+                    ارفع صورة واضحة لبطاقة الهوية أو شهادة الميلاد، ده هيساعدنا نتأكد من هويتك لما نحتاج.
+                  </p>
                 </div>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 text-right">
-  ارفع صورة بطاقتك، ده هيساعدنا نتأكد من هويتك لما نحتاج.
-</p>
-
-              </div>
+              )}
               {/* CAPTCHA Component */}
               <CaptchaComponent
                 onVerified={handleCaptchaVerified}

@@ -94,18 +94,22 @@ const AnimatedHero = ({ onGetStarted }) => {
                       }}
                     />
                   </div>
+                  <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 w-24 md:w-32 lg:w-40 h-0.5 bg-gradient-to-r from-transparent via-orange-400 to-transparent animate-pulse" style={{
+                    background: 'linear-gradient(to right, transparent 0%, #FF6600 20%, #FF6600 80%, transparent 100%)',
+                    boxShadow: '0 0 10px rgba(255, 102, 0, 0.6)'
+                  }}></div>
                 </div>
               </div>
             </div>
             
             {/* Title Section - Enhanced */}
-            <div className="mt-8">
-              {/* Main Title - Larger and More Prominent */}
+            <div className="mt-2">
+              {/* Main Title - Egyptian Style */}
               <h1 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-8" style={{color: darkMode ? '#ffffff' : '#1f2937'}}>
-                مرحباً بك في منصة 4G
+                أهلاً وسهلاً في منصة 4G
               </h1>
               
-              {/* Subtitle - Enhanced */}
+              {/* Subtitle - Egyptian Accent */}
               <div className="mt-6 flex items-center justify-center gap-4">
                 <FaLightbulb className="w-8 h-8 md:w-10 md:h-10 lg:w-12 lg:h-12" style={{color: '#FF6600'}} />
                 <p className="text-2xl md:text-3xl lg:text-4xl font-medium" style={{color: darkMode ? '#e5e7eb' : '#333333'}}>
@@ -129,26 +133,52 @@ const AnimatedHero = ({ onGetStarted }) => {
                   background: darkMode ? 'rgba(55, 65, 81, 0.8)' : 'rgba(255, 255, 255, 0.8)',
                   border: '1px solid #FF6600'
                 }}>
-                  منصة تعليم مصرية لطلبة الإعدادي والثانوي، تقدم شروحات تفاعلية، فيديوهات تعليمية، امتحانات، وملفات PDF لمساعدتك على التفوق الدراسي.
+                  منصة تعليم مصرية جامدة لطلبة الإعدادي والثانوي! بنقدملك شروحات تفاعلية حلوة، فيديوهات تعليمية ممتعة، امتحانات متنوعة، ومذكرات PDF عشان تتفوق في الدراسة وتخش الجامعة اللي نفسك فيها.
                 </p>
-                {/* Trust Badges */}
+                {/* Trust Badges - Egyptian Style */}
                 <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
                   <span className="px-3 py-1 text-sm md:text-base rounded-full border" style={{
                     background: darkMode ? 'rgba(255, 102, 0, 0.2)' : 'rgba(255, 102, 0, 0.1)',
                     color: '#FF6600',
                     borderColor: '#FF6600'
-                  }}>مطابق للمنهج المصري</span>
+                  }}>مطابق للمنهج المصري 100%</span>
                   <span className="px-3 py-1 text-sm md:text-base rounded-full border" style={{
                     background: darkMode ? 'rgba(181, 30, 0, 0.2)' : 'rgba(181, 30, 0, 0.1)',
                     color: '#B51E00',
                     borderColor: '#B51E00'
-                  }}>تمارين وامتحانات تفاعلية</span>
+                  }}>تمارين وامتحانات تفاعلية جامدة</span>
                   <span className="px-3 py-1 text-sm md:text-base rounded-full border" style={{
                     background: darkMode ? 'rgba(76, 76, 76, 0.2)' : 'rgba(76, 76, 76, 0.1)',
                     color: '#4C4C4C',
                     borderColor: '#4C4C4C'
-                  }}>مذكرات مراجعة PDF</span>
+                  }}>مذكرات مراجعة PDF مجاناً</span>
                 </div>
+              </div>
+            </div>
+
+            {/* Connection Line from Character to Button */}
+            <div className="relative flex justify-center mb-8">
+              {/* Animated Connection Line */}
+              <div className="relative w-1 h-16 md:h-20 bg-gradient-to-b from-transparent via-orange-400 to-orange-600 rounded-full animate-pulse" style={{
+                background: 'linear-gradient(to bottom, transparent 0%, rgba(255, 102, 0, 0.3) 30%, rgba(255, 102, 0, 0.8) 70%, #FF6600 100%)',
+                boxShadow: '0 0 10px rgba(255, 102, 0, 0.5)'
+              }}>
+                {/* Floating dots along the line */}
+                <div className="absolute top-1/4 w-2 h-2 bg-orange-400 rounded-full animate-bounce" style={{
+                  left: '-0.5px',
+                  background: '#FF6600',
+                  boxShadow: '0 0 8px rgba(255, 102, 0, 0.8)'
+                }}></div>
+                <div className="absolute top-1/2 w-2 h-2 bg-orange-400 rounded-full animate-bounce animation-delay-2000" style={{
+                  left: '-0.5px',
+                  background: '#FF6600',
+                  boxShadow: '0 0 8px rgba(255, 102, 0, 0.8)'
+                }}></div>
+                <div className="absolute top-3/4 w-2 h-2 bg-orange-400 rounded-full animate-bounce animation-delay-4000" style={{
+                  left: '-0.5px',
+                  background: '#FF6600',
+                  boxShadow: '0 0 8px rgba(255, 102, 0, 0.8)'
+                }}></div>
               </div>
             </div>
 
@@ -156,20 +186,28 @@ const AnimatedHero = ({ onGetStarted }) => {
             <div className="text-center mb-8 flex items-center justify-center gap-4 flex-wrap">
               <Link
                 to="/courses"
-                className="px-10 py-5 md:px-12 md:py-6 font-bold rounded-full text-lg md:text-xl backdrop-blur hover:shadow-lg transition-all flex items-center gap-3"
+                className="px-10 py-5 md:px-12 md:py-6 font-bold rounded-full text-lg md:text-xl backdrop-blur hover:shadow-lg transition-all flex items-center gap-3 relative"
                 style={{
                   background: 'linear-gradient(135deg, #FF6600 0%, #B51E00 100%)',
                   color: '#FFFFFF',
-                  border: '2px solid #FF6600'
+                  border: '2px solid #FF6600',
+                  boxShadow: '0 0 20px rgba(255, 102, 0, 0.4)'
                 }}
                 onMouseEnter={(e) => {
                   e.target.style.background = 'linear-gradient(135deg, #B51E00 0%, #FF6600 100%)';
+                  e.target.style.boxShadow = '0 0 30px rgba(255, 102, 0, 0.6)';
                 }}
                 onMouseLeave={(e) => {
                   e.target.style.background = 'linear-gradient(135deg, #FF6600 0%, #B51E00 100%)';
+                  e.target.style.boxShadow = '0 0 20px rgba(255, 102, 0, 0.4)';
                 }}
               >
-                <FaPlay style={{color: '#FFFFFF'}} /> ابدأ المذاكرة دلوقتي
+                {/* Button connection point */}
+                <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 w-4 h-4 bg-orange-400 rounded-full animate-pulse" style={{
+                  background: '#FF6600',
+                  boxShadow: '0 0 15px rgba(255, 102, 0, 0.8)'
+                }}></div>
+                <FaPlay style={{color: '#FFFFFF'}} /> يلا بنا نبدأ المذاكرة دلوقتي!
               </Link>
             </div>
 

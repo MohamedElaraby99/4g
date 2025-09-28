@@ -34,6 +34,14 @@ const register = async (req, res, next) => {
         }
 
         const { fullName, email, password, phoneNumber, fatherPhoneNumber, governorate, stage, age, adminCode, deviceInfo } = requestBody;
+        
+        console.log('=== REGISTER REQUEST DEBUG ===');
+        console.log('requestBody:', requestBody);
+        console.log('req.files:', req.files);
+        console.log('req.body:', req.body);
+        console.log('fullName:', fullName);
+        console.log('phoneNumber:', phoneNumber);
+        console.log('adminCode:', adminCode);
 
         // Determine user role based on admin code
         let userRole = 'USER';
@@ -101,13 +109,19 @@ const register = async (req, res, next) => {
             userData.email = email;
         }
 
-        // Require ID images for USER role
+        // Require ID photo for USER role
         if (userRole === 'USER') {
-            const hasIdFront = !!(req.files && req.files.idFront && req.files.idFront[0]);
-            const hasIdBack = !!(req.files && req.files.idBack && req.files.idBack[0]);
-            if (!hasIdFront || !hasIdBack) {
-                return next(new AppError("ID front and back images are required", 400));
+            console.log('=== ID PHOTO VALIDATION DEBUG ===');
+            console.log('req.files:', req.files);
+            console.log('req.files.idPhoto:', req.files?.idPhoto);
+            console.log('req.files.idPhoto[0]:', req.files?.idPhoto?.[0]);
+            const hasIdPhoto = !!(req.files && req.files.idPhoto && req.files.idPhoto[0]);
+            console.log('hasIdPhoto:', hasIdPhoto);
+            if (!hasIdPhoto) {
+                console.log('ID photo validation failed - returning error');
+                return next(new AppError("ID photo is required", 400));
             }
+            console.log('ID photo validation passed');
         }
 
         // Save user in the database and log the user in
@@ -117,8 +131,8 @@ const register = async (req, res, next) => {
             return next(new AppError("User registration failed, please try again", 400));
         }
 
-        // File uploads: avatar, ID front, ID back
-        if (req.files && (req.files.avatar || req.files.idFront || req.files.idBack)) {
+        // File uploads: avatar, ID photo
+        if (req.files && (req.files.avatar || req.files.idPhoto)) {
             try {
                 // Ensure directories exist
                 const ensureDir = (dir) => { if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true }); };
@@ -144,18 +158,11 @@ const register = async (req, res, next) => {
                     console.log('Avatar saved locally:', secure_url);
                 }
 
-                if (req.files.idFront && req.files.idFront[0]) {
-                    const { public_id, secure_url } = moveAndGetUrl(req.files.idFront[0], 'id');
+                if (req.files.idPhoto && req.files.idPhoto[0]) {
+                    const { public_id, secure_url } = moveAndGetUrl(req.files.idPhoto[0], 'id');
                     user.idImages = user.idImages || {};
-                    user.idImages.front = { public_id, secure_url };
-                    console.log('ID Front saved locally:', secure_url);
-                }
-
-                if (req.files.idBack && req.files.idBack[0]) {
-                    const { public_id, secure_url } = moveAndGetUrl(req.files.idBack[0], 'id');
-                    user.idImages = user.idImages || {};
-                    user.idImages.back = { public_id, secure_url };
-                    console.log('ID Back saved locally:', secure_url);
+                    user.idImages.photo = { public_id, secure_url };
+                    console.log('ID Photo saved locally:', secure_url);
                 }
                 
             } catch (e) {

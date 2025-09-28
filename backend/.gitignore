@@ -24,6 +24,8 @@ dist-ssr
 *.sw?
 
 /uploads
+
+/uploads
 /uploads/*
 /uploads/**/*
 /uploads/**/**/*

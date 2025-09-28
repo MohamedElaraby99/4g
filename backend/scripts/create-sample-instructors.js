@@ -87,10 +87,10 @@ const createSampleInstructors = async () => {
       {
         name: "محمد حسن",
         email: "mohamed.hassan@example.com",
-        bio: "مدرس العلوم مع خبرة في تدريس The 4G والفيزياء",
+        bio: "مدرس العلوم مع خبرة في تدريس الأحياء والفيزياء",
         specialization: "العلوم",
         experience: 12,
-        education: "ماجستير في The 4G",
+        education: "ماجستير في الأحياء",
         socialLinks: {
           linkedin: "https://linkedin.com/in/mohamed-hassan",
           twitter: "https://twitter.com/mohamed_science"

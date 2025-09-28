@@ -82,7 +82,7 @@ const CourseNotifications = () => {
   const getNotificationIcon = (type) => {
     switch (type) {
       case 'new_video':
-        return <FaVideo className="text-blue-500" />;
+        return <FaVideo className="text-orange-500" />;
       case 'new_lesson':
         return <FaBook className="text-green-500" />;
       case 'new_material':
@@ -131,9 +131,9 @@ const CourseNotifications = () => {
       {/* Notification Bell Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2.5 md:p-3 rounded-xl bg-gradient-to-r from-blue-100 to-blue-200 dark:from-blue-800 dark:to-blue-700 hover:from-blue-200 hover:to-blue-300 dark:hover:from-blue-700 dark:hover:to-blue-600 transition-all duration-300 shadow-lg hover:shadow-xl border border-blue-200 dark:border-blue-600"
+        className="relative p-2.5 md:p-3 rounded-xl bg-gradient-to-r from-orange-100 to-orange-200 dark:from-orange-800 dark:to-orange-700 hover:from-orange-200 hover:to-orange-300 dark:hover:from-orange-700 dark:hover:to-orange-600 transition-all duration-300 shadow-lg hover:shadow-xl border border-orange-200 dark:border-orange-600"
       >
-        <FaBell className="w-4 h-4 md:w-5 md:h-5 text-blue-700 dark:text-blue-300" />
+        <FaBell className="w-4 h-4 md:w-5 md:h-5 text-orange-700 dark:text-orange-300" />
         
         {/* Unread Count Badge */}
         {unreadCount > 0 && (
@@ -155,7 +155,7 @@ const CourseNotifications = () => {
               {unreadCount > 0 && (
                 <button
                   onClick={markAllAsRead}
-                  className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
+                  className="text-xs text-orange-600 dark:text-orange-400 hover:underline"
                 >
                   تحديد الكل كمقروء
                 </button>
@@ -184,7 +184,7 @@ const CourseNotifications = () => {
                 <div
                   key={notification._id}
                   className={`p-4 border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors ${
-                    !notification.isRead ? 'bg-blue-50 dark:bg-blue-900/20' : ''
+                    !notification.isRead ? 'bg-orange-50 dark:bg-orange-900/20' : ''
                   }`}
                   onClick={async () => {
                     if (!notification.isRead) {
@@ -233,11 +233,11 @@ const CourseNotifications = () => {
                       
                       <div className="flex items-center justify-between mt-2">
                         <div className="flex items-center gap-2">
-                          <span className="text-xs text-blue-600 dark:text-blue-400 font-medium">
+                          <span className="text-xs text-orange-600 dark:text-orange-400 font-medium">
                             {notification.courseName}
                           </span>
                           {notification.actionText && (
-                            <span className="text-xs bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-200 px-2 py-1 rounded">
+                            <span className="text-xs bg-orange-100 dark:bg-orange-800 text-orange-700 dark:text-orange-200 px-2 py-1 rounded">
                               {notification.actionText}
                             </span>
                           )}
@@ -249,7 +249,7 @@ const CourseNotifications = () => {
                     </div>
                     {!notification.isRead && (
                       <div className="flex-shrink-0">
-                        <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                        <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
                       </div>
                     )}
                   </div>
@@ -267,7 +267,7 @@ const CourseNotifications = () => {
                   // Navigate to courses page or notifications page
                   window.location.href = '/courses';
                 }}
-                className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+                className="text-sm text-orange-600 dark:text-orange-400 hover:underline"
               >
                 عرض جميع الكورسات
               </button>

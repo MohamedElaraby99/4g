@@ -14,42 +14,9 @@ const connectToDb = async () => {
   }
 };
 
-const dropUsernameIndexIfExists = async () => {
-  try {
-    const db = mongoose.connection.db;
-    const collection = db.collection('users');
-    const indexes = await collection.indexes();
-    const usernameIndex = indexes.find(idx => idx.name === 'username_1' || (idx.key && idx.key.username));
-    if (usernameIndex) {
-      console.log('🧹 Dropping legacy username index...');
-      try {
-        await collection.dropIndex('username_1');
-        console.log('✅ Dropped username_1 index');
-      } catch (err) {
-        if (err.code === 27) {
-          console.log('ℹ️ username_1 index not found (already removed)');
-        } else {
-          console.log('⚠️ Could not drop username_1 by name, trying by key...');
-          try {
-            await collection.dropIndex({ username: 1 });
-            console.log('✅ Dropped { username: 1 } index');
-          } catch (e2) {
-            console.warn('⚠️ Failed to drop username index:', e2.message);
-          }
-        }
-      }
-    } else {
-      console.log('ℹ️ No legacy username index found');
-    }
-  } catch (e) {
-    console.warn('⚠️ Index check/drop failed:', e.message);
-  }
-}
-
 const createSuperAdmin = async () => {
   try {
     await connectToDb();
-    await dropUsernameIndexIfExists();
     
     // Check if super admin already exists
     const existingSuperAdmin = await User.findOne({ role: 'SUPER_ADMIN' });

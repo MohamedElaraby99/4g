@@ -63,9 +63,9 @@ export default function Contact() {
   }
 
   const contactInfo = {
-    phone: "+201143982522",
-    whatsapp: "+201143982522",
-    whatsapp1: "+966547803289",
+    phone: "01080808667",
+    whatsapp: "01555559887",
+    vodafoneCash: "01080808667",
     email: "softwarefikra@gmail.com",
     support: "softwarefikra@gmail.com",
     address: "Mansoura, 18 Street Torel, Egypt",
@@ -74,7 +74,8 @@ export default function Contact() {
   };
 
   const socialMedia = [
-    { name: "Facebook", icon: FaFacebook, url: "https://www.facebook.com/ali.alyan.92", color: "hover:text-blue-600" },
+    { name: "Facebook", icon: FaFacebook, url: "https://www.facebook.com/share/16Vq29HcXH/", color: "hover:text-orange-600" },
+    { name: "YouTube", icon: FaYoutube, url: "https://youtube.com/@_aymanthe4g9685?si=X_KXTLDEsxNG5tAs", color: "hover:text-orange-600" },
     { name: "WhatsApp", icon: FaWhatsapp, url: `https://wa.me/${contactInfo.whatsapp.replace('+', '')}`, color: "hover:text-green-500" }
   ];
 
@@ -108,12 +109,12 @@ export default function Contact() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Phone */}
                 <div className="flex items-center p-4 bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300">
-                  <div className="flex-shrink-0 w-12 h-12 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center mr-4">
-                    <FaPhone className="text-blue-600 dark:text-blue-400 text-xl" />
+                  <div className="flex-shrink-0 w-12 h-12 bg-orange-100 dark:bg-orange-900/20 rounded-full flex items-center justify-center mr-4">
+                    <FaPhone className="text-orange-600 dark:text-orange-400 text-xl" />
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-900 dark:text-white">الهاتف</h3>
-                    <a href={`tel:${contactInfo.phone}`} className="text-blue-600 dark:text-blue-400 hover:underline">
+                    <a href={`tel:${contactInfo.phone}`} className="text-orange-600 dark:text-orange-400 hover:underline">
                       {contactInfo.phone}
                     </a>
                   </div>
@@ -126,21 +127,8 @@ export default function Contact() {
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-900 dark:text-white">واتساب</h3>
-                    <a href={`https://wa.me/${contactInfo.whatsapp.replace('+', '')}`} className="text-green-600 dark:text-green-400 hover:underline">
+                    <a href={`https://wa.me/${contactInfo.whatsapp}`} className="text-green-600 dark:text-green-400 hover:underline">
                       {contactInfo.whatsapp}
-                    </a>
-                  </div>
-                </div>
-
-                {/* WhatsApp 2 */}
-                <div className="flex items-center p-4 bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300">
-                  <div className="flex-shrink-0 w-12 h-12 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center mr-4">
-                    <FaWhatsapp className="text-green-600 dark:text-green-400 text-xl" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900 dark:text-white">واتساب 2</h3>
-                    <a href={`https://wa.me/${contactInfo.whatsapp1.replace('+', '')}`} className="text-green-600 dark:text-green-400 hover:underline">
-                      {contactInfo.whatsapp1}
                     </a>
                   </div>
                 </div>
@@ -176,14 +164,14 @@ export default function Contact() {
 
           {/* Additional Info */}
           <div className="mt-16 text-center">
-            <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-2xl p-8">
+            <div className="bg-gradient-to-r from-orange-50 to-yellow-50 dark:from-orange-900/20 dark:to-yellow-900/20 rounded-2xl p-8">
               <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
                 لماذا تختار منصتنا؟
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
                 <div className="text-center">
-                  <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <FaUser className="text-2xl text-blue-600 dark:text-blue-400" />
+                  <div className="w-16 h-16 bg-orange-100 dark:bg-orange-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <FaUser className="text-2xl text-orange-600 dark:text-orange-400" />
                   </div>
                   <h4 className="font-semibold text-gray-900 dark:text-white mb-2">دعم متخصص</h4>
                   <p className="text-gray-600 dark:text-gray-300">
@@ -191,8 +179,8 @@ export default function Contact() {
                   </p>
                 </div>
                 <div className="text-center">
-                  <div className="w-16 h-16 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <FaGlobe className="text-2xl text-green-600 dark:text-green-400" />
+                  <div className="w-16 h-16 bg-orange-100 dark:bg-orange-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <FaGlobe className="text-2xl text-orange-600 dark:text-orange-400" />
                   </div>
                   <h4 className="font-semibold text-gray-900 dark:text-white mb-2">مجتمع عالمي</h4>
                   <p className="text-gray-600 dark:text-gray-300">
@@ -200,8 +188,8 @@ export default function Contact() {
                   </p>
                 </div>
                 <div className="text-center">
-                  <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <FaComments className="text-2xl text-purple-600 dark:text-purple-400" />
+                  <div className="w-16 h-16 bg-orange-100 dark:bg-orange-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <FaComments className="text-2xl text-orange-600 dark:text-orange-400" />
                   </div>
                   <h4 className="font-semibold text-gray-900 dark:text-white mb-2">استجابة سريعة</h4>
                   <p className="text-gray-600 dark:text-gray-300">

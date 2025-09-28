@@ -78,7 +78,6 @@ const getAllUsers = async (req, res, next) => {
                 users: users.map(user => ({
                     id: user._id,
                     fullName: user.fullName,
-                    username: user.username,
                     email: user.email,
                     phoneNumber: user.phoneNumber,
                     role: user.role,
@@ -270,7 +269,6 @@ const getUserDetails = async (req, res, next) => {
                 user: {
                     id: user._id,
                     fullName: user.fullName,
-                    username: user.username,
                     email: user.email,
                     phoneNumber: user.phoneNumber,
                     fatherPhoneNumber: user.fatherPhoneNumber,
@@ -521,9 +519,6 @@ const updateUser = async (req, res, next) => {
         if (!user.fullName || user.fullName.trim() === '') {
             return next(new AppError("Full name is required", 400));
         }
-        if (!user.username || user.username.trim() === '') {
-            return next(new AppError("Username is required", 400));
-        }
 
         await user.save();
 
@@ -538,7 +533,6 @@ const updateUser = async (req, res, next) => {
                 user: {
                     id: user._id,
                     fullName: user.fullName,
-                    username: user.username,
                     email: user.email,
                     phoneNumber: user.phoneNumber,
                     fatherPhoneNumber: user.fatherPhoneNumber,

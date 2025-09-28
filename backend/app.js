@@ -44,8 +44,16 @@ import { toCairoISOString } from './utils/timezone.js';
 const app = express();
 
 // middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ 
+  limit: '50mb', // Increased from default ~1mb to 50mb
+  parameterLimit: 50000, // Increase parameter limit for large objects
+  type: 'application/json'
+})); 
+app.use(express.urlencoded({ 
+  extended: true, 
+  limit: '50mb', // Increased from default ~1mb to 50mb
+  parameterLimit: 50000 // Increase parameter limit for large objects
+})); 
 app.use(cookieParser());
 app.use(morgan('dev'));
 
@@ -326,6 +334,19 @@ app.use('/api/v1/achievements', achievementRoutes);
 app.use('/api/v1/instructors', instructorRoutes);
 app.use('/api/v1/stages', stageRoutes);
  
+
+// Handle payload too large errors specifically
+app.use((error, req, res, next) => {
+  if (error.type === 'entity.too.large') {
+    return res.status(413).json({
+      success: false,
+      message: 'Payload too large. Please reduce the size of your request.',
+      error: 'The request body exceeds the maximum allowed size of 50MB.',
+      code: 'PAYLOAD_TOO_LARGE'
+    });
+  }
+  next(error);
+});
 
 app.all('*', (req, res) => {
     res.status(404).send('OOPS!! 404 page not found');

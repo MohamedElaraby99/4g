@@ -31,7 +31,6 @@ export default function Signup() {
   const [fieldErrors, setFieldErrors] = useState({});
   const [signupData, setSignupData] = useState({
     fullName: "",
-    email: "",
     password: "",
     phoneNumber: "",
     fatherPhoneNumber: "",
@@ -67,7 +66,7 @@ export default function Signup() {
     const { name, value } = e.target;
     
     // Remove spaces from specific fields for easier signup/signin
-    const fieldsToCleanSpaces = ['email', 'password', 'phoneNumber', 'fatherPhoneNumber', 'adminCode'];
+    const fieldsToCleanSpaces = ['password', 'phoneNumber', 'fatherPhoneNumber', 'adminCode'];
     const cleanValue = fieldsToCleanSpaces.includes(name) ? value.replace(/\s+/g, '') : value;
     
     setSignupData({
@@ -193,16 +192,9 @@ export default function Signup() {
     
     // Role-specific validation
     if (isAdminRegistration) {
-      // For admin users: email is required
-      if (!signupData.email || signupData.email.trim() === "") {
-        errors.push("📧 اكتب الإيميل بتاعك - ده مطلوب للمشرفين");
-        newFieldErrors.email = "اكتب الإيميل بتاعك";
-      } else if (!signupData.email.match(/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/g)) {
-        errors.push("📧 الإيميل ده مش صح - اكتبه صح كده (مثال: ahmed@gmail.com)");
-        newFieldErrors.email = "الإيميل مش صح";
-      }
+      // For admin users: no specific validation needed since we removed email requirement
     } else {
-      // For regular users: phone number is required, email is optional
+      // For regular users: phone number is required
       if (!signupData.phoneNumber || signupData.phoneNumber.trim() === "") {
         errors.push("📱 اكتب رقم التليفون بتاعك - ده هيبقى اسم المستخدم بتاعك");
         newFieldErrors.phoneNumber = "اكتب رقم التليفون";
@@ -230,12 +222,6 @@ export default function Signup() {
           errors.push("🎂 العمر ده مش معقول - لازم يكون ما بين 5 و 100 سنة");
           newFieldErrors.age = "عمر مش معقول";
         }
-      }
-      
-      // Validate email if provided (optional for regular users)
-      if (signupData.email && signupData.email.trim() !== "" && !signupData.email.match(/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/g)) {
-        errors.push("📧 الإيميل ده مش صح - اكتبه صح كده (مثال: ahmed@gmail.com)");
-        newFieldErrors.email = "الإيميل مش صح";
       }
       
       // father phone optional - validate only if provided
@@ -341,14 +327,10 @@ export default function Signup() {
     
     // Add role-specific fields
     if (isAdminRegistration) {
-      // For admin users: email is required
-      requestData.email = signupData.email;
+      // For admin users: no specific fields needed
     } else {
-      // For regular users: phone number is required, email is optional
+      // For regular users: phone number is required
       requestData.phoneNumber = signupData.phoneNumber;
-      if (signupData.email) {
-        requestData.email = signupData.email; // Include email if provided
-      }
       if (signupData.fatherPhoneNumber) {
         requestData.fatherPhoneNumber = signupData.fatherPhoneNumber;
       }
@@ -422,7 +404,6 @@ export default function Signup() {
         if (response?.payload?.success) {
           setSignupData({
             fullName: "",
-            email: "",
             password: "",
             phoneNumber: "",
             fatherPhoneNumber: "",
@@ -570,42 +551,6 @@ export default function Signup() {
               )}
 
 
-              {/* Email Field */}
-              <div className="group">
-                <label htmlFor="email" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 text-right">
-                  البريد الإلكتروني {!isAdminRegistration && "(اختياري)"}
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
-                    <FaEnvelope className="h-5 w-5 text-orange-500 group-focus-within:text-orange-600 transition-colors duration-200" />
-                  </div>
-                  <input
-                    id="email"
-                    name="email"
-                    type="email"
-                    required={isAdminRegistration}
-                    className={`block w-full pr-12 pl-4 py-4 border-2 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-4 transition-all duration-300 text-right shadow-sm hover:shadow-md ${
-                      fieldErrors.email 
-                        ? 'border-red-500 focus:ring-red-500/20 focus:border-red-500' 
-                        : 'border-gray-200 dark:border-gray-600 focus:ring-orange-500/20 focus:border-orange-500'
-                    }`}
-                    placeholder={isAdminRegistration ? "أدخل بريدك الإلكتروني" : "أدخل بريدك الإلكتروني (اختياري)"}
-                    value={signupData.email}
-                    onChange={handleUserInput}
-                  />
-                  {fieldErrors.email && (
-                    <p className="text-red-500 text-xs mt-1 text-right flex items-center gap-1">
-                      <FaExclamationTriangle className="text-xs" />
-                      {fieldErrors.email}
-                    </p>
-                  )}
-                </div>
-                {!isAdminRegistration && (
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 text-right">
-                    ممكن تسيب الخانة دي فاضية لو مش عايز تستعمل إيميل
-                  </p>
-                )}
-              </div>
 
               {/* Password Field */}
               <div className="group">

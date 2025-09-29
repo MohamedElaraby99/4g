@@ -46,14 +46,23 @@ export const axiosInstance = axios.create({
     withCredentials: true, // Keep this for authentication
     timeout: 30000, // 30 second timeout
     headers: {
-        'Content-Type': 'application/json',
         'Accept': 'application/json'
+        // Note: Removed 'Content-Type' to let axios automatically set it
+        // For FormData uploads, axios will set 'multipart/form-data' automatically
+        // For JSON requests, axios will set 'application/json' automatically
     }
 });
 
 // Add request interceptor to include device info in headers for cross-domain requests
 axiosInstance.interceptors.request.use(
     (config) => {
+        // Handle FormData requests properly
+        if (config.data instanceof FormData) {
+            // Remove Content-Type header to let browser set it with boundary
+            delete config.headers['Content-Type'];
+            console.log('📤 FormData request detected - letting browser set Content-Type');
+        }
+        
         // Add device info to headers for cross-domain requests
         if (!import.meta.env.DEV && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
             try {

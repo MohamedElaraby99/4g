@@ -15,9 +15,7 @@ const userSchema = new Schema({
     },
     email: {
         type: String,
-        required: function() {
-            return ['ADMIN', 'SUPER_ADMIN'].includes(this.role);
-        },
+        required: false,
         lowercase: true,
         trim: true,
         unique: true,

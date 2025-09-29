@@ -33,7 +33,7 @@ const register = async (req, res, next) => {
             }
         }
 
-        const { fullName, email, password, phoneNumber, fatherPhoneNumber, governorate, stage, age, adminCode, deviceInfo } = requestBody;
+        const { fullName, password, phoneNumber, fatherPhoneNumber, governorate, stage, age, adminCode, deviceInfo } = requestBody;
         
         console.log('=== REGISTER REQUEST DEBUG ===');
         console.log('requestBody:', requestBody);
@@ -64,10 +64,7 @@ const register = async (req, res, next) => {
                 return next(new AppError("Governorate, stage, and age are required for regular users", 400));
             }
         } else if (userRole === 'ADMIN') {
-            // For ADMIN role: email is required
-            if (!email) {
-                return next(new AppError("Email is required for admin users", 400));
-            }
+            // For ADMIN role: no specific validation needed since we removed email requirement
         }
 
         // Check if the user already exists based on role
@@ -92,7 +89,7 @@ const register = async (req, res, next) => {
             password,
             role: userRole,
             avatar: {
-                public_id: userRole === 'USER' ? phoneNumber : email,
+                public_id: userRole === 'USER' ? phoneNumber : `admin_${Date.now()}`,
                 secure_url: "",
             },
         };
@@ -100,13 +97,12 @@ const register = async (req, res, next) => {
         // Add role-specific fields
         if (userRole === 'USER') {
             userData.phoneNumber = phoneNumber;
-            if (email) userData.email = email; // Optional email for USER
             if (fatherPhoneNumber) userData.fatherPhoneNumber = fatherPhoneNumber;
             userData.governorate = governorate;
             userData.stage = stage;
             userData.age = parseInt(age);
         } else if (userRole === 'ADMIN') {
-            userData.email = email;
+            // No specific fields needed for admin since we removed email requirement
         }
 
         // Require ID photo for USER role

@@ -73,11 +73,7 @@ async function fixEmailUniqueConstraint() {
 }
 
 // Run migration if this file is executed directly
-if (import.meta.url === `file://${process.argv[1]}` || import.meta.url.endsWith(process.argv[1])) {
-  console.log('Running migration script...');
-  fixEmailUniqueConstraint();
-} else {
-  console.log('Script loaded but not executed directly');
-}
+console.log('Running migration script...');
+fixEmailUniqueConstraint();
 
 export default fixEmailUniqueConstraint;

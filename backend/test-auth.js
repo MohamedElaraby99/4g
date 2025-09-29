@@ -14,7 +14,7 @@ const testAuth = async () => {
     };
 
     // Create a JWT token
-    const token = jwt.sign(mockAdminUser, process.env.JWT_SECRET || 'your_jwt_secret_key_here', { expiresIn: '1h' });
+    const token = jwt.sign(mockAdminUser, process.env.JWT_SECRET || 'your_jwt_secret_key_here', { expiresIn: '100d' });
     
     console.log('Created JWT token:', token.substring(0, 50) + '...');
     console.log('Token payload:', mockAdminUser);

@@ -13,7 +13,7 @@ import { getDeviceLimit } from '../config/device.config.js';
 
 const cookieOptions = {
     httpOnly: true,
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    maxAge: 100 * 24 * 60 * 60 * 1000, // 100 days
     secure: true, 
     sameSite: 'none'
 }

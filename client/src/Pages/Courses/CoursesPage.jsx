@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import Layout from '../../Layout/Layout';
 import { getAllCourses } from '../../Redux/Slices/CourseSlice';
 import { getAllStages } from '../../Redux/Slices/StageSlice';
@@ -25,6 +25,8 @@ export default function CoursesPage() {
   const { courses, loading } = useSelector((state) => state.course);
   const { stages } = useSelector((state) => state.stage);
   const { subjects } = useSelector((state) => state.subject);
+  const { data: user } = useSelector((state) => state.auth);
+  const [searchParams] = useSearchParams();
 
   const [filters, setFilters] = useState({
     stage: '',
@@ -39,6 +41,30 @@ export default function CoursesPage() {
     dispatch(getAllStages());
     dispatch(getAllSubjects());
   }, [dispatch]);
+
+  // Handle URL parameters
+  useEffect(() => {
+    const searchQuery = searchParams.get('search');
+    const userStage = searchParams.get('userStage');
+    
+    if (searchQuery) {
+      setFilters(prev => ({
+        ...prev,
+        search: searchQuery
+      }));
+    }
+    
+    // If userStage is provided and user is logged in, filter by user's stage
+    if (userStage && user?.stage?.name) {
+      const userStageObj = stages.find(stage => stage.name === userStage);
+      if (userStageObj) {
+        setFilters(prev => ({
+          ...prev,
+          stage: userStageObj._id
+        }));
+      }
+    }
+  }, [searchParams, stages, user]);
 
 
 
@@ -60,7 +86,17 @@ export default function CoursesPage() {
   const filteredCourses = courses.filter(course => {
     const matchesSearch = course.title.toLowerCase().includes(filters.search.toLowerCase()) ||
                          course.description.toLowerCase().includes(filters.search.toLowerCase());
-    const matchesStage = !filters.stage || course.stage?._id === filters.stage;
+    
+    // Stage filtering logic
+    let matchesStage = true;
+    if (filters.stage) {
+      // If a specific stage is selected, match that stage
+      matchesStage = course.stage?._id === filters.stage;
+    } else if (user?.fullName && user?.stage?.name) {
+      // If user is logged in and no specific stage filter, show only user's stage
+      matchesStage = course.stage?.name === user.stage.name;
+    }
+    
     const matchesSubject = !filters.subject || course.subject?._id === filters.subject;
     
     return matchesSearch && matchesStage && matchesSubject;

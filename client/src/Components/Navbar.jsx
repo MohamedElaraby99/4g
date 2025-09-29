@@ -57,8 +57,16 @@ export default function Navbar() {
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     if (searchQuery.trim()) {
+      // Build search URL with user stage filter if user is logged in
+      let searchUrl = `/courses?search=${encodeURIComponent(searchQuery.trim())}`;
+      
+      // Add user stage filter if user is logged in and has a stage
+      if (user?.fullName && user?.stage?.name) {
+        searchUrl += `&userStage=${encodeURIComponent(user.stage.name)}`;
+      }
+      
       // Navigate to courses page with search query
-      window.location.href = `/courses?search=${encodeURIComponent(searchQuery.trim())}`;
+      window.location.href = searchUrl;
       setIsSearchOpen(false);
       setSearchQuery("");
     }
@@ -93,8 +101,16 @@ export default function Navbar() {
 
     setIsSearching(true);
     try {
+      // Build search URL with user stage filter if user is logged in
+      let searchUrl = `${import.meta.env.VITE_REACT_APP_API_URL}/search/courses?q=${encodeURIComponent(query)}&limit=10`;
+      
+      // Add user stage filter if user is logged in and has a stage
+      if (user?.fullName && user?.stage?.name) {
+        searchUrl += `&userStage=${encodeURIComponent(user.stage.name)}`;
+      }
+      
       // Use the new search API
-      const response = await fetch(`${import.meta.env.VITE_REACT_APP_API_URL}/search/courses?q=${encodeURIComponent(query)}&limit=10`);
+      const response = await fetch(searchUrl);
       if (response.ok) {
         const data = await response.json();
         setSearchResults(data.data?.courses || []);

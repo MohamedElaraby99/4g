@@ -6,7 +6,7 @@ import User from '../models/user.model.js';
 // Search courses with advanced filtering
 const searchCourses = async (req, res) => {
   try {
-    const { q, subject, stage, limit = 10, page = 1 } = req.query;
+    const { q, subject, stage, userStage, limit = 10, page = 1 } = req.query;
     
     // Build search query
     let query = {};
@@ -75,6 +75,16 @@ const searchCourses = async (req, res) => {
       });
       if (stageObj) {
         query.stage = stageObj._id;
+      }
+    }
+    
+    // User stage filter - when user is logged in, filter by their stage
+    if (userStage) {
+      const userStageObj = await Stage.findOne({ 
+        name: { $regex: userStage, $options: 'i' } 
+      });
+      if (userStageObj) {
+        query.stage = userStageObj._id;
       }
     }
     
@@ -168,7 +178,8 @@ const searchCourses = async (req, res) => {
         searchQuery: q || '',
         filters: {
           subject: subject || null,
-          stage: stage || null
+          stage: stage || null,
+          userStage: userStage || null
         }
       }
     });

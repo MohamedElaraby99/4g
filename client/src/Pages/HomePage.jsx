@@ -1079,7 +1079,7 @@ export default function HomePage() {
               </h3>
               <div className="flex flex-wrap justify-center gap-6 max-w-md mx-auto">
                 <a
-                  href="https://www.facebook.com/people/MrMahmoud-Abdel-Aziz/100070094625467/?mibextid=ZbWKwL"
+                  href=""
                   target="_blank"
                   rel="noopener noreferrer"
                   className="group flex flex-col items-center p-4 bg-gray-50 dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:text-orange-600 hover:scale-105"
@@ -1093,7 +1093,7 @@ export default function HomePage() {
                   </span>
                 </a>
                 <a
-                  href="https://www.youtube.com/@mahmoudAbdel_Aziz"
+                  href=""
                   target="_blank"
                   rel="noopener noreferrer"
                   className="group flex flex-col items-center p-4 bg-gray-50 dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:text-orange-600 hover:scale-105"
@@ -1107,7 +1107,7 @@ export default function HomePage() {
                   </span>
                 </a>
                 <a
-                  href="https://wa.me/"
+                  href=""
                   target="_blank"
                   rel="noopener noreferrer"
                   className="group flex flex-col items-center p-4 bg-gray-50 dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:text-green-500 hover:scale-105"
@@ -1184,7 +1184,7 @@ export default function HomePage() {
             </p>
           </div>
           <div className="flex items-center justify-center">
-            <a href="https://fikra.solutions/" rel="noopener noreferrer" target="_blank" className="flex items-center justify-center">
+            <a href="" rel="noopener noreferrer" target="_blank" className="flex items-center justify-center">
               <img
                 src={fikraLogo}
                 alt="Fikra Software Logo"

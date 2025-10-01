@@ -1174,7 +1174,7 @@ export default function HomePage() {
             <p className="text-lg text-gray-600 dark:text-gray-300">
               شريكنا التقني: 
               <a
-                href="https://fikra.solutions/"
+                href=""
                 target="_blank"
                 rel="noopener noreferrer"
                 className="font-semibold text-orange-600 hover:text-orange-700 dark:text-orange-400 dark:hover:text-orange-300"

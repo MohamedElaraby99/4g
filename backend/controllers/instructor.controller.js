@@ -177,6 +177,6 @@ export const getFeaturedInstructors = asyncHandler(async (req, res, next) => {
     .sort({ rating: -1, totalStudents: -1 });
 
     res.status(200).json(
-        new ApiResponse(200, instructors, "Featured instructors retrieved successfully")
+        new ApiResponse(200, { instructors }, "Featured instructors retrieved successfully")
     );
 });

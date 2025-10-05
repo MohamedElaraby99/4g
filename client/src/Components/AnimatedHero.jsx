@@ -133,7 +133,7 @@ const AnimatedHero = ({ onGetStarted }) => {
                   background: darkMode ? 'rgba(55, 65, 81, 0.8)' : 'rgba(255, 255, 255, 0.8)',
                   border: '1px solid #FF6600'
                 }}>
-                  منصة تعليم مصرية جامدة لطلبة الإعدادي والثانوي! بنقدملك شروحات تفاعلية حلوة، فيديوهات تعليمية ممتعة، امتحانات متنوعة، ومذكرات PDF عشان تتفوق في الدراسة وتخش الجامعة اللي نفسك فيها.
+                  منصة تعليم مصرية  لطلبة الإعدادي والثانوي! بنقدملك شروحات تفاعلية حلوة، فيديوهات تعليمية ممتعة، امتحانات متنوعة، ومذكرات PDF عشان تتفوق في الدراسة وتخش الجامعة اللي نفسك فيها.
                 </p>
                 {/* Trust Badges - Egyptian Style */}
                 <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
@@ -146,7 +146,7 @@ const AnimatedHero = ({ onGetStarted }) => {
                     background: darkMode ? 'rgba(181, 30, 0, 0.2)' : 'rgba(181, 30, 0, 0.1)',
                     color: '#B51E00',
                     borderColor: '#B51E00'
-                  }}>تمارين وامتحانات تفاعلية جامدة</span>
+                  }}>تمارين وامتحانات تفاعلية </span>
                   <span className="px-3 py-1 text-sm md:text-base rounded-full border" style={{
                     background: darkMode ? 'rgba(76, 76, 76, 0.2)' : 'rgba(76, 76, 76, 0.1)',
                     color: '#4C4C4C',

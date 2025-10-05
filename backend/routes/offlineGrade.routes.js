@@ -13,13 +13,13 @@ import {
   getGradesByStudentName,
   upload
 } from '../controllers/offlineGrade.controller.js';
-import { isLoggedIn, requireAdmin } from '../middleware/auth.middleware.js';
+import { isLoggedIn, authorisedRoles } from '../middleware/auth.middleware.js';
 
 const router = express.Router();
 
 // Apply authentication to all routes
 router.use(isLoggedIn);
-router.use(requireAdmin);
+router.use(authorisedRoles('ADMIN', 'SUPER_ADMIN', 'ASSISTANT'));
 
 // CRUD Routes
 router.post('/', createGrade); // CREATE

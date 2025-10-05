@@ -10,12 +10,13 @@ import {
   getGroupPaymentStatus,
   generateFinancialReport
 } from '../controllers/financial.controller.js';
-import { isLoggedIn } from '../middleware/auth.middleware.js';
+import { isLoggedIn, authorisedRoles } from '../middleware/auth.middleware.js';
 
 const router = express.Router();
 
 // All routes require authentication
 router.use(isLoggedIn);
+router.use(authorisedRoles('ADMIN', 'SUPER_ADMIN', 'ASSISTANT'));
 
 // Add new income transaction
 router.post('/income', addIncome);

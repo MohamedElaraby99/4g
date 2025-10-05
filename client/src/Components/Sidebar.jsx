@@ -18,6 +18,7 @@ import {
   FaUsers,
   FaWhatsapp,
   FaChalkboardTeacher,
+  FaChartLine,
   FaGraduationCap,
   FaChevronDown,
   FaChevronUp,
@@ -141,6 +142,27 @@ export default function Sidebar({ hideBar = false }) {
                 <FaUserCircle size={16} className="text-gray-500 dark:text-slate-100" />
                   لوحة تحكم الإدارة
                   
+                </Link>
+              </li>
+            )}
+
+            {/* Center Management - Accessible by ADMIN, SUPER_ADMIN, and ASSISTANT */}
+            {(role === "ADMIN" || role === "SUPER_ADMIN" || role === "ASSISTANT") && (
+              <li>
+                <Link to="/admin/center-management" className="flex gap-3 items-center text-gray-700 dark:text-white hover:text-orange-600 dark:hover:text-orange-400 transition-colors text-right py-2" onClick={closeSidebar}>
+                <FaChartLine size={16} className="text-gray-500 dark:text-slate-100" />
+                  إدارة المركز
+                  
+                </Link>
+              </li>
+            )}
+
+            {/* Instructor Dashboard - Accessible by INSTRUCTOR */}
+            {role === "INSTRUCTOR" && (
+              <li>
+                <Link to="/instructor/dashboard" className="flex gap-3 items-center text-gray-700 dark:text-white hover:text-purple-600 dark:hover:text-purple-400 transition-colors text-right py-2" onClick={closeSidebar}>
+                <FaBookOpen size={16} className="text-gray-500 dark:text-slate-100" />
+                  لوحة تحكم المدرب
                 </Link>
               </li>
             )}

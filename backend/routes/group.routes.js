@@ -9,7 +9,7 @@ import {
   removeStudentFromGroup,
   getGroupsStats
 } from "../controllers/group.controller.js";
-import { isLoggedIn } from "../middleware/auth.middleware.js";
+import { isLoggedIn, authorisedRoles } from "../middleware/auth.middleware.js";
 import { checkDeviceAuthorization } from "../middleware/deviceAuth.middleware.js";
 import { logDeviceAccess } from "../middleware/deviceAuth.middleware.js";
 
@@ -17,6 +17,7 @@ const router = Router();
 
 // Apply authentication and device authorization to all routes
 router.use(isLoggedIn);
+router.use(authorisedRoles('ADMIN', 'SUPER_ADMIN', 'ASSISTANT'));
 router.use(checkDeviceAuthorization);
 router.use(logDeviceAccess);
 

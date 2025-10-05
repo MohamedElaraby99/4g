@@ -147,7 +147,7 @@ export default function AdminUserDashboard() {
         console.log('LocalStorage role:', localStorage.getItem('role'));
         console.log('LocalStorage isLoggedIn:', localStorage.getItem('isLoggedIn'));
         
-        if (isLoggedIn && (role === "ADMIN" || role === "SUPER_ADMIN")) {
+        if (isLoggedIn && (role === "ADMIN" || role === "SUPER_ADMIN" || role === "ASSISTANT")) {
             console.log('Dispatching getAllUsers...');
             let roleFilter = "";
             if (activeTab === "users") {
@@ -444,15 +444,19 @@ export default function AdminUserDashboard() {
             : 'text-red-600 bg-red-50 dark:bg-red-900/20';
     };
 
-    const getRoleColor = (role) => {
-        if (role === 'SUPER_ADMIN') {
-            return 'text-red-600 bg-red-50 dark:bg-red-900/20';
-        } else if (role === 'ADMIN') {
-            return 'text-orange-600 bg-orange-50 dark:bg-orange-900/20';
-        } else {
-            return 'text-orange-600 bg-orange-50 dark:bg-orange-900/20';
-        }
-    };
+        const getRoleColor = (role) => {
+            if (role === 'SUPER_ADMIN') {
+                return 'text-red-600 bg-red-50 dark:bg-red-900/20';
+            } else if (role === 'ADMIN') {
+                return 'text-orange-600 bg-orange-50 dark:bg-orange-900/20';
+            } else if (role === 'ASSISTANT') {
+                return 'text-blue-600 bg-blue-50 dark:bg-blue-900/20';
+            } else if (role === 'INSTRUCTOR') {
+                return 'text-purple-600 bg-purple-50 dark:bg-purple-900/20';
+            } else {
+                return 'text-orange-600 bg-orange-50 dark:bg-orange-900/20';
+            }
+        };
 
     const getTransactionIcon = (type) => {
         switch (type) {
@@ -699,6 +703,9 @@ export default function AdminUserDashboard() {
                                                     <option value="">جميع الأدوار</option>
                                                     <option value="USER">مستخدم</option>
                                                     <option value="ADMIN">مدير</option>
+                                                    <option value="ASSISTANT">مساعد</option>
+                                        <option value="INSTRUCTOR">مدرب</option>
+                                            <option value="INSTRUCTOR">مدرب</option>
                                                 </select>
                                             </div>
                                         )}
@@ -779,14 +786,14 @@ export default function AdminUserDashboard() {
                                                                 {user.fullName}
                                                             </h4>
                                                             <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getRoleColor(user.role)}`}>
-                                                                {user.role === 'SUPER_ADMIN' ? 'مدير مميز' : user.role === 'ADMIN' ? 'مدير' : 'مستخدم'}
+                                                                {user.role === 'SUPER_ADMIN' ? 'مدير مميز' : user.role === 'ADMIN' ? 'مدير' : user.role === 'ASSISTANT' ? 'مساعد' : user.role === 'INSTRUCTOR' ? 'مدرب' : 'مستخدم'}
                                                             </span>
                                                         </div>
                                                         <p className="text-sm text-gray-500 dark:text-gray-400">
                                                             {user.email}
                                                         </p>
                                                         <p className="text-xs text-gray-400 dark:text-gray-500">
-                                                            {user.role !== 'SUPER_ADMIN' && (
+                                                            {!['SUPER_ADMIN', 'ASSISTANT', 'INSTRUCTOR'].includes(user.role) && (
                                                                 <>
                                                                     المحفظة: {user.walletBalance} جنيه مصري • المعاملات: {user.totalTransactions}
                                                                     {user.stage && user.stage.name && (
@@ -794,7 +801,7 @@ export default function AdminUserDashboard() {
                                                                     )}
                                                                 </>
                                                             )}
-                                                            {user.role === 'SUPER_ADMIN' && user.stage && user.stage.name && (
+                                                            {['SUPER_ADMIN', 'ASSISTANT', 'INSTRUCTOR'].includes(user.role) && user.stage && user.stage.name && (
                                                                 <span>المرحلة: {user.stage.name}</span>
                                                             )}
                                                         </p>
@@ -817,7 +824,15 @@ export default function AdminUserDashboard() {
                                                     </button>
                                                     {canChangeRoleToAdmin && (
                                                         <button
-                                                            onClick={() => handleUpdateRole(user.id, user.role === 'ADMIN' ? 'USER' : 'ADMIN')}
+                                                            onClick={() => {
+                                                                if (user.role === 'ADMIN') {
+                                                                    handleUpdateRole(user.id, 'USER');
+                                                                } else if (user.role === 'USER') {
+                                                                    handleUpdateRole(user.id, 'ADMIN');
+                                                                } else if (user.role === 'ASSISTANT') {
+                                                                    handleUpdateRole(user.id, 'USER');
+                                                                }
+                                                            }}
                                                             className="p-2 text-gray-500 hover:text-orange-600 transition-colors"
                                                             title="تغيير الدور"
                                                         >
@@ -831,7 +846,7 @@ export default function AdminUserDashboard() {
                                                     >
                                                         <FaWallet />
                                                     </button>
-                                                    {(user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN' || canDeleteAdmin) && (
+                                                    {(user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN' && user.role !== 'ASSISTANT' && user.role !== 'INSTRUCTOR' || canDeleteAdmin) && (
                                                         <button
                                                             onClick={() => {
                                                                 setUserToDelete(user.id);
@@ -967,14 +982,14 @@ export default function AdminUserDashboard() {
                                                                 {user.fullName}
                                                             </h4>
                                                             <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getRoleColor(user.role)}`}>
-                                                                {user.role === 'SUPER_ADMIN' ? 'مدير مميز' : user.role === 'ADMIN' ? 'مدير' : 'مستخدم'}
+                                                                {user.role === 'SUPER_ADMIN' ? 'مدير مميز' : user.role === 'ADMIN' ? 'مدير' : user.role === 'ASSISTANT' ? 'مساعد' : user.role === 'INSTRUCTOR' ? 'مدرب' : 'مستخدم'}
                                                             </span>
                                                         </div>
                                                         <p className="text-sm text-gray-500 dark:text-gray-400">
                                                             {user.email}
                                                         </p>
                                                         <p className="text-xs text-gray-400 dark:text-gray-500">
-                                                            {user.role !== 'SUPER_ADMIN' && (
+                                                            {!['SUPER_ADMIN', 'ASSISTANT', 'INSTRUCTOR'].includes(user.role) && (
                                                                 <>
                                                                     المحفظة: {user.walletBalance} جنيه مصري • المعاملات: {user.totalTransactions}
                                                                     {user.stage && user.stage.name && (
@@ -982,7 +997,7 @@ export default function AdminUserDashboard() {
                                                                     )}
                                                                 </>
                                                             )}
-                                                            {user.role === 'SUPER_ADMIN' && user.stage && user.stage.name && (
+                                                            {['SUPER_ADMIN', 'ASSISTANT', 'INSTRUCTOR'].includes(user.role) && user.stage && user.stage.name && (
                                                                 <span>المرحلة: {user.stage.name}</span>
                                                             )}
                                                         </p>
@@ -1005,7 +1020,15 @@ export default function AdminUserDashboard() {
                                                     </button>
                                                     {canChangeRoleToAdmin && (
                                                         <button
-                                                            onClick={() => handleUpdateRole(user.id, user.role === 'ADMIN' ? 'USER' : 'ADMIN')}
+                                                            onClick={() => {
+                                                                if (user.role === 'ADMIN') {
+                                                                    handleUpdateRole(user.id, 'USER');
+                                                                } else if (user.role === 'USER') {
+                                                                    handleUpdateRole(user.id, 'ADMIN');
+                                                                } else if (user.role === 'ASSISTANT') {
+                                                                    handleUpdateRole(user.id, 'USER');
+                                                                }
+                                                            }}
                                                             className="p-2 text-gray-500 hover:text-orange-600 transition-colors"
                                                             title="تغيير الدور"
                                                         >
@@ -1019,7 +1042,7 @@ export default function AdminUserDashboard() {
                                                     >
                                                         <FaWallet />
                                                     </button>
-                                                    {(user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN' || canDeleteAdmin) && (
+                                                    {(user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN' && user.role !== 'ASSISTANT' && user.role !== 'INSTRUCTOR' || canDeleteAdmin) && (
                                                         <button
                                                             onClick={() => {
                                                                 setUserToDelete(user.id);
@@ -1084,6 +1107,9 @@ export default function AdminUserDashboard() {
                                                 <option value="">جميع الأدوار</option>
                                                 <option value="USER">مستخدم</option>
                                                 <option value="ADMIN">مدير</option>
+                                                <option value="ASSISTANT">مساعد</option>
+                                        <option value="INSTRUCTOR">مدرب</option>
+                                            <option value="INSTRUCTOR">مدرب</option>
                                             </select>
                                         </div>
                                         <div>
@@ -1161,14 +1187,14 @@ export default function AdminUserDashboard() {
                                                                 {user.fullName}
                                                             </h4>
                                                             <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getRoleColor(user.role)}`}>
-                                                                {user.role === 'SUPER_ADMIN' ? 'مدير مميز' : user.role === 'ADMIN' ? 'مدير' : 'مستخدم'}
+                                                                {user.role === 'SUPER_ADMIN' ? 'مدير مميز' : user.role === 'ADMIN' ? 'مدير' : user.role === 'ASSISTANT' ? 'مساعد' : user.role === 'INSTRUCTOR' ? 'مدرب' : 'مستخدم'}
                                                             </span>
                                                         </div>
                                                         <p className="text-sm text-gray-500 dark:text-gray-400">
                                                             {user.email}
                                                         </p>
                                                         <p className="text-xs text-gray-400 dark:text-gray-500">
-                                                            {user.role !== 'SUPER_ADMIN' && (
+                                                            {!['SUPER_ADMIN', 'ASSISTANT', 'INSTRUCTOR'].includes(user.role) && (
                                                                 <>
                                                                     المحفظة: {user.walletBalance} جنيه مصري • المعاملات: {user.totalTransactions}
                                                                     {user.stage && user.stage.name && (
@@ -1176,7 +1202,7 @@ export default function AdminUserDashboard() {
                                                                     )}
                                                                 </>
                                                             )}
-                                                            {user.role === 'SUPER_ADMIN' && user.stage && user.stage.name && (
+                                                            {['SUPER_ADMIN', 'ASSISTANT', 'INSTRUCTOR'].includes(user.role) && user.stage && user.stage.name && (
                                                                 <span>المرحلة: {user.stage.name}</span>
                                                             )}
                                                         </p>
@@ -1199,7 +1225,15 @@ export default function AdminUserDashboard() {
                                                     </button>
                                                     {canChangeRoleToAdmin && (
                                                         <button
-                                                            onClick={() => handleUpdateRole(user.id, user.role === 'ADMIN' ? 'USER' : 'ADMIN')}
+                                                            onClick={() => {
+                                                                if (user.role === 'ADMIN') {
+                                                                    handleUpdateRole(user.id, 'USER');
+                                                                } else if (user.role === 'USER') {
+                                                                    handleUpdateRole(user.id, 'ADMIN');
+                                                                } else if (user.role === 'ASSISTANT') {
+                                                                    handleUpdateRole(user.id, 'USER');
+                                                                }
+                                                            }}
                                                             className="p-2 text-gray-500 hover:text-orange-600 transition-colors"
                                                             title="تغيير الدور"
                                                         >
@@ -1213,7 +1247,7 @@ export default function AdminUserDashboard() {
                                                     >
                                                         <FaWallet />
                                                     </button>
-                                                    {(user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN' || canDeleteAdmin) && (
+                                                    {(user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN' && user.role !== 'ASSISTANT' && user.role !== 'INSTRUCTOR' || canDeleteAdmin) && (
                                                         <button
                                                             onClick={() => {
                                                                 setUserToDelete(user.id);
@@ -1296,17 +1330,41 @@ export default function AdminUserDashboard() {
                                                 طالب
                                         </label>
                                         {canCreateAdmin && (
-                                            <label className="flex items-center">
-                                                <input
-                                                    type="radio"
-                                                    name="role"
-                                                    value="ADMIN"
-                                                    checked={createUserForm.role === 'ADMIN'}
-                                                    onChange={(e) => setCreateUserForm({...createUserForm, role: e.target.value})}
-                                                    className="ml-2"
-                                                />
-                                                    مدير
-                                            </label>
+                                            <>
+                                                <label className="flex items-center">
+                                                    <input
+                                                        type="radio"
+                                                        name="role"
+                                                        value="ADMIN"
+                                                        checked={createUserForm.role === 'ADMIN'}
+                                                        onChange={(e) => setCreateUserForm({...createUserForm, role: e.target.value})}
+                                                        className="ml-2"
+                                                    />
+                                                        مدير
+                                                </label>
+                    <label className="flex items-center">
+                        <input
+                            type="radio"
+                            name="role"
+                            value="ASSISTANT"
+                            checked={createUserForm.role === 'ASSISTANT'}
+                            onChange={(e) => setCreateUserForm({...createUserForm, role: e.target.value})}
+                            className="ml-2"
+                        />
+                            مساعد
+                    </label>
+                    <label className="flex items-center">
+                        <input
+                            type="radio"
+                            name="role"
+                            value="INSTRUCTOR"
+                            checked={createUserForm.role === 'INSTRUCTOR'}
+                            onChange={(e) => setCreateUserForm({...createUserForm, role: e.target.value})}
+                            className="ml-2"
+                        />
+                            مدرب
+                    </label>
+                                            </>
                                         )}
                                     </div>
                                
@@ -1499,7 +1557,7 @@ export default function AdminUserDashboard() {
                                             {userToDeleteInfo.email}
                                         </p>
                                         <p className="text-sm text-gray-600 dark:text-gray-400">
-                                            الدور: {userToDeleteInfo.role === 'SUPER_ADMIN' ? 'مدير مميز' : userToDeleteInfo.role === 'ADMIN' ? 'مدير' : 'طالب'}
+                                            الدور: {userToDeleteInfo.role === 'SUPER_ADMIN' ? 'مدير مميز' : userToDeleteInfo.role === 'ADMIN' ? 'مدير' : userToDeleteInfo.role === 'ASSISTANT' ? 'مساعد' : 'طالب'}
                                         </p>
                                     </div>
                                 )}
@@ -1508,12 +1566,26 @@ export default function AdminUserDashboard() {
                                         ? 'هل أنت متأكد من حذف هذا المدير المميز؟ هذا الإجراء لا يمكن التراجع عنه.'
                                         : userToDeleteInfo?.role === 'ADMIN' 
                                         ? 'هل أنت متأكد من حذف هذا المدير؟ هذا الإجراء لا يمكن التراجع عنه.'
+                                        : userToDeleteInfo?.role === 'ASSISTANT'
+                                        ? 'هل أنت متأكد من حذف هذا المساعد؟ هذا الإجراء لا يمكن التراجع عنه.'
+                                        : userToDeleteInfo?.role === 'INSTRUCTOR'
+                                        ? 'هل أنت متأكد من حذف هذا المدرب؟ هذا الإجراء لا يمكن التراجع عنه.'
                                         : 'هل أنت متأكد من حذف هذا المستخدم؟ هذا الإجراء لا يمكن التراجع عنه.'
                                     }
                                 </p>
                                 {userToDeleteInfo?.role === 'ADMIN' && (
                                     <p className="text-sm text-orange-600 dark:text-orange-400 mt-2">
                                         ⚠️ تحذير: حذف مدير قد يؤثر على إدارة النظام
+                                    </p>
+                                )}
+                                {userToDeleteInfo?.role === 'ASSISTANT' && (
+                                    <p className="text-sm text-blue-600 dark:text-blue-400 mt-2">
+                                        ⚠️ تحذير: حذف مساعد قد يؤثر على إدارة المستخدمين
+                                    </p>
+                                )}
+                                {userToDeleteInfo?.role === 'INSTRUCTOR' && (
+                                    <p className="text-sm text-purple-600 dark:text-purple-400 mt-2">
+                                        ⚠️ تحذير: حذف مدرب قد يؤثر على الدورات المخصصة له
                                     </p>
                                 )}
                                 {userToDeleteInfo?.role === 'SUPER_ADMIN' && (
@@ -1810,10 +1882,13 @@ export default function AdminUserDashboard() {
                                                     >
                                                         <option value="USER">طالب</option>
                                                         <option value="ADMIN">مدير</option>
+                                                        <option value="ASSISTANT">مساعد</option>
+                                        <option value="INSTRUCTOR">مدرب</option>
+                                            <option value="INSTRUCTOR">مدرب</option>
                                                     </select>
                                                 ) : (
                                                     <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getRoleColor(selectedUser.role)}`}>
-                                                        {selectedUser.role === 'SUPER_ADMIN' ? 'مدير مميز' : selectedUser.role === 'ADMIN' ? 'مدير' : 'طالب'}
+                                                        {selectedUser.role === 'SUPER_ADMIN' ? 'مدير مميز' : selectedUser.role === 'ADMIN' ? 'مدير' : selectedUser.role === 'ASSISTANT' ? 'مساعد' : 'طالب'}
                                                     </span>
                                                 )
                                             ) : (
@@ -2003,13 +2078,21 @@ export default function AdminUserDashboard() {
                                     </button>
                                     {canChangeRoleToAdmin && (
                                         <button
-                                            onClick={() => handleUpdateRole(selectedUser.id, selectedUser.role === 'ADMIN' ? 'USER' : 'ADMIN')}
+                                            onClick={() => {
+                                                if (selectedUser.role === 'ADMIN') {
+                                                    handleUpdateRole(selectedUser.id, 'USER');
+                                                } else if (selectedUser.role === 'USER') {
+                                                    handleUpdateRole(selectedUser.id, 'ADMIN');
+                                                } else if (selectedUser.role === 'ASSISTANT') {
+                                                    handleUpdateRole(selectedUser.id, 'USER');
+                                                }
+                                            }}
                                             className="px-6 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg font-medium transition-colors"
                                         >
                                             تغيير الدور
                                         </button>
                                     )}
-                                    {(user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN' || canDeleteAdmin) && (
+                                    {(user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN' && user.role !== 'ASSISTANT' || canDeleteAdmin) && (
                                         <button
                                             onClick={() => {
                                                 setUserToDelete(selectedUser.id);

@@ -135,20 +135,20 @@ const createUser = async (req, res, next) => {
         }
 
         // Validate role
-        if (!['USER', 'ADMIN'].includes(role)) {
-            return next(new AppError("Role must be either USER or ADMIN", 400));
+        if (!['USER', 'ADMIN', 'ASSISTANT', 'INSTRUCTOR'].includes(role)) {
+            return next(new AppError("Role must be either USER, ADMIN, ASSISTANT, or INSTRUCTOR", 400));
         }
 
-        // Check if current admin can create admin users
-        if (role === 'ADMIN') {
+        // Check if current admin can create admin, assistant, or instructor users
+        if (role === 'ADMIN' || role === 'ASSISTANT' || role === 'INSTRUCTOR') {
             const currentUser = await userModel.findById(req.user.id);
             if (!currentUser) {
                 return next(new AppError("Current user not found", 404));
             }
             
-            // Only SUPER_ADMIN can create ADMIN users
+            // Only SUPER_ADMIN can create ADMIN, ASSISTANT, or INSTRUCTOR users
             if (currentUser.role !== 'SUPER_ADMIN') {
-                return next(new AppError("You don't have permission to create admin users. Only super admins can create admin accounts.", 403));
+                return next(new AppError("You don't have permission to create admin, assistant, or instructor users. Only super admins can create these accounts.", 403));
             }
         }
 
@@ -163,6 +163,16 @@ const createUser = async (req, res, next) => {
             if (!email) {
                 return next(new AppError("Email is required for admin users", 400));
             }
+        } else if (role === 'ASSISTANT') {
+            // For ASSISTANT role: email is required
+            if (!email) {
+                return next(new AppError("Email is required for assistant users", 400));
+            }
+        } else if (role === 'INSTRUCTOR') {
+            // For INSTRUCTOR role: email is required
+            if (!email) {
+                return next(new AppError("Email is required for instructor users", 400));
+            }
         }
 
         // Check if user already exists based on role
@@ -174,7 +184,7 @@ const createUser = async (req, res, next) => {
                 return next(new AppError("Phone number already exists", 400));
             }
         } else {
-            // For ADMIN role: check email
+            // For ADMIN, ASSISTANT, and INSTRUCTOR roles: check email
             existingUser = await userModel.findOne({ email });
             if (existingUser) {
                 return next(new AppError("Email already exists", 400));
@@ -202,6 +212,10 @@ const createUser = async (req, res, next) => {
             userData.stage = stage;
             userData.age = parseInt(age);
         } else if (role === 'ADMIN') {
+            userData.email = email;
+        } else if (role === 'ASSISTANT') {
+            userData.email = email;
+        } else if (role === 'INSTRUCTOR') {
             userData.email = email;
         }
 
@@ -369,7 +383,7 @@ const updateUserRole = async (req, res, next) => {
         const { userId } = req.params;
         const { role } = req.body;
 
-        if (!['USER', 'ADMIN'].includes(role)) {
+        if (!['USER', 'ADMIN', 'ASSISTANT', 'INSTRUCTOR'].includes(role)) {
             return next(new AppError("Invalid role", 400));
         }
 
@@ -383,16 +397,16 @@ const updateUserRole = async (req, res, next) => {
             return next(new AppError("You cannot change your own role", 400));
         }
 
-        // Check if current admin can change roles to ADMIN
-        if (role === 'ADMIN') {
+        // Check if current admin can change roles to ADMIN or ASSISTANT
+        if (role === 'ADMIN' || role === 'ASSISTANT' || role === 'INSTRUCTOR') {
             const currentUser = await userModel.findById(req.user.id);
             if (!currentUser) {
                 return next(new AppError("Current user not found", 404));
             }
             
-            // Only SUPER_ADMIN can change roles to ADMIN
+            // Only SUPER_ADMIN can change roles to ADMIN or ASSISTANT
             if (currentUser.role !== 'SUPER_ADMIN') {
-                return next(new AppError("You don't have permission to change user roles to ADMIN. Only super admins can do this.", 403));
+                return next(new AppError(`You don't have permission to change user roles to ${role}. Only super admins can do this.`, 403));
             }
         }
 

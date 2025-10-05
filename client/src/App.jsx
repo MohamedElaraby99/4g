@@ -113,7 +113,9 @@ function App() {
                     <Route path="/admin/dashboard" element={<AdminDashboard />} />
                     <Route path="/admin/recharge-codes" element={<AdminRechargeCodeDashboard />} />
                     <Route path="/admin/users" element={<AdminUserDashboard />} />
-                    <Route path="/admin/instructors" element={<InstructorDashboard />} />
+                    <Route element={<RequireAuth allowedRoles={["INSTRUCTOR"]} />}>
+                        <Route path="/instructor/dashboard" element={<InstructorDashboard />} />
+                    </Route>
                     <Route path="/admin/stages" element={<StageDashboard />} />
                     <Route path="/admin/whatsapp-services" element={<WhatsAppServiceDashboard />} />
                     <Route path="/admin/course-content" element={<CourseContentManager />} />
@@ -130,15 +132,19 @@ function App() {
                     <Route path="/admin/essay-exams" element={<EssayExamDashboard />} />
                     <Route path="/admin/course-access-codes" element={<AdminCourseAccessCodes />} />
                     <Route path="/admin/attendance" element={<AttendanceDashboard />} />
-                    <Route path="/admin/center-management" element={<CenterManagementDashboard />} />
-                    <Route path="/admin/center-management/overview" element={<Overview />} />
-                    <Route path="/admin/center-management/attendance" element={<Attendance />} />
-                    <Route path="/admin/center-management/groups" element={<Groups />} />
-                    <Route path="/admin/center-management/students" element={<Students />} />
-                    <Route path="/admin/center-management/financial" element={<Financial />} />
-                    <Route path="/admin/center-management/offline-grades" element={<OfflineGradesDashboard />} />
-                    <Route path="/admin/center-management/achievements" element={<Achievements />} />
                   </Route>
+
+        {/* Center Management Routes - Accessible by ADMIN, SUPER_ADMIN, and ASSISTANT */}
+        <Route element={<RequireAuth allowedRoles={["ADMIN", "SUPER_ADMIN", "ASSISTANT"]} />}>
+          <Route path="/admin/center-management" element={<CenterManagementDashboard />} />
+          <Route path="/admin/center-management/overview" element={<Overview />} />
+          <Route path="/admin/center-management/attendance" element={<Attendance />} />
+          <Route path="/admin/center-management/groups" element={<Groups />} />
+          <Route path="/admin/center-management/students" element={<Students />} />
+          <Route path="/admin/center-management/financial" element={<Financial />} />
+          <Route path="/admin/center-management/offline-grades" element={<OfflineGradesDashboard />} />
+          <Route path="/admin/center-management/achievements" element={<Achievements />} />
+        </Route>
 
         <Route element={<RequireAuth allowedRoles={["USER", "ADMIN", "SUPER_ADMIN"]} />}>
           <Route path="/user/profile" element={<Profile />} />

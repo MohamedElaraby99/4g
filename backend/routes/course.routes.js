@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import User from '../models/user.model.js';
 import upload from '../middleware/multer.middleware.js';
 import { isLoggedIn, authorisedRoles } from '../middleware/auth.middleware.js';
+import { checkInstructorCourseAccess, filterCoursesForInstructor } from '../middleware/instructorAccess.middleware.js';
 import { 
   getAllCourses, 
   getAdminCourses, 
@@ -62,20 +63,20 @@ router.patch('/:id/toggle-featured', isLoggedIn, authorisedRoles('ADMIN', 'SUPER
 // Admin routes
 router.get('/admin/all', isLoggedIn, authorisedRoles('ADMIN', 'SUPER_ADMIN'), getAdminCourses);
 router.get('/stats', getCourseStats);
-router.get('/:id', getCourseById);
+router.get('/:id', checkInstructorCourseAccess, getCourseById);
 
 // Get optimized lesson data
-router.get('/:courseId/lessons/:lessonId', isLoggedIn, getLessonById);
+router.get('/:courseId/lessons/:lessonId', isLoggedIn, checkInstructorCourseAccess, getLessonById);
 
 // Protected routes
 router.post('/', upload.single('thumbnail'), isLoggedIn, authorisedRoles('ADMIN', 'SUPER_ADMIN', 'INSTRUCTOR'), createCourse);
-router.put('/:id', upload.single('thumbnail'), isLoggedIn, authorisedRoles('ADMIN', 'SUPER_ADMIN', 'INSTRUCTOR'), updateCourse);
-router.delete('/:id', isLoggedIn, authorisedRoles('ADMIN', 'SUPER_ADMIN', 'INSTRUCTOR'), deleteCourse);
+router.put('/:id', upload.single('thumbnail'), isLoggedIn, authorisedRoles('ADMIN', 'SUPER_ADMIN', 'INSTRUCTOR'), checkInstructorCourseAccess, updateCourse);
+router.delete('/:id', isLoggedIn, authorisedRoles('ADMIN', 'SUPER_ADMIN', 'INSTRUCTOR'), checkInstructorCourseAccess, deleteCourse);
 
 // Course structure management - Unit operations
-router.post('/:courseId/units', isLoggedIn, authorisedRoles('ADMIN', 'SUPER_ADMIN', 'INSTRUCTOR'), addUnitToCourse);
-router.put('/:courseId/units/:unitId', isLoggedIn, authorisedRoles('ADMIN', 'SUPER_ADMIN', 'INSTRUCTOR'), updateUnit);
-router.delete('/:courseId/units/:unitId', isLoggedIn, authorisedRoles('ADMIN', 'SUPER_ADMIN', 'INSTRUCTOR'), deleteUnit);
+router.post('/:courseId/units', isLoggedIn, authorisedRoles('ADMIN', 'SUPER_ADMIN', 'INSTRUCTOR'), checkInstructorCourseAccess, addUnitToCourse);
+router.put('/:courseId/units/:unitId', isLoggedIn, authorisedRoles('ADMIN', 'SUPER_ADMIN', 'INSTRUCTOR'), checkInstructorCourseAccess, updateUnit);
+router.delete('/:courseId/units/:unitId', isLoggedIn, authorisedRoles('ADMIN', 'SUPER_ADMIN', 'INSTRUCTOR'), checkInstructorCourseAccess, deleteUnit);
 
 // Course structure management - Lesson operations
 router.post('/:courseId/units/:unitId/lessons', 
@@ -86,6 +87,7 @@ router.post('/:courseId/units/:unitId/lessons',
   ]), 
   isLoggedIn, 
   authorisedRoles('ADMIN', 'SUPER_ADMIN', 'INSTRUCTOR'), 
+  checkInstructorCourseAccess,
   addLessonToUnit
 );
 
@@ -97,6 +99,7 @@ router.post('/:courseId/direct-lessons',
   ]), 
   isLoggedIn, 
   authorisedRoles('ADMIN', 'SUPER_ADMIN', 'INSTRUCTOR'), 
+  checkInstructorCourseAccess,
   addDirectLessonToCourse
 );
 
@@ -108,13 +111,14 @@ router.put('/:courseId/lessons/:lessonId',
   ]), 
   isLoggedIn, 
   authorisedRoles('ADMIN', 'SUPER_ADMIN', 'INSTRUCTOR'), 
+  checkInstructorCourseAccess,
   updateLesson
 );
 
-router.put('/:courseId/lessons/:lessonId/content', isLoggedIn, authorisedRoles('ADMIN', 'SUPER_ADMIN', 'INSTRUCTOR'), updateLessonContent);
+router.put('/:courseId/lessons/:lessonId/content', isLoggedIn, authorisedRoles('ADMIN', 'SUPER_ADMIN', 'INSTRUCTOR'), checkInstructorCourseAccess, updateLessonContent);
 
-router.delete('/:courseId/lessons/:lessonId', isLoggedIn, authorisedRoles('ADMIN', 'SUPER_ADMIN', 'INSTRUCTOR'), deleteLesson);
-router.put('/:courseId/reorder-lessons', isLoggedIn, authorisedRoles('ADMIN', 'SUPER_ADMIN', 'INSTRUCTOR'), reorderLessons);
+router.delete('/:courseId/lessons/:lessonId', isLoggedIn, authorisedRoles('ADMIN', 'SUPER_ADMIN', 'INSTRUCTOR'), checkInstructorCourseAccess, deleteLesson);
+router.put('/:courseId/reorder-lessons', isLoggedIn, authorisedRoles('ADMIN', 'SUPER_ADMIN', 'INSTRUCTOR'), checkInstructorCourseAccess, reorderLessons);
 
 // Training attempt submission
 router.post('/:courseId/lessons/:lessonId/trainings/:trainingIndex/submit', isLoggedIn, submitTrainingAttempt);

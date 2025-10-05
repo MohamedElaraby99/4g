@@ -1,27 +1,25 @@
 import express from 'express';
-const router = express.Router();
-import { isLoggedIn, authorisedRoles } from '../middleware/auth.middleware.js';
-import upload from '../middleware/multer.middleware.js';
-import {
-  createInstructor,
-  getAllInstructors,
-  getFeaturedInstructors,
-  getInstructorById,
-  updateInstructor,
-  deleteInstructor,
-  getInstructorStats
+import { 
+    createInstructor, 
+    assignCoursesToInstructor, 
+    getInstructorCourses, 
+    getInstructorProfile,
+    getAllInstructors,
+    removeCourseFromInstructor 
 } from '../controllers/instructor.controller.js';
+import { isLoggedIn } from '../middleware/auth.middleware.js';
+import { authorisedRoles } from '../middleware/auth.middleware.js';
 
-// Public routes
-router.get('/', getAllInstructors);
-router.get('/featured', getFeaturedInstructors);
-router.get('/:id', getInstructorById);
-router.get('/:id/stats', getInstructorStats);
+const router = express.Router();
 
-// Protected routes (Admin only)
-router.post('/', isLoggedIn, authorisedRoles('ADMIN', 'SUPER_ADMIN'), upload.single('profileImage'), createInstructor);
-router.put('/:id', isLoggedIn, authorisedRoles('ADMIN', 'SUPER_ADMIN'), upload.single('profileImage'), updateInstructor);
-router.delete('/:id', isLoggedIn, authorisedRoles('ADMIN', 'SUPER_ADMIN'), deleteInstructor);
+// Routes for admin/super admin to manage instructors
+router.post('/create', isLoggedIn, authorisedRoles('SUPER_ADMIN'), createInstructor);
+router.post('/assign-courses', isLoggedIn, authorisedRoles('SUPER_ADMIN', 'ADMIN'), assignCoursesToInstructor);
+router.post('/remove-course', isLoggedIn, authorisedRoles('SUPER_ADMIN', 'ADMIN'), removeCourseFromInstructor);
+router.get('/all', isLoggedIn, authorisedRoles('SUPER_ADMIN', 'ADMIN', 'ASSISTANT'), getAllInstructors);
 
+// Routes for instructors to access their data
+router.get('/my-courses', isLoggedIn, authorisedRoles('INSTRUCTOR'), getInstructorCourses);
+router.get('/profile', isLoggedIn, authorisedRoles('INSTRUCTOR'), getInstructorProfile);
 
-export default router; 
+export default router;

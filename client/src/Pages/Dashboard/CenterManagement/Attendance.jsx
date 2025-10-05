@@ -37,7 +37,7 @@ export default function Attendance() {
   });
 
   useEffect(() => {
-    if (['ADMIN', 'SUPER_ADMIN', 'INSTRUCTOR'].includes(role)) {
+    if (['ADMIN', 'SUPER_ADMIN', 'INSTRUCTOR', 'ASSISTANT'].includes(role)) {
       if (selectedMonthData) {
         // Load data for selected month
         loadAttendanceDataForMonth(selectedMonthData);

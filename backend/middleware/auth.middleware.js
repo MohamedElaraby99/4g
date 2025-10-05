@@ -74,7 +74,7 @@ const authorizeSubscriber = async (req, res, next) => {
     console.log('User subscription object:', user.subscription);
     
     // For now, allow all logged-in users to access courses (temporary fix)
-    if (!['ADMIN', 'SUPER_ADMIN'].includes(role) && subscriptionStatus !== 'active') {
+        if (!['ADMIN', 'SUPER_ADMIN', 'ASSISTANT', 'INSTRUCTOR'].includes(role) && subscriptionStatus !== 'active') {
         console.log('ACCESS DENIED: User needs subscription, but allowing access for now');
         // return next(
         //     new AppError('Please subscribce to access this route!', 403)

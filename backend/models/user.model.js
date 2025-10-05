@@ -46,7 +46,7 @@ const userSchema = new Schema({
     governorate: {
         type: String,
         required: function() {
-            return !['ADMIN', 'SUPER_ADMIN'].includes(this.role);
+            return !['ADMIN', 'SUPER_ADMIN', 'ASSISTANT', 'INSTRUCTOR'].includes(this.role);
         },
         trim: true
     },
@@ -55,13 +55,13 @@ const userSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: 'Stage',
         required: function() {
-            return !['ADMIN', 'SUPER_ADMIN'].includes(this.role);
+            return !['ADMIN', 'SUPER_ADMIN', 'ASSISTANT', 'INSTRUCTOR'].includes(this.role);
         }
     },
     age: {
         type: Number,
         required: function() {
-            return !['ADMIN', 'SUPER_ADMIN'].includes(this.role);
+            return !['ADMIN', 'SUPER_ADMIN', 'ASSISTANT', 'INSTRUCTOR'].includes(this.role);
         },
         min: [5, 'Age must be at least 5'],
         max: [100, 'Age cannot exceed 100']
@@ -87,13 +87,26 @@ const userSchema = new Schema({
     role: {
         type: String,
         default: 'USER',
-        enum: ['USER', 'ADMIN', 'SUPER_ADMIN']
+        enum: ['USER', 'ADMIN', 'SUPER_ADMIN', 'ASSISTANT', 'INSTRUCTOR']
     },
     adminPermissions: {
         type: [String],
         default: [],
         enum: ['CREATE_ADMIN', 'DELETE_ADMIN', 'MANAGE_USERS', 'MANAGE_COURSES', 'MANAGE_PAYMENTS', 'VIEW_ANALYTICS']
     },
+    // For INSTRUCTOR role - link to Instructor record
+    instructorProfile: {
+        type: Schema.Types.ObjectId,
+        ref: 'Instructor',
+        required: function() {
+            return this.role === 'INSTRUCTOR';
+        }
+    },
+    // For INSTRUCTOR role - assigned courses
+    assignedCourses: [{
+        type: Schema.Types.ObjectId,
+        ref: 'Course'
+    }],
     code: {
         type: String,
         trim: true,
@@ -173,7 +186,7 @@ userSchema.methods = {
             role: this.role
         };
         
-        // Include email for ADMIN/SUPER_ADMIN, phone number for USER
+        // Include email for ADMIN/SUPER_ADMIN/ASSISTANT/INSTRUCTOR, phone number for USER
         if (this.role === 'USER') {
             payload.phoneNumber = this.phoneNumber;
             if (this.email) payload.email = this.email; // Include email if available

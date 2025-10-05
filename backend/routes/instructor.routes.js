@@ -5,12 +5,16 @@ import {
     getInstructorCourses, 
     getInstructorProfile,
     getAllInstructors,
-    removeCourseFromInstructor 
+    removeCourseFromInstructor,
+    getFeaturedInstructors
 } from '../controllers/instructor.controller.js';
 import { isLoggedIn } from '../middleware/auth.middleware.js';
 import { authorisedRoles } from '../middleware/auth.middleware.js';
 
 const router = express.Router();
+
+// Public routes
+router.get('/featured', getFeaturedInstructors);
 
 // Routes for admin/super admin to manage instructors
 router.post('/create', isLoggedIn, authorisedRoles('SUPER_ADMIN'), createInstructor);

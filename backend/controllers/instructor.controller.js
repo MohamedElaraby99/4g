@@ -162,3 +162,21 @@ export const removeCourseFromInstructor = asyncHandler(async (req, res, next) =>
         new ApiResponse(200, instructorUser, "Course removed from instructor successfully")
     );
 });
+
+// Get featured instructors (public endpoint)
+export const getFeaturedInstructors = asyncHandler(async (req, res, next) => {
+    const { limit = 6 } = req.query;
+    
+    const instructors = await instructorModel.find({ 
+        featured: true, 
+        isActive: true 
+    })
+    .populate('courses', 'title thumbnail')
+    .select('-__v')
+    .limit(parseInt(limit))
+    .sort({ rating: -1, totalStudents: -1 });
+
+    res.status(200).json(
+        new ApiResponse(200, instructors, "Featured instructors retrieved successfully")
+    );
+});

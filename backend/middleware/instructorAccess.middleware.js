@@ -25,7 +25,7 @@ export const checkInstructorCourseAccess = asyncHandler(async (req, res, next) =
     const instructor = await userModel.findById(userId).populate('assignedCourses');
 
     if (!instructor) {
-        return next(new ApiError("Instructor not found", 404));
+        return next(new ApiError(404, "Instructor not found"));
     }
 
     // If no specific course is being requested, allow
@@ -38,7 +38,7 @@ export const checkInstructorCourseAccess = asyncHandler(async (req, res, next) =
     const hasAccess = assignedCourses.some((course) => course?._id?.toString() === String(courseId));
 
     if (!hasAccess) {
-        return next(new ApiError("You don't have access to this course", 403));
+        return next(new ApiError(403, "You don't have access to this course"));
     }
 
     next();
@@ -70,7 +70,7 @@ export const filterCoursesForInstructor = asyncHandler(async (req, res, next) =>
     });
 
     if (!instructor) {
-        return next(new ApiError("Instructor not found", 404));
+        return next(new ApiError(404, "Instructor not found"));
     }
 
     // Add filtered courses to request object

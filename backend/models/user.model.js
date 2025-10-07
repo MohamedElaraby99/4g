@@ -94,13 +94,11 @@ const userSchema = new Schema({
         default: [],
         enum: ['CREATE_ADMIN', 'DELETE_ADMIN', 'MANAGE_USERS', 'MANAGE_COURSES', 'MANAGE_PAYMENTS', 'VIEW_ANALYTICS']
     },
-    // For INSTRUCTOR role - link to Instructor record
+    // For INSTRUCTOR role - optional link to Instructor record (now optional)
     instructorProfile: {
         type: Schema.Types.ObjectId,
         ref: 'Instructor',
-        required: function() {
-            return this.role === 'INSTRUCTOR';
-        }
+        required: false
     },
     // For INSTRUCTOR role - assigned courses
     assignedCourses: [{

@@ -8,7 +8,7 @@ export const upsertDraft = async (req, res, next) => {
     const userId = req.user._id || req.user.id;
     const { courseId, unitId, lessonId, type } = req.params;
     const { data } = req.body;
-    if (!data) return next(new ApiError('Missing draft data', 400));
+    if (!data) return next(new ApiError(400, 'Missing draft data'));
 
     const filter = { user: userId, course: courseId, unit: unitId || null, lesson: lessonId, type };
     const update = { $set: { data, status: 'draft' } };
@@ -17,7 +17,7 @@ export const upsertDraft = async (req, res, next) => {
     const draft = await Draft.findOneAndUpdate(filter, update, options);
     return res.json(new ApiResponse(200, draft, 'Draft saved'));
   } catch (err) {
-    return next(new ApiError(err.message || 'Failed to save draft', 500));
+    return next(new ApiError(500, err.message || 'Failed to save draft'));
   }
 };
 
@@ -35,7 +35,7 @@ export const getDrafts = async (req, res, next) => {
     }).sort({ updatedAt: -1 });
     return res.json(new ApiResponse(200, drafts, 'Drafts loaded'));
   } catch (err) {
-    return next(new ApiError(err.message || 'Failed to load drafts', 500));
+    return next(new ApiError(500, err.message || 'Failed to load drafts'));
   }
 };
 
@@ -45,11 +45,11 @@ export const deleteDraft = async (req, res, next) => {
     const userId = req.user._id || req.user.id;
     const { draftId } = req.params;
     const draft = await Draft.findOne({ _id: draftId, user: userId });
-    if (!draft) return next(new ApiError('Draft not found', 404));
+    if (!draft) return next(new ApiError(404, 'Draft not found'));
     await draft.deleteOne();
     return res.json(new ApiResponse(200, { _id: draftId }, 'Draft deleted'));
   } catch (err) {
-    return next(new ApiError(err.message || 'Failed to delete draft', 500));
+    return next(new ApiError(500, err.message || 'Failed to delete draft'));
   }
 };
 

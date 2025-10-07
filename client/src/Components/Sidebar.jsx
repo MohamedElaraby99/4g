@@ -29,6 +29,7 @@ import {
   FaChartBar,
   FaQrcode,
 } from "react-icons/fa";
+import { FaBookOpen } from "react-icons/fa";
 
 export default function Sidebar({ hideBar = false }) {
   const navigate = useNavigate();
@@ -101,7 +102,7 @@ export default function Sidebar({ hideBar = false }) {
           )}
 
           {/* Wallet Balance */}
-          {isLoggedIn && !["ADMIN", "SUPER_ADMIN"].includes(role) && (
+          {isLoggedIn && !["ADMIN", "SUPER_ADMIN", "INSTRUCTOR"].includes(role) && (
             <div className="mb-4">
               <div className="bg-gradient-to-br from-emerald-500 via-green-500 to-teal-600 rounded-lg p-3 text-white shadow-md">
                 <div className="flex items-center justify-between mb-2">
@@ -136,7 +137,7 @@ export default function Sidebar({ hideBar = false }) {
               </Link>
             </li>
 
-            {(role === "ADMIN" || role === "SUPER_ADMIN") && (
+            {(role === "ADMIN" || role === "SUPER_ADMIN" || role === "INSTRUCTOR") && (
               <li>
                 <Link to="/admin/dashboard" className="flex gap-3 items-center text-gray-700 dark:text-white hover:text-orange-600 dark:hover:text-orange-400 transition-colors text-right py-2" onClick={closeSidebar}>
                 <FaUserCircle size={16} className="text-gray-500 dark:text-slate-100" />
@@ -147,7 +148,7 @@ export default function Sidebar({ hideBar = false }) {
             )}
 
             {/* Center Management - Accessible by ADMIN, SUPER_ADMIN, and ASSISTANT */}
-            {(role === "ADMIN" || role === "SUPER_ADMIN" || role === "ASSISTANT") && (
+            {(role === "ADMIN" || role === "SUPER_ADMIN" || role === "ASSISTANT" || role === "INSTRUCTOR") && (
               <li>
                 <Link to="/admin/center-management" className="flex gap-3 items-center text-gray-700 dark:text-white hover:text-orange-600 dark:hover:text-orange-400 transition-colors text-right py-2" onClick={closeSidebar}>
                 <FaChartLine size={16} className="text-gray-500 dark:text-slate-100" />
@@ -157,15 +158,7 @@ export default function Sidebar({ hideBar = false }) {
               </li>
             )}
 
-            {/* Instructor Dashboard - Accessible by INSTRUCTOR */}
-            {role === "INSTRUCTOR" && (
-              <li>
-                <Link to="/instructor/dashboard" className="flex gap-3 items-center text-gray-700 dark:text-white hover:text-purple-600 dark:hover:text-purple-400 transition-colors text-right py-2" onClick={closeSidebar}>
-                <FaBookOpen size={16} className="text-gray-500 dark:text-slate-100" />
-                  لوحة تحكم المدرب
-                </Link>
-              </li>
-            )}
+            {/* Instructor Dashboard removed; instructors use admin dashboard */}
 
             {/* Courses Section */}
             <li>
@@ -176,7 +169,7 @@ export default function Sidebar({ hideBar = false }) {
               </Link>
             </li>
 
-            {isLoggedIn && !["ADMIN", "SUPER_ADMIN"].includes(role) && (
+            {isLoggedIn && !["ADMIN", "SUPER_ADMIN", "INSTRUCTOR"].includes(role) && (
               <li>
                 <Link to="/wallet" className="flex gap-3 items-center text-gray-700 dark:text-white hover:text-orange-600 dark:hover:text-orange-400 transition-colors text-right py-2" onClick={closeSidebar}>
                 <FaWallet size={16} className="text-gray-500 dark:text-slate-100" />
@@ -205,7 +198,7 @@ export default function Sidebar({ hideBar = false }) {
               </Link>
             </li>
             {/* Admin Services Dropdown */}
-            {(role === "ADMIN" || role === "SUPER_ADMIN") && (
+            {(role === "ADMIN" || role === "SUPER_ADMIN" || role === "INSTRUCTOR") && (
               <li>
                 <button 
                   onClick={toggleAdminDropdown}
@@ -291,14 +284,14 @@ export default function Sidebar({ hideBar = false }) {
             )}
 
             {/* Visual Separator for Super Admin */}
-            {role === "SUPER_ADMIN" && (
+            {(role === "SUPER_ADMIN") && (
               <li>
                 <div className="border-t border-red-200 dark:border-red-800 my-2 bg-red-200 dark:bg-red-800"></div>
               </li>
             )}
 
             {/* Show these links for non-admin users */}
-            {!["ADMIN", "SUPER_ADMIN"].includes(role) && (
+            {!["ADMIN", "SUPER_ADMIN", "INSTRUCTOR"].includes(role) && (
               <>
                 <li>
                   <Link to="/blogs" className="flex gap-3 items-center text-gray-700 dark:text-white hover:text-orange-600 dark:hover:text-orange-400 transition-colors py-2" onClick={closeSidebar}>

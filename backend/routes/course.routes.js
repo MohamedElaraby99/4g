@@ -61,7 +61,7 @@ router.get('/featured', getFeaturedCourses);
 router.patch('/:id/toggle-featured', isLoggedIn, authorisedRoles('ADMIN', 'SUPER_ADMIN'), toggleFeatured);
 
 // Admin routes
-router.get('/admin/all', isLoggedIn, authorisedRoles('ADMIN', 'SUPER_ADMIN'), getAdminCourses);
+router.get('/admin/all', isLoggedIn, authorisedRoles('ADMIN', 'SUPER_ADMIN', 'INSTRUCTOR'), getAdminCourses);
 router.get('/stats', getCourseStats);
 router.get('/:id', checkInstructorCourseAccess, getCourseById);
 

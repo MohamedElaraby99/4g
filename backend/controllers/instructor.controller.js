@@ -7,37 +7,40 @@ import { ApiResponse } from '../utils/ApiResponse.js';
 
 // Create instructor user account
 export const createInstructor = asyncHandler(async (req, res, next) => {
-    const { fullName, email, password, instructorId } = req.body;
+    const { fullName, email, password, courseIds } = req.body;
 
     // Validate required fields
-    if (!fullName || !email || !password || !instructorId) {
-        return next(new ApiError("Full name, email, password, and instructor profile are required", 400));
-    }
-
-    // Check if instructor profile exists
-    const instructorProfile = await instructorModel.findById(instructorId);
-    if (!instructorProfile) {
-        return next(new ApiError("Instructor profile not found", 404));
+    if (!fullName || !email || !password) {
+        return next(new ApiError(400, "Full name, email and password are required"));
     }
 
     // Check if user already exists
     const existingUser = await userModel.findOne({ email });
     if (existingUser) {
-        return next(new ApiError("Email already exists", 400));
+        return next(new ApiError(400, "Email already exists"));
     }
 
-    // Create instructor user
+    // Optionally validate courses
+    let validCourseIds = [];
+    if (Array.isArray(courseIds) && courseIds.length > 0) {
+        const courses = await courseModel.find({ _id: { $in: courseIds } });
+        if (courses.length !== courseIds.length) {
+            return next(new ApiError(400, "Some courses not found"));
+        }
+        validCourseIds = courseIds;
+    }
+
+    // Create instructor user without requiring instructorProfile
     const instructorUser = await userModel.create({
         fullName,
         email,
         password,
         role: 'INSTRUCTOR',
-        instructorProfile: instructorId,
-        assignedCourses: []
+        assignedCourses: validCourseIds
     });
 
     if (!instructorUser) {
-        return next(new ApiError("Failed to create instructor user", 500));
+        return next(new ApiError(500, "Failed to create instructor user"));
     }
 
     // Remove password from response
@@ -55,19 +58,19 @@ export const assignCoursesToInstructor = asyncHandler(async (req, res, next) => 
 
     // Validate required fields
     if (!instructorUserId || !courseIds || !Array.isArray(courseIds)) {
-        return next(new ApiError("Instructor user ID and course IDs array are required", 400));
+        return next(new ApiError(400, "Instructor user ID and course IDs array are required"));
     }
 
     // Check if instructor user exists
     const instructorUser = await userModel.findById(instructorUserId);
     if (!instructorUser || instructorUser.role !== 'INSTRUCTOR') {
-        return next(new ApiError("Instructor user not found", 404));
+        return next(new ApiError(404, "Instructor user not found"));
     }
 
     // Validate course IDs exist
     const courses = await courseModel.find({ _id: { $in: courseIds } });
     if (courses.length !== courseIds.length) {
-        return next(new ApiError("Some courses not found", 400));
+        return next(new ApiError(400, "Some courses not found"));
     }
 
     // Update instructor's assigned courses
@@ -101,7 +104,7 @@ export const getInstructorCourses = asyncHandler(async (req, res, next) => {
         .populate('instructorProfile');
 
     if (!instructor || instructor.role !== 'INSTRUCTOR') {
-        return next(new ApiError("Instructor not found", 404));
+        return next(new ApiError(404, "Instructor not found"));
     }
 
     res.status(200).json(
@@ -118,7 +121,7 @@ export const getInstructorProfile = asyncHandler(async (req, res, next) => {
         .select('-password');
 
     if (!instructor || instructor.role !== 'INSTRUCTOR') {
-        return next(new ApiError("Instructor not found", 404));
+        return next(new ApiError(404, "Instructor not found"));
     }
 
     res.status(200).json(
@@ -143,13 +146,13 @@ export const removeCourseFromInstructor = asyncHandler(async (req, res, next) =>
     const { instructorUserId, courseId } = req.body;
 
     if (!instructorUserId || !courseId) {
-        return next(new ApiError("Instructor user ID and course ID are required", 400));
+        return next(new ApiError(400, "Instructor user ID and course ID are required"));
     }
 
     // Check if instructor user exists
     const instructorUser = await userModel.findById(instructorUserId);
     if (!instructorUser || instructorUser.role !== 'INSTRUCTOR') {
-        return next(new ApiError("Instructor user not found", 404));
+        return next(new ApiError(404, "Instructor user not found"));
     }
 
     // Remove course from assigned courses

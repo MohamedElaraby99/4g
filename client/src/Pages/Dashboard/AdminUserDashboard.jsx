@@ -114,6 +114,8 @@ export default function AdminUserDashboard() {
     const [allCourses, setAllCourses] = useState([]);
     const [assigningCourses, setAssigningCourses] = useState(false);
     const [selectedCourseIds, setSelectedCourseIds] = useState([]);
+    // Courses chosen during instructor creation
+    const [createSelectedCourseIds, setCreateSelectedCourseIds] = useState([]);
     const [stages, setStages] = useState([]);
     const [instructors, setInstructors] = useState([]);
 
@@ -152,6 +154,30 @@ export default function AdminUserDashboard() {
             }
         };
         fetchInstructors();
+    }, [showCreateModal, createUserForm.role]);
+
+    // Load courses when creating INSTRUCTOR user
+    useEffect(() => {
+        const fetchCourses = async () => {
+            try {
+                if (!showCreateModal || createUserForm.role !== 'INSTRUCTOR') return;
+                const res = await axiosInstance.get('/courses/admin/all');
+                if (res?.data?.success) {
+                    const payload = res.data;
+                    const list = Array.isArray(payload?.data)
+                        ? payload.data
+                        : Array.isArray(payload?.courses)
+                            ? payload.courses
+                            : Array.isArray(payload?.data?.courses)
+                                ? payload.data.courses
+                                : [];
+                    setAllCourses(list);
+                }
+            } catch (e) {
+                console.debug('Error fetching courses:', e?.message);
+            }
+        };
+        fetchCourses();
     }, [showCreateModal, createUserForm.role]);
 
     // Monitor filter changes
@@ -204,7 +230,15 @@ export default function AdminUserDashboard() {
                 if (!showUserDetails || !selectedUser || selectedUser.role !== 'INSTRUCTOR') return;
                 const res = await axiosInstance.get('/courses/admin/all');
                 if (res?.data?.success) {
-                    setAllCourses(res.data.data || res.data.courses || []);
+                    const payload = res.data;
+                    const list = Array.isArray(payload?.data)
+                        ? payload.data
+                        : Array.isArray(payload?.courses)
+                            ? payload.courses
+                            : Array.isArray(payload?.data?.courses)
+                                ? payload.data.courses
+                                : [];
+                    setAllCourses(list);
                 }
                 // Preselect currently assigned courses if present on user object
                 const assigned = (selectedUser.assignedCourses || []).map(c => c?._id || c);
@@ -247,11 +281,13 @@ export default function AdminUserDashboard() {
 
     useEffect(() => {
         if (error) {
-            toast.error(error);
+            const msg = typeof error === 'string' ? error : (error?.message || 'حدث خطأ');
+            toast.error(msg);
             dispatch(clearAdminUserError());
         }
         if (actionError) {
-            toast.error(actionError);
+            const msg2 = typeof actionError === 'string' ? actionError : (actionError?.message || 'حدث خطأ');
+            toast.error(msg2);
             dispatch(clearAdminUserError());
         }
     }, [error, actionError, dispatch]);
@@ -1363,16 +1399,13 @@ export default function AdminUserDashboard() {
                                     e.preventDefault();
                                     try {
                                         if (createUserForm.role === 'INSTRUCTOR') {
-                                            if (!createUserForm.instructorId) {
-                                                toast.error('يرجى اختيار ملف المدرب');
-                                                return;
-                                            }
-                                            await axiosInstance.post('/instructors/create', {
+                                            const createRes = await axiosInstance.post('/instructors/create', {
                                                 fullName: createUserForm.fullName,
                                                 email: createUserForm.email,
                                                 password: createUserForm.password,
-                                                instructorId: createUserForm.instructorId
+                                                courseIds: createSelectedCourseIds
                                             });
+                                            // No separate assignment needed; handled on creation
                                         } else {
                                             await dispatch(createUser(createUserForm)).unwrap();
                                         }
@@ -1389,9 +1422,11 @@ export default function AdminUserDashboard() {
                                             age: '',
                                             instructorId: ''
                                         });
+                                        setCreateSelectedCourseIds([]);
                                         toast.success('تم إنشاء المستخدم بنجاح');
                                     } catch (error) {
-                                        toast.error(error || 'فشل في إنشاء المستخدم');
+                                        const msg = error?.response?.data?.message || error?.message || 'فشل في إنشاء المستخدم';
+                                        toast.error(msg);
                                     }
                                 }}
                                 className="p-6 space-y-4"
@@ -1592,20 +1627,24 @@ export default function AdminUserDashboard() {
                                 {/* Instructor-specific fields */}
                                 {createUserForm.role === 'INSTRUCTOR' && (
                                     <div className="space-y-4 border-t pt-4">
-                                        <h4 className="font-medium text-gray-900 dark:text-white">اختيار ملف المدرب</h4>
+                                        <h4 className="font-medium text-gray-900 dark:text-white">تعيين دورات للمدرب</h4>
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                                ملف المدرب المرتبط *
+                                                اختر الدورات للمدرب
                                             </label>
                                             <select
-                                                required
-                                                value={createUserForm.instructorId}
-                                                onChange={(e) => setCreateUserForm({...createUserForm, instructorId: e.target.value})}
-                                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-orange-500"
+                                                multiple
+                                                value={createSelectedCourseIds}
+                                                onChange={(e) => {
+                                                    const values = Array.from(e.target.selectedOptions).map(o => o.value);
+                                                    setCreateSelectedCourseIds(values);
+                                                }}
+                                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-orange-500 h-40"
                                             >
-                                                <option value="">اختر المدرب</option>
-                                                {instructors.map((i) => (
-                                                    <option key={i._id} value={i._id}>{i.name || i.fullName || i._id}</option>
+                                                {Array.isArray(allCourses) && allCourses.map(course => (
+                                                    <option key={course._id} value={course._id}>
+                                                        {course.title}
+                                                    </option>
                                                 ))}
                                             </select>
                                         </div>
@@ -2230,7 +2269,7 @@ export default function AdminUserDashboard() {
                                             }}
                                             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white h-40"
                                         >
-                                            {allCourses.map(course => (
+                                            {Array.isArray(allCourses) && allCourses.map(course => (
                                                 <option key={course._id} value={course._id}>
                                                     {course.title}
                                                 </option>

@@ -5,26 +5,37 @@ import { asyncHandler } from '../utils/asyncHandler.js';
 
 // Middleware to check if instructor can access a specific course
 export const checkInstructorCourseAccess = asyncHandler(async (req, res, next) => {
-    const { courseId } = req.params;
-    const userId = req.user.id;
+    // Support both routes that use ":courseId" and those that use ":id"
+    const courseId = req.params.courseId || req.params.id;
+
+    // If request is unauthenticated, allow public access (e.g., viewing course details)
+    if (!req.user) {
+        return next();
+    }
+
+    const userId = req.user.id || req.user._id;
     const userRole = req.user.role;
 
-    // Allow access for non-instructor roles (ADMIN, SUPER_ADMIN, etc.)
+    // Allow access for non-instructor roles (ADMIN, SUPER_ADMIN, STUDENT, etc.)
     if (userRole !== 'INSTRUCTOR') {
         return next();
     }
 
     // For instructors, check if they have access to this course
     const instructor = await userModel.findById(userId).populate('assignedCourses');
-    
+
     if (!instructor) {
         return next(new ApiError("Instructor not found", 404));
     }
 
+    // If no specific course is being requested, allow
+    if (!courseId) {
+        return next();
+    }
+
     // Check if the course is in the instructor's assigned courses
-    const hasAccess = instructor.assignedCourses.some(course => 
-        course._id.toString() === courseId
-    );
+    const assignedCourses = instructor.assignedCourses || [];
+    const hasAccess = assignedCourses.some((course) => course?._id?.toString() === String(courseId));
 
     if (!hasAccess) {
         return next(new ApiError("You don't have access to this course", 403));
@@ -35,7 +46,12 @@ export const checkInstructorCourseAccess = asyncHandler(async (req, res, next) =
 
 // Middleware to filter course lists for instructors
 export const filterCoursesForInstructor = asyncHandler(async (req, res, next) => {
-    const userId = req.user.id;
+    // If unauthenticated, skip filtering
+    if (!req.user) {
+        return next();
+    }
+
+    const userId = req.user.id || req.user._id;
     const userRole = req.user.role;
 
     // For non-instructor roles, continue without filtering
@@ -58,7 +74,7 @@ export const filterCoursesForInstructor = asyncHandler(async (req, res, next) =>
     }
 
     // Add filtered courses to request object
-    req.filteredCourses = instructor.assignedCourses;
-    
+    req.filteredCourses = instructor.assignedCourses || [];
+
     next();
 });

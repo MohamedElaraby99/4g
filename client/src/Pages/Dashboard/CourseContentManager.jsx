@@ -59,6 +59,8 @@ function getArabicOrdinalNumber(num) {
 const LessonContentModal = ({ courseId, unitId, lessonId, onClose }) => {
   const dispatch = useDispatch();
   const { courses } = useSelector(state => state.course);
+  const { role } = useSelector(state => state.auth || {});
+  const canDelete = role !== 'ADMIN';
   
   // Find the course from the admin courses list
   const course = courses.find(c => c._id === courseId);
@@ -1439,7 +1441,9 @@ const LessonContentModal = ({ courseId, unitId, lessonId, onClose }) => {
                             </div>
                             <div className="flex gap-2 mr-3">
                               <button type="button" className="text-orange-500 hover:text-orange-700 text-sm" onClick={() => handleEditVideo(idx)}>تعديل</button>
-                              <button type="button" className="text-red-500 hover:text-red-700 text-sm" onClick={() => handleRemoveVideo(idx)}>حذف</button>
+                              {canDelete && (
+                                <button type="button" className="text-red-500 hover:text-red-700 text-sm" onClick={() => handleRemoveVideo(idx)}>حذف</button>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -1517,7 +1521,9 @@ const LessonContentModal = ({ courseId, unitId, lessonId, onClose }) => {
                             </div>
                             <div className="flex gap-2 mr-3">
                               <button type="button" className="text-orange-500 hover:text-orange-700 text-sm" onClick={() => handleEditPdf(idx)}>تعديل</button>
-                              <button type="button" className="text-red-500 hover:text-red-700 text-sm" onClick={() => handleRemovePdf(idx)}>حذف</button>
+                              {canDelete && (
+                                <button type="button" className="text-red-500 hover:text-red-700 text-sm" onClick={() => handleRemovePdf(idx)}>حذف</button>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -1665,7 +1671,9 @@ const LessonContentModal = ({ courseId, unitId, lessonId, onClose }) => {
                             </div>
                             <div className="flex gap-2 mr-3">
                               <button type="button" className="text-orange-500 hover:text-orange-700 text-sm" onClick={() => handleEditExamQuestion(idx)}>تعديل</button>
-                              <button type="button" className="text-red-500 hover:text-red-700 text-sm" onClick={() => handleRemoveQuestion(idx)}>حذف</button>
+                              {canDelete && (
+                                <button type="button" className="text-red-500 hover:text-red-700 text-sm" onClick={() => handleRemoveQuestion(idx)}>حذف</button>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -1727,7 +1735,9 @@ const LessonContentModal = ({ courseId, unitId, lessonId, onClose }) => {
                             </div>
                             <div className="flex gap-2 mr-3">
                               <button type="button" className="text-orange-500 hover:text-orange-700 text-sm" onClick={() => handleEditExam(idx)}>تعديل</button>
-                              <button type="button" className="text-red-500 hover:text-red-700 text-sm" onClick={() => handleRemoveExam(idx)}>حذف</button>
+                              {canDelete && (
+                                <button type="button" className="text-red-500 hover:text-red-700 text-sm" onClick={() => handleRemoveExam(idx)}>حذف</button>
+                              )}
                             </div>
                           </div>
                           
@@ -1966,7 +1976,9 @@ const LessonContentModal = ({ courseId, unitId, lessonId, onClose }) => {
                             </div>
                             <div className="flex gap-2 mr-3">
                               <button type="button" className="text-orange-500 hover:text-orange-700 text-sm" onClick={() => handleEditEssayExam(idx)}>تعديل</button>
-                              <button type="button" className="text-red-500 hover:text-red-700 text-sm" onClick={() => handleRemoveEssayExam(exam._id)}>حذف</button>
+                              {canDelete && (
+                                <button type="button" className="text-red-500 hover:text-red-700 text-sm" onClick={() => handleRemoveEssayExam(exam._id)}>حذف</button>
+                              )}
                             </div>
                           </div>
                           
@@ -2136,7 +2148,9 @@ const LessonContentModal = ({ courseId, unitId, lessonId, onClose }) => {
                             </div>
                             <div className="flex gap-2 mr-3">
                               <button type="button" className="text-orange-500 hover:text-orange-700 text-sm" onClick={() => handleEditTrainingQuestion(idx)}>تعديل</button>
-                              <button type="button" className="text-red-500 hover:text-red-700 text-sm" onClick={() => handleRemoveTrainingQuestion(idx)}>حذف</button>
+                              {canDelete && (
+                                <button type="button" className="text-red-500 hover:text-red-700 text-sm" onClick={() => handleRemoveTrainingQuestion(idx)}>حذف</button>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -2186,7 +2200,9 @@ const LessonContentModal = ({ courseId, unitId, lessonId, onClose }) => {
                             </div>
                             <div className="flex gap-2 mr-3">
                               <button type="button" className="text-orange-500 hover:text-orange-700 text-sm" onClick={() => handleEditTraining(idx)}>تعديل</button>
-                              <button type="button" className="text-red-500 hover:text-red-700 text-sm" onClick={() => handleRemoveTraining(idx)}>حذف</button>
+                              {canDelete && (
+                                <button type="button" className="text-red-500 hover:text-red-700 text-sm" onClick={() => handleRemoveTraining(idx)}>حذف</button>
+                              )}
                             </div>
                           </div>
                           

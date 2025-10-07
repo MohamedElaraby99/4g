@@ -106,10 +106,16 @@ export default function AdminUserDashboard() {
         fatherPhoneNumber: '',
         governorate: '',
         stage: '',
-        age: ''
+        age: '',
+        instructorId: ''
     });
     const [activeTab, setActiveTab] = useState("users");
+    // Instructor course assignment state
+    const [allCourses, setAllCourses] = useState([]);
+    const [assigningCourses, setAssigningCourses] = useState(false);
+    const [selectedCourseIds, setSelectedCourseIds] = useState([]);
     const [stages, setStages] = useState([]);
+    const [instructors, setInstructors] = useState([]);
 
     // Check if current user can create admin users
     const canCreateAdmin = user && (user.role === 'SUPER_ADMIN');
@@ -131,6 +137,22 @@ export default function AdminUserDashboard() {
 
         fetchStages();
     }, []);
+
+    // Load instructors when creating INSTRUCTOR user
+    useEffect(() => {
+        const fetchInstructors = async () => {
+            try {
+                if (!showCreateModal || createUserForm.role !== 'INSTRUCTOR') return;
+                const res = await axiosInstance.get('/instructors/all');
+                if (res?.data?.success) {
+                    setInstructors(res.data.data || res.data.instructors || []);
+                }
+            } catch (e) {
+                console.debug('Error fetching instructors:', e?.message);
+            }
+        };
+        fetchInstructors();
+    }, [showCreateModal, createUserForm.role]);
 
     // Monitor filter changes
     useEffect(() => {
@@ -174,6 +196,54 @@ export default function AdminUserDashboard() {
             console.log('role:', role);
         }
     }, [dispatch, user, isLoggedIn, role, activeTab]);
+
+    // Load admin courses and preselect assigned ones for instructor in details modal
+    useEffect(() => {
+        const loadCoursesForInstructor = async () => {
+            try {
+                if (!showUserDetails || !selectedUser || selectedUser.role !== 'INSTRUCTOR') return;
+                const res = await axiosInstance.get('/courses/admin/all');
+                if (res?.data?.success) {
+                    setAllCourses(res.data.data || res.data.courses || []);
+                }
+                // Preselect currently assigned courses if present on user object
+                const assigned = (selectedUser.assignedCourses || []).map(c => c?._id || c);
+                setSelectedCourseIds(assigned);
+            } catch (e) {
+                console.debug('Failed loading courses for instructor:', e?.message);
+            }
+        };
+        loadCoursesForInstructor();
+    }, [showUserDetails, selectedUser]);
+
+    const handleAssignInstructorCourses = async () => {
+        if (!selectedUser?.id) return;
+        setAssigningCourses(true);
+        try {
+            const payload = { instructorUserId: selectedUser.id, courseIds: selectedCourseIds };
+            const res = await axiosInstance.post('/instructors/assign-courses', payload);
+            if (res?.data?.success) {
+                toast.success('تم تعيين الدورات للمدرب بنجاح');
+                await dispatch(getUserDetails(selectedUser.id));
+            }
+        } catch (e) {
+            toast.error(e?.response?.data?.message || 'فشل في تعيين الدورات للمدرب');
+        } finally {
+            setAssigningCourses(false);
+        }
+    };
+
+    const handleRemoveInstructorCourse = async (courseId) => {
+        if (!selectedUser?.id) return;
+        try {
+            await axiosInstance.post('/instructors/remove-course', { instructorUserId: selectedUser.id, courseId });
+            toast.success('تم إزالة الدورة من المدرب');
+            setSelectedCourseIds(prev => prev.filter(id => id !== courseId));
+            await dispatch(getUserDetails(selectedUser.id));
+        } catch (e) {
+            toast.error(e?.response?.data?.message || 'فشل في إزالة الدورة من المدرب');
+        }
+    };
 
     useEffect(() => {
         if (error) {
@@ -1292,7 +1362,20 @@ export default function AdminUserDashboard() {
                                 onSubmit={async (e) => {
                                     e.preventDefault();
                                     try {
-                                        await dispatch(createUser(createUserForm)).unwrap();
+                                        if (createUserForm.role === 'INSTRUCTOR') {
+                                            if (!createUserForm.instructorId) {
+                                                toast.error('يرجى اختيار ملف المدرب');
+                                                return;
+                                            }
+                                            await axiosInstance.post('/instructors/create', {
+                                                fullName: createUserForm.fullName,
+                                                email: createUserForm.email,
+                                                password: createUserForm.password,
+                                                instructorId: createUserForm.instructorId
+                                            });
+                                        } else {
+                                            await dispatch(createUser(createUserForm)).unwrap();
+                                        }
                                         setShowCreateModal(false);
                                         setCreateUserForm({
                                             fullName: '',
@@ -1303,7 +1386,8 @@ export default function AdminUserDashboard() {
                                             fatherPhoneNumber: '',
                                             governorate: '',
                                             stage: '',
-                                            age: ''
+                                            age: '',
+                                            instructorId: ''
                                         });
                                         toast.success('تم إنشاء المستخدم بنجاح');
                                     } catch (error) {
@@ -1501,6 +1585,29 @@ export default function AdminUserDashboard() {
                                                     placeholder="أدخل العمر"
                                                 />
                                             </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Instructor-specific fields */}
+                                {createUserForm.role === 'INSTRUCTOR' && (
+                                    <div className="space-y-4 border-t pt-4">
+                                        <h4 className="font-medium text-gray-900 dark:text-white">اختيار ملف المدرب</h4>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                                ملف المدرب المرتبط *
+                                            </label>
+                                            <select
+                                                required
+                                                value={createUserForm.instructorId}
+                                                onChange={(e) => setCreateUserForm({...createUserForm, instructorId: e.target.value})}
+                                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-orange-500"
+                                            >
+                                                <option value="">اختر المدرب</option>
+                                                {instructors.map((i) => (
+                                                    <option key={i._id} value={i._id}>{i.name || i.fullName || i._id}</option>
+                                                ))}
+                                            </select>
                                         </div>
                                     </div>
                                 )}
@@ -2107,6 +2214,60 @@ export default function AdminUserDashboard() {
                                     )}
                                 </div>
                             </div>
+
+                            {/* Instructor Course Assignment */}
+                            {selectedUser.role === 'INSTRUCTOR' && (
+                                <div className="bg-gray-50 dark:bg-gray-700 rounded-xl p-6">
+                                    <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">تعيين الدورات للمدرب</h4>
+                                    <div className="space-y-3">
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">اختر الدورات</label>
+                                        <select
+                                            multiple
+                                            value={selectedCourseIds}
+                                            onChange={(e) => {
+                                                const values = Array.from(e.target.selectedOptions).map(o => o.value);
+                                                setSelectedCourseIds(values);
+                                            }}
+                                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white h-40"
+                                        >
+                                            {allCourses.map(course => (
+                                                <option key={course._id} value={course._id}>
+                                                    {course.title}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        <div className="flex justify-end">
+                                            <button
+                                                onClick={handleAssignInstructorCourses}
+                                                disabled={assigningCourses}
+                                                className="px-6 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
+                                            >
+                                                {assigningCourses ? 'جاري الحفظ...' : 'حفظ تعيين الدورات'}
+                                            </button>
+                                        </div>
+
+                                        {/* Current assigned list */}
+                                        {(selectedUser.assignedCourses && selectedUser.assignedCourses.length > 0) && (
+                                            <div className="mt-4">
+                                                <h5 className="font-medium text-gray-900 dark:text-white mb-2">الدورات المعينة حالياً</h5>
+                                                <div className="space-y-2">
+                                                    {selectedUser.assignedCourses.map(c => (
+                                                        <div key={c._id || c} className="flex items-center justify-between p-2 bg-white dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-600">
+                                                            <span className="text-sm text-gray-800 dark:text-gray-200">{c.title || c._id}</span>
+                                                            <button
+                                                                onClick={() => handleRemoveInstructorCourse(c._id || c)}
+                                                                className="text-red-600 hover:text-red-700 text-sm"
+                                                            >
+                                                                إزالة
+                                                            </button>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
                 )}

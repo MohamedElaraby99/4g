@@ -107,15 +107,13 @@ function App() {
         <Route path="/courses" element={<CoursesPage />} />
         <Route path="/courses/:id" element={<CourseDetail />} />
 
-                  <Route element={<RequireAuth allowedRoles={["ADMIN", "SUPER_ADMIN"]} />}>
+                  <Route element={<RequireAuth allowedRoles={["ADMIN", "SUPER_ADMIN", "INSTRUCTOR"]} />}>
                     <Route path="/exam-history" element={<ExamHistory />} />
                     <Route path="/admin" element={<AdminDashboard />} />
                     <Route path="/admin/dashboard" element={<AdminDashboard />} />
                     <Route path="/admin/recharge-codes" element={<AdminRechargeCodeDashboard />} />
                     <Route path="/admin/users" element={<AdminUserDashboard />} />
-                    <Route element={<RequireAuth allowedRoles={["INSTRUCTOR"]} />}>
-                        <Route path="/instructor/dashboard" element={<InstructorDashboard />} />
-                    </Route>
+                    {/* Instructor dashboard route removed */}
                     <Route path="/admin/stages" element={<StageDashboard />} />
                     <Route path="/admin/whatsapp-services" element={<WhatsAppServiceDashboard />} />
                     <Route path="/admin/course-content" element={<CourseContentManager />} />

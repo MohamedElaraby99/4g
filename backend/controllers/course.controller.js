@@ -105,8 +105,24 @@ export const getAdminCourses = async (req, res, next) => {
       query.language = req.query.language;
     }
     
-    console.log('🎯 Admin courses query:', JSON.stringify(query, null, 2));
-    
+    // If role is INSTRUCTOR, restrict to assignedCourses from the authenticated user
+    if (req.user && req.user.role === 'INSTRUCTOR') {
+      try {
+        const User = (await import('../models/user.model.js')).default;
+        const instructor = await User.findById(req.user.id).select('assignedCourses');
+        if (instructor && Array.isArray(instructor.assignedCourses) && instructor.assignedCourses.length > 0) {
+          query._id = { $in: instructor.assignedCourses };
+        } else {
+          // No assigned courses → return empty list fast
+          return res.status(200).json({ success: true, data: { courses: [] } });
+        }
+      } catch (e) {
+        console.log('Failed to restrict courses for instructor:', e?.message);
+      }
+    }
+
+    console.log('🎯 Admin courses query (final):', JSON.stringify(query, null, 2));
+
     const courses = await Course.find(query)
       .populate('instructor', 'name')
       .populate('stage', 'name')

@@ -760,19 +760,21 @@ export default function AdminDashboard() {
                   </div>
                 </div>
 
-                {/* إدارة المركز */}
-                <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-4 lg:p-6 text-white hover:from-purple-600 hover:to-purple-700 transition-all duration-200 transform hover:scale-105 cursor-pointer shadow-lg hover:shadow-xl" onClick={() => navigate("/admin/center-management")}>
-                  <div className="flex items-center justify-between mb-3">
-                    <FaBuilding className="text-2xl lg:text-3xl text-purple-200" />
-                    <div className="w-3 h-3 bg-purple-200 rounded-full animate-pulse"></div>
+                {/* إدارة المركز - hidden for INSTRUCTOR */}
+                {role !== "INSTRUCTOR" && (
+                  <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-4 lg:p-6 text-white hover:from-purple-600 hover:to-purple-700 transition-all duration-200 transform hover:scale-105 cursor-pointer shadow-lg hover:shadow-xl" onClick={() => navigate("/admin/center-management")}>
+                    <div className="flex items-center justify-between mb-3">
+                      <FaBuilding className="text-2xl lg:text-3xl text-purple-200" />
+                      <div className="w-3 h-3 bg-purple-200 rounded-full animate-pulse"></div>
+                    </div>
+                    <h4 className="text-lg lg:text-xl font-bold mb-2">إدارة المركز</h4>
+                    <p className="text-purple-100 text-sm lg:text-base opacity-90">إدارة شاملة لجميع جوانب المركز</p>
+                    <div className="mt-4 flex items-center justify-between">
+                      <span className="text-xs text-purple-200">إدارة كاملة</span>
+                      <FaArrowUp className="text-purple-200 transform rotate-45" />
+                    </div>
                   </div>
-                  <h4 className="text-lg lg:text-xl font-bold mb-2">إدارة المركز</h4>
-                  <p className="text-purple-100 text-sm lg:text-base opacity-90">إدارة شاملة لجميع جوانب المركز</p>
-                  <div className="mt-4 flex items-center justify-between">
-                    <span className="text-xs text-purple-200">إدارة كاملة</span>
-                    <FaArrowUp className="text-purple-200 transform rotate-45" />
-                  </div>
-                </div>
+                )}
 
                 {/* إدارة المراحل */}
                 <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl p-4 lg:p-6 text-white hover:from-orange-600 hover:to-orange-700 transition-all duration-200 transform hover:scale-105 cursor-pointer shadow-lg hover:shadow-xl" onClick={() => navigate("/admin/stages")}>

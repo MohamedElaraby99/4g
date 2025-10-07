@@ -31,7 +31,8 @@ export default function CoursesPage() {
   const [filters, setFilters] = useState({
     stage: '',
     subject: '',
-    search: ''
+    search: '',
+    instructor: ''
   });
 
   const [showFilters, setShowFilters] = useState(false);
@@ -79,7 +80,8 @@ export default function CoursesPage() {
     setFilters({
       stage: '',
       subject: '',
-      search: ''
+      search: '',
+      instructor: ''
     });
   };
 
@@ -98,8 +100,9 @@ export default function CoursesPage() {
     }
     
     const matchesSubject = !filters.subject || course.subject?._id === filters.subject;
+    const matchesInstructor = !filters.instructor || (course.instructor && (course.instructor._id === filters.instructor));
     
-    return matchesSearch && matchesStage && matchesSubject;
+    return matchesSearch && matchesStage && matchesSubject && matchesInstructor;
   });
 
   const getTotalLessons = (course) => {
@@ -184,7 +187,7 @@ export default function CoursesPage() {
           {/* Filters Panel */}
           {showFilters && (
             <div className="bg-white dark:bg-gray-800 rounded-lg p-6 mb-6 shadow-sm border border-gray-200 dark:border-gray-700">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 {/* Stage Filter */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -216,10 +219,31 @@ export default function CoursesPage() {
                   >
                     <option value="">جميع المواد</option>
                                          {subjects.map((subject) => (
-                       <option key={subject._id} value={subject._id}>
-                         {subject.title}
-                       </option>
+                      <option key={subject._id} value={subject._id}>
+                        {subject.title}
+                      </option>
                      ))}
+                  </select>
+                </div>
+
+                {/* Instructor Filter */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    المدرس
+                  </label>
+                  <select
+                    value={filters.instructor}
+                    onChange={(e) => handleFilterChange('instructor', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  >
+                    <option value="">جميع المدرسين</option>
+                    {Array.from(new Map(
+                      courses
+                        .filter(c => c?.instructor)
+                        .map(c => [c.instructor._id || c.instructor, c.instructor?.name || c.instructor?.fullName || 'مدرس'])
+                    ).entries()).map(([id, name]) => (
+                      <option key={id} value={id}>{name}</option>
+                    ))}
                   </select>
                 </div>
 

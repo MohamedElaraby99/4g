@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
-import { getAllInstructors, getFeaturedInstructors } from '../Redux/Slices/InstructorSlice';
+import { getFeaturedInstructors } from '../Redux/Slices/InstructorSlice';
 import Layout from '../Layout/Layout';
 import { 
   FaStar, 
@@ -26,18 +26,19 @@ export default function Instructors() {
   const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
-    dispatch(getAllInstructors({ page: 1, limit: 100 }));
-    dispatch(getFeaturedInstructors());
+    dispatch(getFeaturedInstructors({ limit: 100 }));
   }, [dispatch]);
 
 
 
-  const filteredInstructors = instructors.filter(instructor => {
-    const matchesSearch = instructor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         instructor.specialization?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         instructor.bio?.toLowerCase().includes(searchTerm.toLowerCase());
+  const filteredInstructors = (instructors || []).filter(instructor => {
+    if (!instructor || typeof instructor !== 'object') return false;
+
+    const matchesSearch = (instructor.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (instructor.specialization || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (instructor.bio || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFeatured = !filterFeatured || instructor.featured === (filterFeatured === 'true');
-    
+
     return matchesSearch && matchesFeatured;
   });
 

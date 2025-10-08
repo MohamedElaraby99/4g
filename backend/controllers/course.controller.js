@@ -1,4 +1,5 @@
 import Course from '../models/course.model.js';
+import userModel from '../models/user.model.js';
 import AppError from '../utils/error.utils.js';
 import { getCairoNow, toCairoTime } from '../utils/timezone.js';
 
@@ -58,6 +59,20 @@ export const createCourse = async (req, res, next) => {
     }
 
     const course = await Course.create(courseData);
+
+    // Assign course to instructor
+    try {
+      await userModel.findByIdAndUpdate(
+        instructor,
+        { $addToSet: { assignedCourses: course._id } },
+        { new: true }
+      );
+      console.log(`✅ Course ${course._id} assigned to instructor ${instructor}`);
+    } catch (assignmentError) {
+      console.error('❌ Error assigning course to instructor:', assignmentError);
+      // Don't fail the course creation if instructor assignment fails
+    }
+
     return res.status(201).json({ success: true, message: 'Course created', data: { course } });
             } catch (error) {
     return next(new AppError(error.message, 500));

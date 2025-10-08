@@ -40,7 +40,7 @@ export const getAllInstructors = createAsyncThunk(
   'instructor/getAllInstructors',
   async (params = {}, { rejectWithValue }) => {
     try {
-      const response = await axiosInstance.get('/instructors', { params });
+      const response = await axiosInstance.get('/instructors/all', { params });
       return response.data;
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to get instructors');
@@ -204,6 +204,8 @@ const instructorSlice = createSlice({
       })
       .addCase(getFeaturedInstructors.fulfilled, (state, action) => {
         state.loading = false;
+        state.instructors = action.payload.data.instructors;
+        // Also store in featuredInstructors for backward compatibility
         state.featuredInstructors = action.payload.data.instructors;
       })
       .addCase(getFeaturedInstructors.rejected, (state, action) => {

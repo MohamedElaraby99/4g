@@ -131,13 +131,65 @@ export const getInstructorProfile = asyncHandler(async (req, res, next) => {
 
 // Get all instructors (for admin)
 export const getAllInstructors = asyncHandler(async (req, res, next) => {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 100;
+    const skip = (page - 1) * limit;
+
+    // Get total count for pagination info
+    const totalInstructors = await userModel.countDocuments({ role: 'INSTRUCTOR' });
+
     const instructors = await userModel.find({ role: 'INSTRUCTOR' })
-        .populate('instructorProfile')
-        .populate('assignedCourses')
-        .select('-password');
+        .populate({
+            path: 'instructorProfile',
+            select: 'name specialization bio experience education socialLinks profileImage rating totalStudents featured'
+        })
+        .populate({
+            path: 'assignedCourses',
+            select: 'title description image featured stage subject'
+        })
+        .select('-password')
+        .skip(skip)
+        .limit(limit);
+
+    // Transform the data to match frontend expectations
+    const transformedInstructors = instructors.map(instructor => {
+        const transformed = {
+            _id: instructor._id,
+            name: instructor.instructorProfile?.name || instructor.fullName,
+            fullName: instructor.fullName,
+            email: instructor.email,
+            specialization: instructor.instructorProfile?.specialization || '',
+            bio: instructor.instructorProfile?.bio || '',
+            experience: instructor.instructorProfile?.experience || 0,
+            education: instructor.instructorProfile?.education || '',
+            socialLinks: instructor.instructorProfile?.socialLinks || {},
+            profileImage: instructor.instructorProfile?.profileImage || instructor.avatar || {},
+            rating: instructor.instructorProfile?.rating || 0,
+            totalStudents: instructor.instructorProfile?.totalStudents || 0,
+            featured: instructor.instructorProfile?.featured || false,
+            assignedCourses: instructor.assignedCourses || [],
+            role: instructor.role,
+            isActive: instructor.isActive,
+            createdAt: instructor.createdAt,
+            updatedAt: instructor.updatedAt
+        };
+        return transformed;
+    });
+
+    const totalPages = Math.ceil(totalInstructors / limit);
 
     res.status(200).json(
-        new ApiResponse(200, instructors, "Instructors retrieved successfully")
+        new ApiResponse(200, {
+            instructors: transformedInstructors,
+            pagination: {
+                currentPage: page,
+                totalPages,
+                totalInstructors,
+                hasNextPage: page < totalPages,
+                hasPrevPage: page > 1,
+                limit
+            }
+        }, "Instructors retrieved successfully")
     );
 });
 
@@ -166,20 +218,118 @@ export const removeCourseFromInstructor = asyncHandler(async (req, res, next) =>
     );
 });
 
+// Get all instructors for admin (includes all instructors, not just featured)
+export const getAllInstructorsForAdmin = asyncHandler(async (req, res, next) => {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 100;
+    const skip = (page - 1) * limit;
+
+    // Get total count for pagination info
+    const totalInstructors = await userModel.countDocuments({ role: 'INSTRUCTOR' });
+
+    const instructors = await userModel.find({ role: 'INSTRUCTOR' })
+        .populate({
+            path: 'instructorProfile',
+            select: 'name specialization bio experience education socialLinks profileImage rating totalStudents featured'
+        })
+        .populate({
+            path: 'assignedCourses',
+            select: 'title description image featured stage subject'
+        })
+        .select('-password')
+        .skip(skip)
+        .limit(limit);
+
+    // Transform the data to match frontend expectations
+    const transformedInstructors = instructors.map(instructor => {
+        const transformed = {
+            _id: instructor._id,
+            name: instructor.instructorProfile?.name || instructor.fullName,
+            fullName: instructor.fullName,
+            email: instructor.email,
+            specialization: instructor.instructorProfile?.specialization || '',
+            bio: instructor.instructorProfile?.bio || '',
+            experience: instructor.instructorProfile?.experience || 0,
+            education: instructor.instructorProfile?.education || '',
+            socialLinks: instructor.instructorProfile?.socialLinks || {},
+            profileImage: instructor.instructorProfile?.profileImage || instructor.avatar || {},
+            rating: instructor.instructorProfile?.rating || 0,
+            totalStudents: instructor.instructorProfile?.totalStudents || 0,
+            featured: instructor.instructorProfile?.featured || false,
+            assignedCourses: instructor.assignedCourses || [],
+            role: instructor.role,
+            isActive: instructor.isActive,
+            createdAt: instructor.createdAt,
+            updatedAt: instructor.updatedAt
+        };
+        return transformed;
+    });
+
+    const totalPages = Math.ceil(totalInstructors / limit);
+
+    res.status(200).json(
+        new ApiResponse(200, {
+            instructors: transformedInstructors,
+            pagination: {
+                currentPage: page,
+                totalPages,
+                totalInstructors,
+                hasNextPage: page < totalPages,
+                hasPrevPage: page > 1,
+                limit
+            }
+        }, "Instructors retrieved successfully")
+    );
+});
+
 // Get featured instructors (public endpoint)
 export const getFeaturedInstructors = asyncHandler(async (req, res, next) => {
     const { limit = 6 } = req.query;
-    
-    const instructors = await instructorModel.find({ 
-        featured: true, 
-        isActive: true 
+
+    // First, get featured instructors from the Instructor collection
+    const featuredInstructors = await instructorModel.find({
+        featured: true,
+        isActive: true
     })
     .populate('courses', 'title thumbnail')
-    .select('-__v')
+    .select('name specialization bio experience education socialLinks profileImage rating totalStudents featured')
     .limit(parseInt(limit))
     .sort({ rating: -1, totalStudents: -1 });
 
+    // If no featured instructors found in Instructor collection,
+    // get some instructors from User collection with role INSTRUCTOR and transform them
+    if (featuredInstructors.length === 0) {
+        const fallbackInstructors = await userModel.find({ role: 'INSTRUCTOR', isActive: true })
+            .populate({
+                path: 'instructorProfile',
+                select: 'name specialization bio experience education socialLinks profileImage rating totalStudents featured'
+            })
+            .select('fullName email instructorProfile assignedCourses isActive')
+            .limit(parseInt(limit))
+            .sort({ createdAt: -1 }); // Sort by newest first as fallback
+
+        // Transform fallback instructors to match expected format
+        const transformedFallback = fallbackInstructors.map(user => ({
+            _id: user.instructorProfile?._id || user._id,
+            name: user.instructorProfile?.name || user.fullName,
+            specialization: user.instructorProfile?.specialization || '',
+            bio: user.instructorProfile?.bio || '',
+            experience: user.instructorProfile?.experience || 0,
+            education: user.instructorProfile?.education || '',
+            socialLinks: user.instructorProfile?.socialLinks || {},
+            profileImage: user.instructorProfile?.profileImage || user.avatar || {},
+            rating: user.instructorProfile?.rating || 0,
+            totalStudents: user.instructorProfile?.totalStudents || 0,
+            featured: user.instructorProfile?.featured || false,
+            courses: user.assignedCourses || []
+        }));
+
+        return res.status(200).json(
+            new ApiResponse(200, { instructors: transformedFallback }, "Featured instructors retrieved successfully")
+        );
+    }
+
     res.status(200).json(
-        new ApiResponse(200, { instructors }, "Featured instructors retrieved successfully")
+        new ApiResponse(200, { instructors: featuredInstructors }, "Featured instructors retrieved successfully")
     );
 });

@@ -1,10 +1,11 @@
 import express from 'express';
-import { 
-    createInstructor, 
-    assignCoursesToInstructor, 
-    getInstructorCourses, 
+import {
+    createInstructor,
+    assignCoursesToInstructor,
+    getInstructorCourses,
     getInstructorProfile,
     getAllInstructors,
+    getAllInstructorsForAdmin,
     removeCourseFromInstructor,
     getFeaturedInstructors
 } from '../controllers/instructor.controller.js';
@@ -14,13 +15,14 @@ import { authorisedRoles } from '../middleware/auth.middleware.js';
 const router = express.Router();
 
 // Public routes
+router.get('/', getAllInstructors);
 router.get('/featured', getFeaturedInstructors);
 
 // Routes for admin/super admin to manage instructors
 router.post('/create', isLoggedIn, authorisedRoles('SUPER_ADMIN'), createInstructor);
 router.post('/assign-courses', isLoggedIn, authorisedRoles('SUPER_ADMIN', 'ADMIN'), assignCoursesToInstructor);
 router.post('/remove-course', isLoggedIn, authorisedRoles('SUPER_ADMIN', 'ADMIN'), removeCourseFromInstructor);
-router.get('/all', isLoggedIn, authorisedRoles('SUPER_ADMIN', 'ADMIN', 'ASSISTANT'), getAllInstructors);
+router.get('/all', isLoggedIn, authorisedRoles('SUPER_ADMIN', 'ADMIN', 'ASSISTANT'), getAllInstructorsForAdmin);
 
 // Routes for instructors to access their data
 router.get('/my-courses', isLoggedIn, authorisedRoles('INSTRUCTOR'), getInstructorCourses);

@@ -149,6 +149,36 @@ export const getAdminCourses = async (req, res, next) => {
   }
 };
 
+// Get courses by instructor ID
+export const getCoursesByInstructor = async (req, res, next) => {
+  try {
+    const { instructorId } = req.params;
+    
+    if (!instructorId) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Instructor ID is required' 
+      });
+    }
+
+    // Find courses by instructor ID
+    const courses = await Course.find({ instructor: instructorId })
+      .populate('instructor', 'name email')
+      .populate('stage', 'name')
+      .populate('subject', 'title')
+      .select('-units.lessons.exams.questions.correctAnswer -units.lessons.trainings.questions.correctAnswer -directLessons.exams.questions.correctAnswer -directLessons.trainings.questions.correctAnswer -units.lessons.exams.userAttempts -units.lessons.trainings.userAttempts -directLessons.exams.userAttempts -directLessons.trainings.userAttempts')
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      data: { courses },
+      message: 'Courses retrieved successfully'
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 500));
+  }
+};
+
 // Get all courses (secure version for public listing)
 export const getAllCourses = async (req, res, next) => {
   try {

@@ -222,6 +222,30 @@ export default function HomePage() {
         <AnimatedHero onGetStarted={onGetStarted} />
       </div>
 
+
+        {/* Instructor Section */}
+        <Suspense fallback={
+        <div className="py-20 bg-white dark:bg-gray-800">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-16">
+              <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mx-auto mb-4 animate-pulse"></div>
+              <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mx-auto animate-pulse"></div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {[1, 2, 3].map(i => (
+                <div key={i} className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 animate-pulse">
+                  <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded-full w-32 mx-auto mb-4"></div>
+                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mx-auto mb-2"></div>
+                  <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mx-auto"></div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      }>
+        <InstructorSection />
+      </Suspense>
+
       {/* Featured Courses Section */}
       <section className={`py-20 bg-white dark:bg-gray-800 transition-all duration-700 ease-out ${
         heroLoaded 
@@ -418,30 +442,6 @@ export default function HomePage() {
           )}
         </div>
       </section>
-
-
-       {/* Instructor Section */}
-       <Suspense fallback={
-        <div className="py-20 bg-white dark:bg-gray-800">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-16">
-              <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mx-auto mb-4 animate-pulse"></div>
-              <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mx-auto animate-pulse"></div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {[1, 2, 3].map(i => (
-                <div key={i} className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 animate-pulse">
-                  <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded-full w-32 mx-auto mb-4"></div>
-                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mx-auto mb-2"></div>
-                  <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mx-auto"></div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      }>
-        <InstructorSection />
-      </Suspense>
 
       {/* Features Section - What You'll Find on the Platform */}
       <section className={`py-20 bg-white dark:bg-gray-800 transition-all duration-700 ease-out ${

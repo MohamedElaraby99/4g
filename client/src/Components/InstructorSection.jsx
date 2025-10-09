@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { getFeaturedInstructors } from '../Redux/Slices/InstructorSlice';
-import { FaGraduationCap, FaStar, FaUsers, FaBook, FaClock, FaLinkedin, FaTwitter, FaFacebook, FaWhatsapp, FaTimes, FaAward, FaArrowRight } from 'react-icons/fa';
+import { getCoursesByInstructor } from '../Redux/Slices/CourseSlice';
+import { FaGraduationCap, FaStar, FaUsers, FaBook, FaClock, FaLinkedin, FaTwitter, FaFacebook, FaWhatsapp, FaTimes, FaAward, FaArrowRight, FaEye } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import { generateImageUrl } from "../utils/fileUtils";
 import { placeholderImages } from "../utils/placeholderImages";
@@ -9,8 +10,10 @@ import { placeholderImages } from "../utils/placeholderImages";
 const InstructorSection = () => {
   const dispatch = useDispatch();
   const { featuredInstructors, loading } = useSelector((state) => state.instructor);
+  const { instructorCourses, instructorCoursesLoading } = useSelector((state) => state.course);
   const [selectedInstructor, setSelectedInstructor] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [showCourses, setShowCourses] = useState(false);
 
   useEffect(() => {
     dispatch(getFeaturedInstructors({ limit: 6 }));
@@ -24,6 +27,13 @@ const InstructorSection = () => {
   const closeModal = () => {
     setShowModal(false);
     setSelectedInstructor(null);
+    setShowCourses(false);
+  };
+
+  const handleShowCourses = (instructor) => {
+    setSelectedInstructor(instructor);
+    setShowCourses(true);
+    dispatch(getCoursesByInstructor(instructor._id));
   };
 
   const handleImgError = (e) => {
@@ -128,8 +138,18 @@ const InstructorSection = () => {
                     {instructor.bio || `${instructor.name} هو مدرس محترف مع خبرة واسعة في مجال ${instructor.specialization}. لديه نهج تعليمي متميز ويساعد الطلاب على تحقيق أهدافهم التعليمية.`}
                   </p>
 
-                  {/* Clickable Arrow Icon */}
-                  <div className="flex justify-end">
+                  {/* Action Buttons */}
+                  <div className="flex justify-between items-center">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleShowCourses(instructor);
+                      }}
+                      className="flex items-center gap-2 px-4 py-2 bg-orange-100 hover:bg-orange-200 dark:bg-orange-900/30 dark:hover:bg-orange-900/50 text-orange-700 dark:text-orange-300 rounded-lg font-medium transition-colors duration-200 group-hover:scale-105"
+                    >
+                      <FaBook className="text-sm" />
+                      <span>دوراته</span>
+                    </button>
                     <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-orange-500 hover:from-orange-600 hover:to-orange-600 text-white rounded-full flex items-center justify-center transition-colors duration-200 group-hover:scale-110">
                       <FaArrowRight className="text-sm" />
                     </div>
@@ -303,6 +323,96 @@ const InstructorSection = () => {
                   إغلاق
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Instructor Courses Modal */}
+      {showCourses && selectedInstructor && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={closeModal}>
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()} dir="rtl">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+              <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
+                دورات {selectedInstructor.name}
+              </h2>
+              <button
+                onClick={closeModal}
+                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+              >
+                <FaTimes className="text-xl" />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-6">
+              {instructorCoursesLoading ? (
+                <div className="text-center py-12">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto mb-4"></div>
+                  <p className="text-gray-600 dark:text-gray-400">جاري تحميل الدورات...</p>
+                </div>
+              ) : instructorCourses && instructorCourses.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {instructorCourses.map((course) => (
+                    <div key={course._id} className="bg-gray-50 dark:bg-gray-700 rounded-xl p-6 hover:shadow-lg transition-shadow duration-300">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex-1">
+                          <h3 className="text-lg font-bold text-gray-800 dark:text-white mb-2 line-clamp-2">
+                            {course.title}
+                          </h3>
+                          <p className="text-sm text-gray-600 dark:text-gray-300 mb-3 line-clamp-2">
+                            {course.description}
+                          </p>
+                          <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
+                            <span className="flex items-center gap-1">
+                              <FaBook className="w-3 h-3" />
+                              {course.stage?.name || 'غير محدد'}
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <FaClock className="w-3 h-3" />
+                              {(course.directLessons?.length || 0) + 
+                               (course.units?.reduce((total, unit) => total + (unit.lessons?.length || 0), 0) || 0)} درس
+                            </span>
+                          </div>
+                        </div>
+                        {course.image?.secure_url && (
+                          <div className="w-16 h-16 rounded-lg overflow-hidden ml-4 flex-shrink-0">
+                            <img
+                              src={generateImageUrl(course.image.secure_url)}
+                              alt={course.title}
+                              className="w-full h-full object-cover"
+                              onError={handleImgError}
+                            />
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium text-orange-600 dark:text-orange-400">
+                          {course.subject?.title || 'غير محدد'}
+                        </span>
+                        <Link
+                          to={`/courses/${course._id}`}
+                          className="flex items-center gap-2 px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg font-medium transition-colors duration-200"
+                        >
+                          <FaEye className="w-4 h-4" />
+                          <span>عرض الدورة</span>
+                        </Link>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <div className="text-6xl mb-4">📚</div>
+                  <h3 className="text-xl font-semibold text-gray-800 dark:text-white mb-2">
+                    لا توجد دورات متاحة
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-300">
+                    لم يقم هذا المدرس بإنشاء أي دورات بعد
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </div>

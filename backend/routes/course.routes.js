@@ -24,7 +24,8 @@ import {
   deleteUnit,
   updateUnit,
   updateLessonContent,
-  submitTrainingAttempt
+  submitTrainingAttempt,
+  getCoursesByInstructor
 } from '../controllers/course.controller.js';
 
 const router = express.Router();
@@ -58,6 +59,7 @@ router.get('/', async (req, res, next) => {
   getAllCourses(req, res, next);
 });
 router.get('/featured', getFeaturedCourses);
+router.get('/instructor/:instructorId', getCoursesByInstructor);
 router.patch('/:id/toggle-featured', isLoggedIn, authorisedRoles('ADMIN', 'SUPER_ADMIN'), toggleFeatured);
 
 // Admin routes

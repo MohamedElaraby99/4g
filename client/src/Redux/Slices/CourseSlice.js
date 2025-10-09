@@ -4,10 +4,12 @@ import { axiosInstance } from '../../Helpers/axiosInstance';
 const initialState = {
   courses: [],
   featuredCourses: [],
+  instructorCourses: [],
   currentCourse: null,
   courseStats: null,
   loading: false,
   featuredLoading: false,
+  instructorCoursesLoading: false,
   error: null,
   createLoading: false,
   updateLoading: false,
@@ -51,6 +53,19 @@ export const getFeaturedCourses = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await axiosInstance.get('/courses/featured');
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data);
+    }
+  }
+);
+
+// Get courses by instructor ID
+export const getCoursesByInstructor = createAsyncThunk(
+  'course/getCoursesByInstructor',
+  async (instructorId, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.get(`/courses/instructor/${instructorId}`);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data);
@@ -394,6 +409,19 @@ const courseSlice = createSlice({
       })
       .addCase(getFeaturedCourses.rejected, (state, action) => {
         state.featuredLoading = false;
+        state.error = action.payload;
+      })
+      // Get courses by instructor
+      .addCase(getCoursesByInstructor.pending, (state) => {
+        state.instructorCoursesLoading = true;
+        state.error = null;
+      })
+      .addCase(getCoursesByInstructor.fulfilled, (state, action) => {
+        state.instructorCoursesLoading = false;
+        state.instructorCourses = action.payload.data.courses;
+      })
+      .addCase(getCoursesByInstructor.rejected, (state, action) => {
+        state.instructorCoursesLoading = false;
         state.error = action.payload;
       })
       // Toggle featured course

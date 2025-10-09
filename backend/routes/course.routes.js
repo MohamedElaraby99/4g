@@ -65,6 +65,7 @@ router.patch('/:id/toggle-featured', isLoggedIn, authorisedRoles('ADMIN', 'SUPER
 // Admin routes
 router.get('/admin/all', isLoggedIn, authorisedRoles('ADMIN', 'SUPER_ADMIN', 'INSTRUCTOR'), getAdminCourses);
 router.get('/stats', getCourseStats);
+// IMPORTANT: Keep /:id route at the end to avoid intercepting other specific routes
 router.get('/:id', checkInstructorCourseAccess, getCourseById);
 
 // Get optimized lesson data

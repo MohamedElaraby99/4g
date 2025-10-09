@@ -318,6 +318,8 @@ app.use('/api/v1/achievements', achievementsRoutes);
 app.use('/api/v1/search', searchRoutes);
 
 // Apply device authorization middleware to protected routes
+// Note: Public routes like /courses/instructor/:id don't need device authorization
+// The middleware will skip device check for non-authenticated requests
 app.use('/api/v1/courses', checkDeviceAuthorization, logDeviceAccess);
 app.use('/api/v1/payments', checkDeviceAuthorization, logDeviceAccess);
 app.use('/api/v1/wallet', checkDeviceAuthorization, logDeviceAccess);
@@ -350,11 +352,13 @@ app.use((error, req, res, next) => {
   next(error);
 });
 
-app.all('*', (req, res) => {
-    res.status(404).send('OOPS!! 404 page not found');
-})
-
 app.use(errorMiddleware);
+
+// Catch-all route for 404 errors - MUST be after all other routes and middleware
+app.all('*', (req, res) => {
+    console.log('404 - Route not found:', req.method, req.originalUrl);
+    res.status(404).send('OOPS!! 404 page not found');
+});
 
 // db init
 connectToDb();

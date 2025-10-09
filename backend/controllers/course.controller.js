@@ -161,6 +161,18 @@ export const getCoursesByInstructor = async (req, res, next) => {
       });
     }
 
+    // First check if instructor exists
+    const Instructor = (await import('../models/instructor.model.js')).default;
+    const instructor = await Instructor.findById(instructorId);
+    
+    if (!instructor) {
+      return res.status(404).json({
+        success: false,
+        message: 'Instructor not found',
+        data: { courses: [] }
+      });
+    }
+
     // Find courses by instructor ID
     const courses = await Course.find({ instructor: instructorId })
       .populate('instructor', 'name email')

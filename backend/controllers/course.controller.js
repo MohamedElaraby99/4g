@@ -162,8 +162,11 @@ export const getCoursesByInstructor = async (req, res, next) => {
     }
 
     // First check if instructor exists
-    const Instructor = (await import('../models/instructor.model.js')).default;
-    const instructor = await Instructor.findById(instructorId);
+    const User = (await import('../models/user.model.js')).default;
+    const instructor = await User.findOne({ 
+      _id: instructorId, 
+      role: 'INSTRUCTOR' 
+    });
     
     if (!instructor) {
       return res.status(404).json({
@@ -175,7 +178,7 @@ export const getCoursesByInstructor = async (req, res, next) => {
 
     // Find courses by instructor ID
     const courses = await Course.find({ instructor: instructorId })
-      .populate('instructor', 'name email')
+      .populate('instructor', 'fullName email')
       .populate('stage', 'name')
       .populate('subject', 'title')
       .select('-units.lessons.exams.questions.correctAnswer -units.lessons.trainings.questions.correctAnswer -directLessons.exams.questions.correctAnswer -directLessons.trainings.questions.correctAnswer -units.lessons.exams.userAttempts -units.lessons.trainings.userAttempts -directLessons.exams.userAttempts -directLessons.trainings.userAttempts')
@@ -712,16 +715,19 @@ export const updateCourse = async (req, res, next) => {
 
     // Validate instructor if provided
     if (instructor) {
-      const Instructor = (await import('../models/instructor.model.js')).default;
-      const instructorExists = await Instructor.findById(instructor);
+      const User = (await import('../models/user.model.js')).default;
+      const instructorExists = await User.findOne({ 
+        _id: instructor, 
+        role: 'INSTRUCTOR' 
+      });
       if (!instructorExists) {
         return res.status(400).json({ 
           success: false, 
-          message: 'Instructor not found with the provided ID',
+          message: 'Instructor not found with the provided ID or user is not an instructor',
           data: { instructorId: instructor }
         });
       }
-      console.log('✅ Instructor validated:', instructorExists.name);
+      console.log('✅ Instructor validated:', instructorExists.fullName);
     }
 
     // Find the existing course
@@ -815,10 +821,9 @@ export const updateCourse = async (req, res, next) => {
     
     // Fetch the updated course with populated fields
     const course = await Course.findById(id)
-      .populate('instructor', 'name')
+      .populate('instructor', 'fullName email')
       .populate('stage', 'name')
       .populate('subject', 'title')
-
       .select('title description instructor stage subject image createdAt updatedAt');
     
     console.log('✅ Course updated successfully');

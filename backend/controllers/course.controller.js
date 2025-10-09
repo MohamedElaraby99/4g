@@ -705,10 +705,24 @@ export const getLessonById = async (req, res, next) => {
 export const updateCourse = async (req, res, next) => {
   try {
     const { id } = req.params;
-            const { title, description, instructor, stage, subject } = req.body;
+    const { title, description, instructor, stage, subject } = req.body;
 
-          console.log('🔄 Updating course:', { id, title, description, instructor, stage, subject });
+    console.log('🔄 Updating course:', { id, title, description, instructor, stage, subject });
     console.log('📁 File uploaded:', req.file ? 'Yes' : 'No');
+
+    // Validate instructor if provided
+    if (instructor) {
+      const Instructor = (await import('../models/instructor.model.js')).default;
+      const instructorExists = await Instructor.findById(instructor);
+      if (!instructorExists) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Instructor not found with the provided ID',
+          data: { instructorId: instructor }
+        });
+      }
+      console.log('✅ Instructor validated:', instructorExists.name);
+    }
 
     // Find the existing course
     const existingCourse = await Course.findById(id);

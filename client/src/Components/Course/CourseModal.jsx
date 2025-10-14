@@ -26,6 +26,15 @@ const CourseModal = ({ course, onClose, isOpen }) => {
 
   useEffect(() => {
     if (course) {
+      console.log('CourseModal - Editing course:', {
+        id: course._id,
+        title: course.title,
+        instructor: course.instructor,
+        instructorType: typeof course.instructor,
+        stage: course.stage,
+        subject: course.subject
+      });
+
       setFormData({
         title: course.title || '',
         description: course.description || '',
@@ -50,6 +59,13 @@ const CourseModal = ({ course, onClose, isOpen }) => {
     dispatch(getAllStages());
     dispatch(getAllSubjects());
   }, [dispatch]);
+
+  // Debug logging
+  useEffect(() => {
+    console.log('CourseModal - Instructors loaded:', instructors?.length, instructors);
+    console.log('CourseModal - Stages loaded:', stages?.length, stages);
+    console.log('CourseModal - Subjects loaded:', subjects?.length, subjects);
+  }, [instructors, stages, subjects]);
 
 
 
@@ -162,7 +178,7 @@ const CourseModal = ({ course, onClose, isOpen }) => {
               <option value="">اختر المدرس</option>
               {instructors?.map((instructor) => (
                 <option key={instructor._id} value={instructor._id}>
-                  {instructor.name}
+                  {instructor.name || instructor.fullName || (instructor ? 'مدرس' : 'غير محدد')}
                 </option>
               ))}
             </select>
@@ -182,7 +198,7 @@ const CourseModal = ({ course, onClose, isOpen }) => {
               <option value="">اختر المرحلة</option>
               {stages?.map((stage) => (
                 <option key={stage._id} value={stage._id}>
-                  {stage.name}
+                  {stage.name || stage._id}
                 </option>
               ))}
             </select>

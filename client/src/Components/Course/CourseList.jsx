@@ -19,9 +19,9 @@ const CourseDetailsModal = ({ course, onClose }) => {
         <div className="space-y-2">
           <div><span className="font-semibold">العنوان:</span> {course.title}</div>
           <div><span className="font-semibold">الوصف:</span> {course.description}</div>
-          {course.instructor && <div><span className="font-semibold">المدرس:</span> {course.instructor.name}</div>}
-          {course.stage && <div><span className="font-semibold">المرحلة:</span> {course.stage.name}</div>}
-          {course.category && <div><span className="font-semibold">فئة المرحلة:</span> {course.category.name}</div>}
+          {course.instructor && <div><span className="font-semibold">المدرس:</span> {course.instructor?.name || course.instructor?.fullName || (course.instructor ? 'مدرس' : 'غير محدد')}</div>}
+          {course.stage && <div><span className="font-semibold">المرحلة:</span> {course.stage.name || 'غير محدد'}</div>}
+          {course.category && <div><span className="font-semibold">فئة المرحلة:</span> {course.category.name || 'غير محدد'}</div>}
           <div><span className="font-semibold">عدد الوحدات:</span> {course.units?.length || 0}</div>
           <div><span className="font-semibold">مقدمة:</span> {course.directLessons?.length || 0}</div>
         </div>
@@ -155,21 +155,21 @@ const CourseList = ({ courses, loading, pagination, onEditCourse, role, onRefres
               {course.instructor && (
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700 flex-shrink-0">
-                    {course.instructor.avatar ? (
-                      <img 
-                        src={course.instructor.avatar} 
-                        alt={course.instructor.name}
+                    {course.instructor.avatar?.secure_url ? (
+                      <img
+                        src={course.instructor.avatar.secure_url}
+                        alt={course.instructor.name || course.instructor.fullName}
                         className="w-full h-full object-cover"
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-gray-500 dark:text-gray-400 text-sm font-semibold">
-                        {course.instructor.name?.charAt(0)?.toUpperCase() || '?'}
+                        {(course.instructor.name || course.instructor.fullName || course.instructor._id)?.charAt(0)?.toUpperCase() || '?'}
                       </div>
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                      {course.instructor.name}
+                      {course.instructor?.name || course.instructor?.fullName || (course.instructor ? 'مدرس' : 'غير محدد')}
                     </p>
                     <p className="text-xs text-gray-500 dark:text-gray-400">المدرس</p>
                   </div>

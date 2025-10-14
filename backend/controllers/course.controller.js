@@ -139,7 +139,7 @@ export const getAdminCourses = async (req, res, next) => {
     console.log('🎯 Admin courses query (final):', JSON.stringify(query, null, 2));
 
     const courses = await Course.find(query)
-      .populate('instructor', 'name')
+      .populate('instructor', 'fullName')
       .populate('stage', 'name')
       .populate('subject', 'title');
 
@@ -221,7 +221,7 @@ export const getAllCourses = async (req, res, next) => {
     }
     
     const courses = await Course.find(query)
-      .populate('instructor', 'name')
+      .populate('instructor', 'fullName')
       .populate('stage', 'name')
       .populate('subject', 'title')
       .select('-units.lessons.exams.questions.correctAnswer -units.lessons.trainings.questions.correctAnswer -directLessons.exams.questions.correctAnswer -directLessons.trainings.questions.correctAnswer -units.lessons.exams.userAttempts -units.lessons.trainings.userAttempts -directLessons.exams.userAttempts -directLessons.trainings.userAttempts');
@@ -367,7 +367,7 @@ export const getFeaturedCourses = async (req, res, next) => {
     
     console.log('Querying featured courses with query:', JSON.stringify(query, null, 2));
     const courses = await Course.find({ ...query, featured: true })
-      .populate('instructor', 'name')
+      .populate('instructor', 'fullName')
       .populate('stage', 'name')
       .populate('subject', 'title')
       .limit(6);
@@ -438,7 +438,7 @@ export const getCourseById = async (req, res, next) => {
   try {
     const { id } = req.params;
     const course = await Course.findById(id)
-      .populate('instructor', 'name')
+      .populate('instructor', 'fullName')
       .populate('stage', 'name')
       .populate('subject', 'title');
         

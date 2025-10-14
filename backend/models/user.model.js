@@ -114,6 +114,11 @@ const userSchema = new Schema({
         type: Boolean,
         default: true
     },
+    // Featured field for instructors to show on home page
+    featured: {
+        type: Boolean,
+        default: false
+    },
     forgotPasswordToken: String,
     forgotPasswordExpiry: Date,
     subscription: {

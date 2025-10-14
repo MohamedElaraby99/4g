@@ -723,7 +723,7 @@ const LiveMeetingDashboard = () => {
                       <option value="">اختر المدرب</option>
                       {instructors && instructors.length > 0 ? (
                         instructors.map((instructor) => (
-                          <option key={instructor._id} value={instructor._id}>{instructor.name}</option>
+                          <option key={instructor._id} value={instructor._id}>{instructor.name || instructor.fullName}</option>
                         ))
                       ) : (
                         <option value="" disabled>جاري تحميل المدربين...</option>

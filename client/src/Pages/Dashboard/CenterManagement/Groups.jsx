@@ -604,7 +604,7 @@ export default function Groups() {
                       {instructors && instructors.length > 0 ? (
                         instructors.map((instructor) => (
                           <option key={instructor._id} value={instructor._id}>
-                            {instructor.name}
+                            {instructor.name || instructor.fullName}
                           </option>
                         ))
                       ) : (

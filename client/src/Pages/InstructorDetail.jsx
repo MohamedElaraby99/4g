@@ -105,7 +105,7 @@ export default function InstructorDetail() {
                 {instructor.profileImage?.secure_url ? (
                   <img
                     src={generateImageUrl(instructor.profileImage.secure_url)}
-                    alt={instructor.name}
+                    alt={instructor.name || instructor.fullName}
                     className="w-40 h-40 rounded-full object-cover border-4 border-white shadow-lg"
                   />
                 ) : (
@@ -128,7 +128,7 @@ export default function InstructorDetail() {
               <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6">
                 <div>
                   <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-2 text-right">
-                    {instructor.name}
+                    {instructor.name || instructor.fullName}
                   </h1>
                   <p className="text-xl text-gray-600 dark:text-gray-300 mb-4 text-right">
                     {instructor.specialization}

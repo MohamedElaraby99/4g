@@ -582,7 +582,7 @@ export default function CourseDetail() {
               
               <div className="absolute top-3 right-3 sm:top-6 sm:right-6">
                 <span className="px-2 py-1 sm:px-3 sm:py-1 bg-white bg-opacity-90 text-gray-800 text-xs sm:text-sm font-medium rounded-full">
-                  {currentCourse.stage?.name || 'غير محدد'}
+                  {currentCourse.stage?.name || currentCourse.stage?.title || 'غير محدد'}
                 </span>
               </div>
             </div>
@@ -623,7 +623,7 @@ export default function CourseDetail() {
                     </div>
                     <div className="min-w-0 flex-1">
                       <h3 className="font-semibold text-gray-900 dark:text-white text-sm sm:text-base truncate">
-                        {currentCourse.instructor?.name || 'غير محدد'}
+                        {currentCourse.instructor?.name || currentCourse.instructor?.fullName || (currentCourse.instructor ? 'مدرس' : 'غير محدد')}
                       </h3>
                       <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm">المدرس</p>
                     </div>
@@ -660,11 +660,11 @@ export default function CourseDetail() {
                     <div className="space-y-2 sm:space-y-3 mb-4 sm:mb-6">
                       <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                         <FaBookOpen className="text-gray-400 flex-shrink-0" />
-                        <span className="truncate">المادة: {currentCourse.subject?.title || 'غير محدد'}</span>
+                        <span className="truncate">المادة: {currentCourse.subject?.title || currentCourse.subject?.name || 'غير محدد'}</span>
                       </div>
                       <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                         <FaGraduationCap className="text-gray-400 flex-shrink-0" />
-                        <span className="truncate">المرحلة: {currentCourse.stage?.name || 'غير محدد'}</span>
+                        <span className="truncate">المرحلة: {currentCourse.stage?.name || currentCourse.stage?.title || 'غير محدد'}</span>
                       </div>
                     </div>
 

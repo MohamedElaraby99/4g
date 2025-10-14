@@ -23,7 +23,7 @@ const InstructorDashboard = () => {
     const fetchInstructorCourses = async () => {
         try {
             setLoading(true);
-            const response = await axiosInstance.get('/api/v1/instructors/my-courses');
+            const response = await axiosInstance.get('/instructors/my-courses');
             
             if (response.data.success) {
                 setCourses(response.data.data);

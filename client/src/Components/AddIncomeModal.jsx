@@ -315,11 +315,11 @@ const AddIncomeModal = ({ isOpen, onClose, onSubmit }) => {
                      if (group.instructor) {
                        if (typeof group.instructor === 'string') {
                          instructorName = group.instructor;
-                       } else if (group.instructor.name) {
-                         instructorName = group.instructor.name;
+                       } else if (group.instructor.name || group.instructor.fullName) {
+                         instructorName = group.instructor.name || group.instructor.fullName;
                        }
-                     } else if (group.instructorId && group.instructorId.name) {
-                       instructorName = group.instructorId.name;
+                     } else if (group.instructorId && (group.instructorId.name || group.instructorId.fullName)) {
+                       instructorName = group.instructorId.name || group.instructorId.fullName;
                      }
                      
                      return (

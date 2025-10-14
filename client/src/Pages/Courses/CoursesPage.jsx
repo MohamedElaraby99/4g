@@ -56,7 +56,7 @@ export default function CoursesPage() {
     }
     
     // If userStage is provided and user is logged in, filter by user's stage
-    if (userStage && user?.stage?.name) {
+    if (userStage && (user?.stage?.name || user?.stage?.title)) {
       const userStageObj = stages.find(stage => stage.name === userStage);
       if (userStageObj) {
         setFilters(prev => ({
@@ -94,9 +94,9 @@ export default function CoursesPage() {
     if (filters.stage) {
       // If a specific stage is selected, match that stage
       matchesStage = course.stage?._id === filters.stage;
-    } else if (user?.fullName && user?.stage?.name) {
+    } else if (user?.fullName && (user?.stage?.name || user?.stage?.title)) {
       // If user is logged in and no specific stage filter, show only user's stage
-      matchesStage = course.stage?.name === user.stage.name;
+      matchesStage = (course.stage?.name || course.stage?.title) === (user.stage?.name || user.stage?.title);
     }
     
     const matchesSubject = !filters.subject || course.subject?._id === filters.subject;
@@ -240,7 +240,7 @@ export default function CoursesPage() {
                     {Array.from(new Map(
                       courses
                         .filter(c => c?.instructor)
-                        .map(c => [c.instructor._id || c.instructor, c.instructor?.name || c.instructor?.fullName || 'مدرس'])
+                        .map(c => [c.instructor._id || c.instructor, c.instructor?.name || c.instructor?.fullName || (c.instructor ? 'مدرس' : 'غير محدد')])
                     ).entries()).map(([id, name]) => (
                       <option key={id} value={id}>{name}</option>
                     ))}
@@ -305,7 +305,7 @@ export default function CoursesPage() {
                     <div className="absolute inset-0 bg-black bg-opacity-20"></div>
                     <div className="absolute top-4 right-4">
                       <span className="px-2 py-1 bg-white bg-opacity-90 text-gray-800 text-xs font-medium rounded-full">
-                        {course.stage?.name || 'غير محدد'}
+                        {course.stage?.name || course.stage?.title || 'غير محدد'}
                       </span>
                     </div>
                   </div>
@@ -327,13 +327,13 @@ export default function CoursesPage() {
                       {/* Instructor */}
                       <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                         <FaUser className="text-gray-400" />
-                        <span>{course.instructor?.name || 'غير محدد'}</span>
+                        <span>{course.instructor?.name || course.instructor?.fullName || (course.instructor ? 'مدرس' : 'غير محدد')}</span>
                       </div>
 
                                              {/* Subject */}
                        <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                          <FaBookOpen className="text-gray-400" />
-                         <span>{course.subject?.title || 'غير محدد'}</span>
+                         <span>{course.subject?.title || course.subject?.name || 'غير محدد'}</span>
                        </div>
 
                       {/* Lessons Count */}

@@ -7,10 +7,15 @@ import {
     getAllInstructors,
     getAllInstructorsForAdmin,
     removeCourseFromInstructor,
-    getFeaturedInstructors
+    getFeaturedInstructors,
+    toggleInstructorFeatured,
+    updateInstructorProfile,
+    uploadInstructorProfileImage,
+    deleteInstructor
 } from '../controllers/instructor.controller.js';
 import { isLoggedIn } from '../middleware/auth.middleware.js';
 import { authorisedRoles } from '../middleware/auth.middleware.js';
+import upload from '../middleware/multer.middleware.js';
 
 const router = express.Router();
 
@@ -18,11 +23,19 @@ const router = express.Router();
 router.get('/', getAllInstructors);
 router.get('/featured', getFeaturedInstructors);
 
+// Admin routes for managing featured status
+router.patch('/:instructorId/toggle-featured', isLoggedIn, authorisedRoles('SUPER_ADMIN', 'ADMIN'), toggleInstructorFeatured);
+
 // Routes for admin/super admin to manage instructors
 router.post('/create', isLoggedIn, authorisedRoles('SUPER_ADMIN'), createInstructor);
 router.post('/assign-courses', isLoggedIn, authorisedRoles('SUPER_ADMIN', 'ADMIN'), assignCoursesToInstructor);
 router.post('/remove-course', isLoggedIn, authorisedRoles('SUPER_ADMIN', 'ADMIN'), removeCourseFromInstructor);
 router.get('/all', isLoggedIn, authorisedRoles('SUPER_ADMIN', 'ADMIN', 'ASSISTANT'), getAllInstructorsForAdmin);
+
+// Routes for updating instructor profiles and images
+router.put('/:instructorId', isLoggedIn, authorisedRoles('SUPER_ADMIN', 'ADMIN'), updateInstructorProfile);
+router.post('/:instructorId/upload-image', isLoggedIn, authorisedRoles('SUPER_ADMIN', 'ADMIN'), upload.single('profileImage'), uploadInstructorProfileImage);
+router.delete('/:instructorId', isLoggedIn, authorisedRoles('SUPER_ADMIN', 'ADMIN'), deleteInstructor);
 
 // Routes for instructors to access their data
 router.get('/my-courses', isLoggedIn, authorisedRoles('INSTRUCTOR'), getInstructorCourses);

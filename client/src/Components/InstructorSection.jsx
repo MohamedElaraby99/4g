@@ -110,7 +110,7 @@ const InstructorSection = () => {
                   {instructor.profileImage?.secure_url ? (
                     <img
                       src={generateImageUrl(instructor.profileImage.secure_url)}
-                      alt={instructor.name}
+                      alt={instructor.name || instructor.fullName}
                       className="w-full h-full object-contain p-2 transition-transform duration-300 group-hover:scale-105"
                       onError={handleImgError}
                     />
@@ -125,7 +125,7 @@ const InstructorSection = () => {
                 <div className="p-6">
                   {/* Instructor Name */}
                   <h3 className="text-2xl font-bold text-gray-800 dark:text-white mb-2 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
-                    {instructor.name}
+                    {instructor.name || instructor.fullName}
                   </h3>
                   
                   {/* Role/Specialization */}
@@ -135,7 +135,7 @@ const InstructorSection = () => {
                   
                   {/* Brief Description */}
                   <p className="text-gray-500 dark:text-gray-500 text-sm leading-relaxed mb-4 line-clamp-3">
-                    {instructor.bio || `${instructor.name} هو مدرس محترف مع خبرة واسعة في مجال ${instructor.specialization}. لديه نهج تعليمي متميز ويساعد الطلاب على تحقيق أهدافهم التعليمية.`}
+                    {instructor.bio || `${instructor.name || instructor.fullName} هو مدرس محترف مع خبرة واسعة في مجال ${instructor.specialization}. لديه نهج تعليمي متميز ويساعد الطلاب على تحقيق أهدافهم التعليمية.`}
                   </p>
 
                   {/* Action Buttons */}

@@ -282,10 +282,12 @@ export default function HomePage() {
                   allCourses: featuredCourses.map(c => ({
                     id: c._id,
                     title: c.title,
+                    instructor: c.instructor,
+                    instructorName: c.instructor?.name || c.instructor?.fullName,
                     stage: c.stage,
                     stageName: c.stage?.name,
-                    hasStage: !!c.stage,
-                    hasName: !!c.stage?.name
+                    subject: c.subject,
+                    subjectName: c.subject?.title || c.subject?.name
                   }))
                 });
                 return null;
@@ -330,7 +332,7 @@ export default function HomePage() {
                   <div className="absolute top-4 right-4 z-20">
                     <span className="px-3 py-1.5 bg-white/95 backdrop-blur-sm text-gray-800 text-xs font-bold rounded-full shadow-lg border border-white/20">
                       {(() => {
-                        const stageName = course.stage?.name;
+                        const stageName = course.stage?.name || course.stage?.title;
                         const fallback = 'غير محدد';
                         const result = stageName || fallback;
                         
@@ -366,7 +368,7 @@ export default function HomePage() {
                       <div className="flex items-center gap-4 text-white/80 text-sm">
                         <div className="flex items-center gap-1.5">
                           <FaUser className="w-3 h-3" />
-                          <span className="font-medium">{course.instructor?.name || 'غير محدد'}</span>
+                          <span className="font-medium">{course.instructor?.name || course.instructor?.fullName || (course.instructor ? 'مدرس' : 'غير محدد')}</span>
                         </div>
                         <div className="flex items-center gap-1.5">
                           <FaPlay className="w-3 h-3" />
@@ -385,7 +387,7 @@ export default function HomePage() {
 
                     {/* Subject */}
                     <p className="text-white/80 text-sm mb-4 font-semibold tracking-wide">
-                      {course.subject?.title || 'غير محدد'}
+                      {course.subject?.title || course.subject?.name || 'غير محدد'}
                     </p>
 
                     {/* Action Buttons */}

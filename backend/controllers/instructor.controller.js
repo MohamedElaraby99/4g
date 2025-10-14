@@ -4,10 +4,12 @@ import courseModel from '../models/course.model.js';
 import { ApiError } from '../utils/ApiError.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { ApiResponse } from '../utils/ApiResponse.js';
+import fs from 'fs';
+import path from 'path';
 
 // Create instructor user account
 export const createInstructor = asyncHandler(async (req, res, next) => {
-    const { fullName, email, password, courseIds } = req.body;
+    const { fullName, email, password, courseIds, specialization, bio, experience, education } = req.body;
 
     // Validate required fields
     if (!fullName || !email || !password) {
@@ -30,7 +32,7 @@ export const createInstructor = asyncHandler(async (req, res, next) => {
         validCourseIds = courseIds;
     }
 
-    // Create instructor user without requiring instructorProfile
+    // Create instructor user
     const instructorUser = await userModel.create({
         fullName,
         email,
@@ -41,6 +43,31 @@ export const createInstructor = asyncHandler(async (req, res, next) => {
 
     if (!instructorUser) {
         return next(new ApiError(500, "Failed to create instructor user"));
+    }
+
+    // Create instructor profile
+    try {
+        const instructorProfile = await instructorModel.create({
+            name: fullName,
+            email: email,
+            bio: bio || '',
+            specialization: specialization || '',
+            experience: experience || 0,
+            education: education || '',
+            isActive: true,
+            featured: false
+        });
+
+        // Link the instructor profile to the user
+        instructorUser.instructorProfile = instructorProfile._id;
+        await instructorUser.save();
+
+        console.log(`✅ Created instructor profile for ${fullName}`);
+
+    } catch (profileError) {
+        console.error('❌ Error creating instructor profile:', profileError);
+        // Don't fail the entire creation if profile creation fails
+        // The user account is already created successfully
     }
 
     // Remove password from response
@@ -286,50 +313,312 @@ export const getAllInstructorsForAdmin = asyncHandler(async (req, res, next) => 
 export const getFeaturedInstructors = asyncHandler(async (req, res, next) => {
     const { limit = 6 } = req.query;
 
-    // First, get featured instructors from the Instructor collection
-    const featuredInstructors = await instructorModel.find({
-        featured: true,
-        isActive: true
-    })
-    .populate('courses', 'title thumbnail')
-    .select('name specialization bio experience education socialLinks profileImage rating totalStudents featured')
-    .limit(parseInt(limit))
-    .sort({ rating: -1, totalStudents: -1 });
+    console.log('=== GET FEATURED INSTRUCTORS ===');
+    console.log('Requested limit:', limit);
 
-    // If no featured instructors found in Instructor collection,
-    // get some instructors from User collection with role INSTRUCTOR and transform them
+    // Get featured instructors from User collection with role INSTRUCTOR
+    // First try to get instructors that are marked as featured (either in instructorProfile or as a direct field)
+    const featuredInstructors = await userModel.find({
+        role: 'INSTRUCTOR',
+        isActive: true,
+        $or: [
+            { 'instructorProfile.featured': true },
+            { featured: true } // In case featured field is added directly to user
+        ]
+    })
+    .populate({
+        path: 'instructorProfile',
+        select: 'name specialization bio experience education socialLinks profileImage rating totalStudents featured'
+    })
+    .populate({
+        path: 'assignedCourses',
+        select: 'title description image featured stage subject',
+        options: { limit: 10 } // Limit courses per instructor for performance
+    })
+    .select('fullName email instructorProfile assignedCourses isActive featured')
+    .limit(parseInt(limit))
+    .sort({ 'instructorProfile.rating': -1, 'instructorProfile.totalStudents': -1, createdAt: -1 });
+
+    console.log('Found featured instructors:', featuredInstructors.length);
+
+    // If no featured instructors found, get some regular instructors as fallback
+    let instructorsToReturn = featuredInstructors;
+
     if (featuredInstructors.length === 0) {
+        console.log('No featured instructors found, getting fallback instructors');
+
         const fallbackInstructors = await userModel.find({ role: 'INSTRUCTOR', isActive: true })
             .populate({
                 path: 'instructorProfile',
                 select: 'name specialization bio experience education socialLinks profileImage rating totalStudents featured'
             })
-            .select('fullName email instructorProfile assignedCourses isActive')
+            .populate({
+                path: 'assignedCourses',
+                select: 'title description image featured stage subject',
+                options: { limit: 10 }
+            })
+            .select('fullName email instructorProfile assignedCourses isActive featured')
             .limit(parseInt(limit))
             .sort({ createdAt: -1 }); // Sort by newest first as fallback
 
-        // Transform fallback instructors to match expected format
-        const transformedFallback = fallbackInstructors.map(user => ({
-            _id: user.instructorProfile?._id || user._id,
-            name: user.instructorProfile?.name || user.fullName,
-            specialization: user.instructorProfile?.specialization || '',
-            bio: user.instructorProfile?.bio || '',
-            experience: user.instructorProfile?.experience || 0,
-            education: user.instructorProfile?.education || '',
-            socialLinks: user.instructorProfile?.socialLinks || {},
-            profileImage: user.instructorProfile?.profileImage || user.avatar || {},
-            rating: user.instructorProfile?.rating || 0,
-            totalStudents: user.instructorProfile?.totalStudents || 0,
-            featured: user.instructorProfile?.featured || false,
-            courses: user.assignedCourses || []
-        }));
-
-        return res.status(200).json(
-            new ApiResponse(200, { instructors: transformedFallback }, "Featured instructors retrieved successfully")
-        );
+        instructorsToReturn = fallbackInstructors;
+        console.log('Found fallback instructors:', fallbackInstructors.length);
     }
 
+    // Transform instructors to match expected format for frontend
+    const transformedInstructors = instructorsToReturn.map(user => {
+        const instructorProfile = user.instructorProfile;
+        const assignedCourses = user.assignedCourses || [];
+
+        return {
+            _id: user._id,
+            name: instructorProfile?.name || user.fullName,
+            fullName: user.fullName,
+            email: user.email,
+            specialization: instructorProfile?.specialization || '',
+            bio: instructorProfile?.bio || '',
+            experience: instructorProfile?.experience || 0,
+            education: instructorProfile?.education || '',
+            socialLinks: instructorProfile?.socialLinks || {},
+            profileImage: instructorProfile?.profileImage || user.avatar || {},
+            rating: instructorProfile?.rating || 0,
+            totalStudents: instructorProfile?.totalStudents || 0,
+            featured: instructorProfile?.featured || user.featured || false,
+            courses: assignedCourses.map(course => ({
+                _id: course._id,
+                title: course.title,
+                description: course.description,
+                image: course.image,
+                featured: course.featured,
+                stage: course.stage,
+                subject: course.subject
+            })),
+            role: user.role,
+            isActive: user.isActive,
+            createdAt: user.createdAt,
+            updatedAt: user.updatedAt,
+            // Add a direct link to the instructor's profile page
+            profileUrl: `/instructors/${user._id}`
+        };
+    });
+
+    console.log('Transformed instructors:', transformedInstructors.length);
+    console.log('Sample instructor data:', transformedInstructors[0] ? {
+        id: transformedInstructors[0]._id,
+        name: transformedInstructors[0].name,
+        featured: transformedInstructors[0].featured,
+        coursesCount: transformedInstructors[0].courses?.length || 0
+    } : 'No instructors');
+
+    return res.status(200).json(
+        new ApiResponse(200, {
+            instructors: transformedInstructors,
+            total: transformedInstructors.length,
+            limit: parseInt(limit),
+            featured: transformedInstructors.filter(inst => inst.featured).length
+        }, "Featured instructors retrieved successfully")
+    );
+});
+
+// Toggle featured status for an instructor (admin only)
+export const toggleInstructorFeatured = asyncHandler(async (req, res, next) => {
+    const { instructorId } = req.params;
+
+    // Find the instructor user
+    const instructor = await userModel.findOne({
+        _id: instructorId,
+        role: 'INSTRUCTOR'
+    });
+
+    if (!instructor) {
+        return next(new ApiError(404, "Instructor not found"));
+    }
+
+    // Toggle featured status
+    instructor.featured = !instructor.featured;
+    await instructor.save();
+
+    console.log(`Instructor ${instructor.fullName} ${instructor.featured ? 'featured' : 'unfeatured'}`);
+
+    return res.status(200).json(
+        new ApiResponse(200, {
+            instructor: {
+                _id: instructor._id,
+                fullName: instructor.fullName,
+                email: instructor.email,
+                featured: instructor.featured
+            }
+        }, `Instructor ${instructor.featured ? 'featured' : 'unfeatured'} successfully`)
+    );
+});
+
+// Update instructor profile (admin only)
+export const updateInstructorProfile = asyncHandler(async (req, res, next) => {
+    const { instructorId } = req.params;
+    const { fullName, email, specialization, bio, experience, education, socialLinks } = req.body;
+
+    // Find the instructor user
+    const instructorUser = await userModel.findOne({
+        _id: instructorId,
+        role: 'INSTRUCTOR'
+    });
+
+    if (!instructorUser) {
+        return next(new ApiError(404, "Instructor not found"));
+    }
+
+    // Update user basic info if provided
+    if (fullName) instructorUser.fullName = fullName;
+    if (email) instructorUser.email = email;
+
+    // Update or create instructor profile
+    let instructorProfile = await instructorModel.findById(instructorUser.instructorProfile);
+
+    if (!instructorProfile) {
+        // Create instructor profile if it doesn't exist
+        instructorProfile = await instructorModel.create({
+            name: fullName || instructorUser.fullName,
+            email: email || instructorUser.email,
+            bio: bio || '',
+            specialization: specialization || '',
+            experience: experience || 0,
+            education: education || '',
+            socialLinks: socialLinks || {},
+            isActive: true,
+            featured: false
+        });
+
+        instructorUser.instructorProfile = instructorProfile._id;
+    } else {
+        // Update existing profile
+        if (fullName) instructorProfile.name = fullName;
+        if (email) instructorProfile.email = email;
+        if (specialization !== undefined) instructorProfile.specialization = specialization;
+        if (bio !== undefined) instructorProfile.bio = bio;
+        if (experience !== undefined) instructorProfile.experience = experience;
+        if (education !== undefined) instructorProfile.education = education;
+        if (socialLinks) instructorProfile.socialLinks = socialLinks;
+    }
+
+    // Save both documents
+    await instructorUser.save();
+    await instructorProfile.save();
+
+    // Return updated instructor data
+    const updatedInstructor = await userModel.findById(instructorId)
+        .populate('instructorProfile')
+        .select('-password');
+
     res.status(200).json(
-        new ApiResponse(200, { instructors: featuredInstructors }, "Featured instructors retrieved successfully")
+        new ApiResponse(200, updatedInstructor, "Instructor profile updated successfully")
+    );
+});
+
+// Upload instructor profile image (admin only)
+export const uploadInstructorProfileImage = asyncHandler(async (req, res, next) => {
+    const { instructorId } = req.params;
+
+    if (!req.file) {
+        return next(new ApiError(400, "No image file provided"));
+    }
+
+    // Find the instructor user
+    const instructorUser = await userModel.findOne({
+        _id: instructorId,
+        role: 'INSTRUCTOR'
+    });
+
+    if (!instructorUser) {
+        return next(new ApiError(404, "Instructor not found"));
+    }
+
+    // Get or create instructor profile
+    let instructorProfile = await instructorModel.findById(instructorUser.instructorProfile);
+
+    if (!instructorProfile) {
+        instructorProfile = await instructorModel.create({
+            name: instructorUser.fullName,
+            email: instructorUser.email,
+            bio: '',
+            specialization: '',
+            experience: 0,
+            education: '',
+            socialLinks: {},
+            isActive: true,
+            featured: false
+        });
+
+        instructorUser.instructorProfile = instructorProfile._id;
+        await instructorUser.save();
+    }
+
+    // Delete old image if exists
+    if (instructorProfile.profileImage?.public_id) {
+        try {
+            const oldImagePath = path.join('uploads', instructorProfile.profileImage.public_id);
+            if (fs.existsSync(oldImagePath)) {
+                fs.unlinkSync(oldImagePath);
+            }
+        } catch (error) {
+            console.error('Error deleting old image:', error);
+        }
+    }
+
+    // Update with new image
+    instructorProfile.profileImage = {
+        public_id: req.file.filename,
+        secure_url: `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`
+    };
+
+    await instructorProfile.save();
+
+    // Return updated instructor data
+    const updatedInstructor = await userModel.findById(instructorId)
+        .populate('instructorProfile')
+        .select('-password');
+
+    res.status(200).json(
+        new ApiResponse(200, updatedInstructor, "Profile image uploaded successfully")
+    );
+});
+
+// Delete instructor (admin only)
+export const deleteInstructor = asyncHandler(async (req, res, next) => {
+    const { instructorId } = req.params;
+
+    // Find the instructor user
+    const instructorUser = await userModel.findOne({
+        _id: instructorId,
+        role: 'INSTRUCTOR'
+    });
+
+    if (!instructorUser) {
+        return next(new ApiError(404, "Instructor not found"));
+    }
+
+    // Delete instructor profile if exists
+    if (instructorUser.instructorProfile) {
+        const instructorProfile = await instructorModel.findById(instructorUser.instructorProfile);
+        if (instructorProfile) {
+            // Delete profile image if exists
+            if (instructorProfile.profileImage?.public_id) {
+                try {
+                    const imagePath = path.join('uploads', instructorProfile.profileImage.public_id);
+                    if (fs.existsSync(imagePath)) {
+                        fs.unlinkSync(imagePath);
+                    }
+                } catch (error) {
+                    console.error('Error deleting profile image:', error);
+                }
+            }
+            await instructorProfile.deleteOne();
+        }
+    }
+
+    // Delete the user account
+    await instructorUser.deleteOne();
+
+    res.status(200).json(
+        new ApiResponse(200, null, "Instructor deleted successfully")
     );
 });

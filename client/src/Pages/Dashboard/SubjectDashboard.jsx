@@ -331,7 +331,7 @@ export default function SubjectDashboard() {
                     >
                       <option value="">اختر المدرس</option>
                       {instructors.map((instructor) => (
-                        <option key={instructor._id} value={instructor._id}>{instructor.name}</option>
+                        <option key={instructor._id} value={instructor._id}>{instructor.name || instructor.fullName}</option>
                       ))}
                     </select>
                     {errors.instructor && (
@@ -475,7 +475,7 @@ export default function SubjectDashboard() {
                     >
                       <option value="">اختر المدرس</option>
                       {instructors.map((instructor) => (
-                        <option key={instructor._id} value={instructor._id}>{instructor.name}</option>
+                        <option key={instructor._id} value={instructor._id}>{instructor.name || instructor.fullName}</option>
                       ))}
                     </select>
                     {errors.instructor && (

@@ -381,6 +381,17 @@ const courseSlice = createSlice({
       })
       .addCase(getAdminCourses.fulfilled, (state, action) => {
         state.loading = false;
+        console.log('🏫 Frontend received ADMIN courses data:', {
+          totalCourses: action.payload.data.courses?.length,
+          firstCourse: action.payload.data.courses?.[0],
+          instructorInfo: action.payload.data.courses?.map(c => ({
+            id: c._id,
+            title: c.title,
+            instructor: c.instructor,
+            instructorType: typeof c.instructor,
+            instructorName: c.instructor?.name || c.instructor?.fullName
+          }))
+        });
         state.courses = action.payload.data.courses;
       })
       .addCase(getAdminCourses.rejected, (state, action) => {
@@ -397,12 +408,16 @@ const courseSlice = createSlice({
         console.log('🌟 Frontend received FEATURED courses data:', {
           totalCourses: action.payload.data.courses?.length,
           firstCourse: action.payload.data.courses?.[0],
-          stageInfo: action.payload.data.courses?.map(c => ({
+          instructorInfo: action.payload.data.courses?.map(c => ({
             id: c._id,
             title: c.title,
+            instructor: c.instructor,
+            instructorType: typeof c.instructor,
+            instructorName: c.instructor?.name || c.instructor?.fullName,
             stage: c.stage,
             stageName: c.stage?.name,
-            hasStage: !!c.stage
+            subject: c.subject,
+            subjectName: c.subject?.title || c.subject?.name
           }))
         });
         state.featuredCourses = action.payload.data.courses;

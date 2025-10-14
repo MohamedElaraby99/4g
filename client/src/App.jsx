@@ -66,6 +66,7 @@ import Students from "./Pages/Dashboard/CenterManagement/Students";
 import Financial from "./Pages/Dashboard/CenterManagement/Financial";
 import OfflineGradesDashboard from "./Pages/Dashboard/OfflineGradesDashboard";
 import Achievements from "./Pages/Dashboard/Achievements";
+import AdminInstructors from "./Pages/Dashboard/AdminInstructors";
 
 function App() {
   // Auto scroll to top on route change
@@ -140,9 +141,10 @@ function App() {
           <Route path="/admin/center-management/groups" element={<Groups />} />
           <Route path="/admin/center-management/students" element={<Students />} />
           <Route path="/admin/center-management/financial" element={<Financial />} />
-          <Route path="/admin/center-management/offline-grades" element={<OfflineGradesDashboard />} />
-          <Route path="/admin/center-management/achievements" element={<Achievements />} />
-        </Route>
+                    <Route path="/admin/center-management/offline-grades" element={<OfflineGradesDashboard />} />
+                    <Route path="/admin/center-management/achievements" element={<Achievements />} />
+                    <Route path="/admin/instructors" element={<AdminInstructors />} />
+                </Route>
 
         <Route element={<RequireAuth allowedRoles={["USER", "ADMIN", "SUPER_ADMIN"]} />}>
           <Route path="/user/profile" element={<Profile />} />

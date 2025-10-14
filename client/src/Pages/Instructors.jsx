@@ -34,7 +34,7 @@ export default function Instructors() {
   const filteredInstructors = (instructors || []).filter(instructor => {
     if (!instructor || typeof instructor !== 'object') return false;
 
-    const matchesSearch = (instructor.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const matchesSearch = (instructor.name || instructor.fullName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
                          (instructor.specialization || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
                          (instructor.bio || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFeatured = !filterFeatured || instructor.featured === (filterFeatured === 'true');
@@ -123,7 +123,7 @@ export default function Instructors() {
                         {instructor.profileImage?.secure_url ? (
                           <img 
                             src={generateImageUrl(instructor.profileImage.secure_url)} 
-                            alt={instructor.name} 
+                            alt={instructor.name || instructor.fullName} 
                             className="w-24 h-24 rounded-full object-cover border border-gray-200 dark:border-gray-700" 
                           />
                         ) : (
@@ -132,7 +132,7 @@ export default function Instructors() {
                           </div>
                         )}
                         <div className="mr-3">
-                          <h3 className="text-white font-semibold text-right">{instructor.name}</h3>
+                          <h3 className="text-white font-semibold text-right">{instructor.name || instructor.fullName}</h3>
                           <p className="text-white/80 text-sm text-right">{instructor.specialization}</p>
                         </div>
                       </div>

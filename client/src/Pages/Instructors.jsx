@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
-import { getFeaturedInstructors } from '../Redux/Slices/InstructorSlice';
+import { getAllInstructors } from '../Redux/Slices/InstructorSlice';
 import Layout from '../Layout/Layout';
 import { 
   FaStar, 
@@ -26,7 +26,7 @@ export default function Instructors() {
   const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
-    dispatch(getFeaturedInstructors({ limit: 100 }));
+    dispatch(getAllInstructors({ limit: 100 }));
   }, [dispatch]);
 
 
@@ -37,7 +37,10 @@ export default function Instructors() {
     const matchesSearch = (instructor.name || instructor.fullName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
                          (instructor.specialization || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
                          (instructor.bio || '').toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesFeatured = !filterFeatured || instructor.featured === (filterFeatured === 'true');
+
+    const matchesFeatured = filterFeatured === '' ||
+                           (filterFeatured === 'true' && instructor.featured === true) ||
+                           (filterFeatured === 'false' && instructor.featured === false);
 
     return matchesSearch && matchesFeatured;
   });
@@ -84,10 +87,10 @@ export default function Instructors() {
           <div className="container mx-auto px-4">
             <div className="text-center mb-12">
               <h1 className="text-4xl lg:text-5xl font-bold text-gray-800 dark:text-white mb-4">
-                مدرسونا المتميزون
+                جميع المدرسين
               </h1>
               <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-                تعرف على فريقنا من المدرسين المحترفين والخبراء في مجالاتهم
+                تعرف على جميع مدرسينا المحترفين والخبراء في مجالاتهم المختلفة
               </p>
             </div>
 
@@ -105,6 +108,18 @@ export default function Instructors() {
                       className="w-full pr-10 pl-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                     />
                   </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <FaFilter className="text-gray-500" />
+                  <select
+                    value={filterFeatured}
+                    onChange={(e) => setFilterFeatured(e.target.value)}
+                    className="border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  >
+                    <option value="">جميع المدرسين</option>
+                    <option value="true">المميزون فقط</option>
+                    <option value="false">غير المميزين</option>
+                  </select>
                 </div>
               </div>
             </div>
@@ -247,7 +262,10 @@ export default function Instructors() {
             {filteredInstructors.length === 0 && (
               <div className="text-center py-12">
                 <div className="text-gray-500 dark:text-gray-400 text-lg">
-                  لم يتم العثور على مدرسين
+                  {searchTerm || filterFeatured ?
+                    'لم يتم العثور على مدرسين يطابقون البحث أو الفلترة المحددة' :
+                    'لا يوجد مدرسون حالياً'
+                  }
                 </div>
               </div>
             )}

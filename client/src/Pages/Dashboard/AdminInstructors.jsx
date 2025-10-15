@@ -60,11 +60,11 @@ const AdminInstructors = () => {
     const fetchInstructors = async () => {
         try {
             setLoading(true);
-            console.log('Fetching featured instructors...');
-            const response = await axiosInstance.get('/instructors/featured?limit=50');
+            console.log('Fetching all instructors...');
+            const response = await axiosInstance.get('/instructors/all');
 
             if (response.data.success) {
-                console.log('Featured instructors data:', response.data.data);
+                console.log('All instructors data:', response.data.data);
                 setInstructors(response.data.data.instructors || []);
             }
         } catch (error) {
@@ -83,11 +83,11 @@ const AdminInstructors = () => {
 
             if (response.data.success) {
                 toast.success(response.data.message);
-                // Update the instructor's featured status in the local state
+                // Update the instructor's featured status in the local state using server response
                 setInstructors(prevInstructors =>
                     prevInstructors.map(inst =>
                         inst._id === instructorId
-                            ? { ...inst, featured: !inst.featured }
+                            ? { ...inst, featured: response.data.data.instructor.featured }
                             : inst
                     )
                 );
@@ -125,7 +125,30 @@ const AdminInstructors = () => {
 
         setCreatingInstructor(true);
         try {
-            const response = await axiosInstance.post('/instructors/create', instructorForm);
+            let formData;
+
+            // If there's an image, send as FormData
+            if (selectedImage) {
+                formData = new FormData();
+                formData.append('fullName', instructorForm.fullName);
+                formData.append('email', instructorForm.email);
+                formData.append('password', instructorForm.password);
+                formData.append('specialization', instructorForm.specialization);
+                formData.append('bio', instructorForm.bio);
+                formData.append('experience', instructorForm.experience);
+                formData.append('education', instructorForm.education);
+                formData.append('socialLinks', JSON.stringify(instructorForm.socialLinks));
+                formData.append('profileImage', selectedImage);
+            } else {
+                // Send as JSON if no image
+                formData = instructorForm;
+            }
+
+            const response = await axiosInstance.post('/instructors/create', formData, {
+                headers: selectedImage ? {
+                    'Content-Type': 'multipart/form-data'
+                } : {}
+            });
 
             if (response.data.success) {
                 toast.success('تم إنشاء المدرس بنجاح');
@@ -137,8 +160,15 @@ const AdminInstructors = () => {
                     specialization: '',
                     bio: '',
                     experience: 0,
-                    education: ''
+                    education: '',
+                    socialLinks: {
+                        linkedin: '',
+                        twitter: '',
+                        facebook: '',
+                        whatsapp: ''
+                    }
                 });
+                setSelectedImage(null);
                 fetchInstructors(); // Refresh the list
             }
         } catch (error) {
@@ -323,10 +353,10 @@ const AdminInstructors = () => {
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="py-6">
                             <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                                إدارة المدرسين المميزين
+                                إدارة المدرسين
                             </h1>
                             <p className="mt-2 text-gray-600 dark:text-gray-400">
-                                إدارة المدرسين المعروضين في الصفحة الرئيسية
+                                إدارة جميع المدرسين في النظام
                             </p>
                         </div>
                     </div>
@@ -341,12 +371,13 @@ const AdminInstructors = () => {
                             </div>
                             <div>
                                 <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-2">
-                                    كيفية إدارة المدرسين المميزين
+                                    كيفية إدارة المدرسين
                                 </h3>
                                 <p className="text-blue-800 dark:text-blue-200 text-sm leading-relaxed">
                                     • استخدم زر التبديل (Toggle) في كل بطاقة مدرس لتحديد أو إلغاء تحديد المدرس كمميز<br/>
                                     • المدرسين المميزون سيظهرون في الصفحة الرئيسية للموقع<br/>
-                                    • يمكنك البحث والتصفية حسب حالة التوصية باستخدام الفلاتر أدناه
+                                    • يمكنك البحث والتصفية حسب حالة التوصية باستخدام الفلاتر أدناه<br/>
+                                    • جميع المدرسين الجدد يتم إنشاؤهم كمميزين افتراضياً
                                 </p>
                             </div>
                         </div>
@@ -416,7 +447,7 @@ const AdminInstructors = () => {
                                     <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                                         {searchTerm || filterFeatured !== 'all'
                                             ? 'لا توجد نتائج تطابق البحث أو الفلترة المحددة'
-                                            : 'لا توجد مدرسين مميزين حالياً'}
+                                            : 'لا توجد مدرسين حالياً'}
                                     </p>
                                 </div>
                             ) : (
@@ -457,11 +488,11 @@ const AdminInstructors = () => {
                                                             instructor.featured
                                                                 ? 'bg-orange-100 text-orange-600 hover:bg-orange-200 hover:scale-110'
                                                                 : 'bg-gray-100 text-gray-400 hover:bg-gray-200 hover:scale-110'
-                                                        }`}
+                                                        } ${togglingFeatured.has(instructor._id) ? 'opacity-50 cursor-not-allowed' : ''}`}
                                                         title={instructor.featured ? 'إلغاء التوصية' : 'توصية المدرس'}
                                                     >
                                                         {togglingFeatured.has(instructor._id) ? (
-                                                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
+                                                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current opacity-70"></div>
                                                         ) : instructor.featured ? (
                                                             <FaToggleOn className="h-5 w-5" />
                                                         ) : (
@@ -552,7 +583,7 @@ const AdminInstructors = () => {
             {/* Create Instructor Modal */}
             {showCreateModal && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto" dir="rtl">
+                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto" dir="rtl">
                         {/* Header */}
                         <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
                             <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
@@ -568,6 +599,7 @@ const AdminInstructors = () => {
 
                         {/* Content */}
                         <form onSubmit={handleCreateInstructor} className="p-6 space-y-6">
+                            {/* Basic Information */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
                                     <label className="block text-sm font-medium mb-2">الاسم الكامل *</label>
@@ -655,6 +687,97 @@ const AdminInstructors = () => {
                                         className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                                         placeholder="أدخل المؤهل التعليمي"
                                     />
+                                </div>
+                            </div>
+
+                            {/* Social Media Links */}
+                            <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
+                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                                    روابط وسائل التواصل الاجتماعي
+                                </h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="relative">
+                                        <label className="block text-sm font-medium mb-2">
+                                            <FaLinkedin className="inline ml-2 text-blue-600" />
+                                            LinkedIn
+                                        </label>
+                                        <input
+                                            type="url"
+                                            name="linkedin"
+                                            value={instructorForm.socialLinks.linkedin}
+                                            onChange={handleSocialLinksChange}
+                                            className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                                            placeholder="https://linkedin.com/in/username"
+                                        />
+                                    </div>
+
+                                    <div className="relative">
+                                        <label className="block text-sm font-medium mb-2">
+                                            <FaTwitter className="inline ml-2 text-blue-400" />
+                                            Twitter
+                                        </label>
+                                        <input
+                                            type="url"
+                                            name="twitter"
+                                            value={instructorForm.socialLinks.twitter}
+                                            onChange={handleSocialLinksChange}
+                                            className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                                            placeholder="https://twitter.com/username"
+                                        />
+                                    </div>
+
+                                    <div className="relative">
+                                        <label className="block text-sm font-medium mb-2">
+                                            <FaFacebook className="inline ml-2 text-blue-700" />
+                                            Facebook
+                                        </label>
+                                        <input
+                                            type="url"
+                                            name="facebook"
+                                            value={instructorForm.socialLinks.facebook}
+                                            onChange={handleSocialLinksChange}
+                                            className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                                            placeholder="https://facebook.com/username"
+                                        />
+                                    </div>
+
+                                    <div className="relative">
+                                        <label className="block text-sm font-medium mb-2">
+                                            <FaWhatsapp className="inline ml-2 text-green-600" />
+                                            WhatsApp
+                                        </label>
+                                        <input
+                                            type="tel"
+                                            name="whatsapp"
+                                            value={instructorForm.socialLinks.whatsapp}
+                                            onChange={handleSocialLinksChange}
+                                            className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                                            placeholder="+1234567890"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Image Upload Section */}
+                            <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
+                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                                    صورة الملف الشخصي
+                                </h3>
+                                <div className="flex items-center gap-4">
+                                    <div className="flex-1">
+                                        <label className="block text-sm font-medium mb-2">اختيار صورة الملف الشخصي</label>
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={handleImageSelect}
+                                            className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                                        />
+                                        {selectedImage && (
+                                            <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                                                تم اختيار: {selectedImage.name}
+                                            </p>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
 

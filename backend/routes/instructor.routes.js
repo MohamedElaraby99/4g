@@ -27,7 +27,7 @@ router.get('/featured', getFeaturedInstructors);
 router.patch('/:instructorId/toggle-featured', isLoggedIn, authorisedRoles('SUPER_ADMIN', 'ADMIN'), toggleInstructorFeatured);
 
 // Routes for admin/super admin to manage instructors
-router.post('/create', isLoggedIn, authorisedRoles('SUPER_ADMIN'), createInstructor);
+router.post('/create', isLoggedIn, authorisedRoles('SUPER_ADMIN'), upload.single('profileImage'), createInstructor);
 router.post('/assign-courses', isLoggedIn, authorisedRoles('SUPER_ADMIN', 'ADMIN'), assignCoursesToInstructor);
 router.post('/remove-course', isLoggedIn, authorisedRoles('SUPER_ADMIN', 'ADMIN'), removeCourseFromInstructor);
 router.get('/all', isLoggedIn, authorisedRoles('SUPER_ADMIN', 'ADMIN', 'ASSISTANT'), getAllInstructorsForAdmin);

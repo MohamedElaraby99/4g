@@ -9,7 +9,19 @@ import path from 'path';
 
 // Create instructor user account
 export const createInstructor = asyncHandler(async (req, res, next) => {
-    const { fullName, email, password, courseIds, specialization, bio, experience, education } = req.body;
+    // Handle both JSON and FormData
+    let requestData = req.body;
+
+    // If FormData is sent, parse the socialLinks JSON string
+    if (req.body.socialLinks && typeof req.body.socialLinks === 'string') {
+        try {
+            requestData.socialLinks = JSON.parse(req.body.socialLinks);
+        } catch (error) {
+            requestData.socialLinks = {};
+        }
+    }
+
+    const { fullName, email, password, courseIds, specialization, bio, experience, education, socialLinks } = requestData;
 
     // Validate required fields
     if (!fullName || !email || !password) {
@@ -45,6 +57,15 @@ export const createInstructor = asyncHandler(async (req, res, next) => {
         return next(new ApiError(500, "Failed to create instructor user"));
     }
 
+    // Handle profile image upload if provided
+    let profileImageData = {};
+    if (req.file) {
+        profileImageData = {
+            public_id: req.file.filename,
+            secure_url: `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`
+        };
+    }
+
     // Create instructor profile
     try {
         const instructorProfile = await instructorModel.create({
@@ -54,8 +75,9 @@ export const createInstructor = asyncHandler(async (req, res, next) => {
             specialization: specialization || '',
             experience: experience || 0,
             education: education || '',
-            isActive: true,
-            featured: false
+            socialLinks: socialLinks || {},
+            profileImage: profileImageData,
+            isActive: true
         });
 
         // Link the instructor profile to the user
@@ -316,15 +338,33 @@ export const getFeaturedInstructors = asyncHandler(async (req, res, next) => {
     console.log('=== GET FEATURED INSTRUCTORS ===');
     console.log('Requested limit:', limit);
 
-    // Get featured instructors from User collection with role INSTRUCTOR
-    // First try to get instructors that are marked as featured (either in instructorProfile or as a direct field)
+    // First, find featured instructor profiles
+    const featuredProfiles = await instructorModel.find({
+        featured: true,
+        isActive: true
+    }).limit(parseInt(limit));
+
+    console.log('Found featured profiles:', featuredProfiles.length);
+
+    if (featuredProfiles.length === 0) {
+        return res.status(200).json(
+            new ApiResponse(200, {
+                instructors: [],
+                total: 0,
+                limit: parseInt(limit),
+                featured: 0
+            }, "No featured instructors found")
+        );
+    }
+
+    // Get the user IDs from the featured profiles
+    const profileIds = featuredProfiles.map(profile => profile._id);
+
+    // Find users with these instructor profiles
     const featuredInstructors = await userModel.find({
         role: 'INSTRUCTOR',
         isActive: true,
-        $or: [
-            { 'instructorProfile.featured': true },
-            { featured: true } // In case featured field is added directly to user
-        ]
+        instructorProfile: { $in: profileIds }
     })
     .populate({
         path: 'instructorProfile',
@@ -336,34 +376,12 @@ export const getFeaturedInstructors = asyncHandler(async (req, res, next) => {
         options: { limit: 10 } // Limit courses per instructor for performance
     })
     .select('fullName email instructorProfile assignedCourses isActive featured')
-    .limit(parseInt(limit))
     .sort({ 'instructorProfile.rating': -1, 'instructorProfile.totalStudents': -1, createdAt: -1 });
 
     console.log('Found featured instructors:', featuredInstructors.length);
 
-    // If no featured instructors found, get some regular instructors as fallback
-    let instructorsToReturn = featuredInstructors;
-
-    if (featuredInstructors.length === 0) {
-        console.log('No featured instructors found, getting fallback instructors');
-
-        const fallbackInstructors = await userModel.find({ role: 'INSTRUCTOR', isActive: true })
-            .populate({
-                path: 'instructorProfile',
-                select: 'name specialization bio experience education socialLinks profileImage rating totalStudents featured'
-            })
-            .populate({
-                path: 'assignedCourses',
-                select: 'title description image featured stage subject',
-                options: { limit: 10 }
-            })
-            .select('fullName email instructorProfile assignedCourses isActive featured')
-            .limit(parseInt(limit))
-            .sort({ createdAt: -1 }); // Sort by newest first as fallback
-
-        instructorsToReturn = fallbackInstructors;
-        console.log('Found fallback instructors:', fallbackInstructors.length);
-    }
+    // Only return featured instructors - no fallback to non-featured instructors
+    const instructorsToReturn = featuredInstructors;
 
     // Transform instructors to match expected format for frontend
     const transformedInstructors = instructorsToReturn.map(user => {
@@ -434,11 +452,18 @@ export const toggleInstructorFeatured = asyncHandler(async (req, res, next) => {
         return next(new ApiError(404, "Instructor not found"));
     }
 
-    // Toggle featured status
-    instructor.featured = !instructor.featured;
-    await instructor.save();
+    // Find the instructor profile
+    const instructorProfile = await instructorModel.findById(instructor.instructorProfile);
 
-    console.log(`Instructor ${instructor.fullName} ${instructor.featured ? 'featured' : 'unfeatured'}`);
+    if (!instructorProfile) {
+        return next(new ApiError(404, "Instructor profile not found"));
+    }
+
+    // Toggle featured status in the instructor profile
+    instructorProfile.featured = !instructorProfile.featured;
+    await instructorProfile.save();
+
+    console.log(`Instructor ${instructor.fullName} ${instructorProfile.featured ? 'featured' : 'unfeatured'}`);
 
     return res.status(200).json(
         new ApiResponse(200, {
@@ -446,16 +471,29 @@ export const toggleInstructorFeatured = asyncHandler(async (req, res, next) => {
                 _id: instructor._id,
                 fullName: instructor.fullName,
                 email: instructor.email,
-                featured: instructor.featured
+                featured: instructorProfile.featured
             }
-        }, `Instructor ${instructor.featured ? 'featured' : 'unfeatured'} successfully`)
+        }, `Instructor ${instructorProfile.featured ? 'featured' : 'unfeatured'} successfully`)
     );
 });
 
 // Update instructor profile (admin only)
 export const updateInstructorProfile = asyncHandler(async (req, res, next) => {
     const { instructorId } = req.params;
-    const { fullName, email, specialization, bio, experience, education, socialLinks } = req.body;
+
+    // Handle both JSON and FormData
+    let requestData = req.body;
+
+    // If FormData is sent, parse the socialLinks JSON string
+    if (req.body.socialLinks && typeof req.body.socialLinks === 'string') {
+        try {
+            requestData.socialLinks = JSON.parse(req.body.socialLinks);
+        } catch (error) {
+            requestData.socialLinks = {};
+        }
+    }
+
+    const { fullName, email, specialization, bio, experience, education, socialLinks } = requestData;
 
     // Find the instructor user
     const instructorUser = await userModel.findOne({
@@ -484,8 +522,7 @@ export const updateInstructorProfile = asyncHandler(async (req, res, next) => {
             experience: experience || 0,
             education: education || '',
             socialLinks: socialLinks || {},
-            isActive: true,
-            featured: false
+            isActive: true
         });
 
         instructorUser.instructorProfile = instructorProfile._id;
@@ -544,8 +581,7 @@ export const uploadInstructorProfileImage = asyncHandler(async (req, res, next) 
             experience: 0,
             education: '',
             socialLinks: {},
-            isActive: true,
-            featured: false
+            isActive: true
         });
 
         instructorUser.instructorProfile = instructorProfile._id;

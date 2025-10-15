@@ -60,11 +60,11 @@ const InstructorSection = () => {
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-4xl lg:text-5xl font-bold text-gray-800 dark:text-white mb-6">
-            تعلم من أفضل الخبراء للتعلم
+            تعلم من أفضل الخبراء
             </h2>
             <div className="w-24 h-1 bg-gradient-to-r from-orange-500 to-orange-500 mx-auto mb-6"></div>
             <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto leading-relaxed">
-              مدرسونا لديهم خبرة واسعة ونهج تعليمي متميز لضمان تجربة تعليمية استثنائية
+              مدرسونا المميزون لديهم خبرة واسعة ونهج تعليمي متميز لضمان تجربة تعليمية استثنائية
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -89,11 +89,11 @@ const InstructorSection = () => {
           {/* Header */}
           <div className="text-center mb-16">
             <h2 className="text-4xl lg:text-5xl font-bold text-gray-800 dark:text-white mb-6">
-              تعلم من أفضل الخبراء  
+              تعلم من أفضل الخبراء
             </h2>
             <div className="w-24 h-1 bg-gradient-to-r from-orange-500 to-orange-500 mx-auto mb-6"></div>
             <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto leading-relaxed">
-              مدرسونا لديهم خبرة واسعة ونهج تعليمي متميز لضمان تجربة تعليمية استثنائية
+              مدرسونا المميزون لديهم خبرة واسعة ونهج تعليمي متميز لضمان تجربة تعليمية استثنائية
             </p>
           </div>
 

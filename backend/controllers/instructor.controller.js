@@ -333,16 +333,18 @@ export const getAllInstructorsForAdmin = asyncHandler(async (req, res, next) => 
 
 // Get featured instructors (public endpoint)
 export const getFeaturedInstructors = asyncHandler(async (req, res, next) => {
-    const { limit = 6 } = req.query;
+    // Remove limit to show ALL featured instructors
+    const { limit } = req.query; // Keep limit parameter for backward compatibility but don't use it
 
     console.log('=== GET FEATURED INSTRUCTORS ===');
     console.log('Requested limit:', limit);
+    console.log('Showing ALL featured instructors (no limit applied)');
 
-    // First, find featured instructor profiles - ensure we're getting the right data
+    // First, find ALL featured instructor profiles - ensure we're getting the right data
     const featuredProfiles = await instructorModel.find({
         featured: true,
         isActive: true
-    }).limit(parseInt(limit));
+    });
 
     console.log('Found featured profiles:', featuredProfiles.length);
     console.log('Featured profiles:', featuredProfiles.map(p => ({ id: p._id, name: p.name })));
@@ -468,8 +470,8 @@ export const getFeaturedInstructors = asyncHandler(async (req, res, next) => {
         new ApiResponse(200, {
             instructors: transformedInstructors,
             total: transformedInstructors.length,
-            limit: parseInt(limit),
-            featured: transformedInstructors.filter(inst => inst.featured).length
+            featured: transformedInstructors.filter(inst => inst.featured).length,
+            message: limit ? `Showing all featured instructors (limit parameter ignored)` : `Showing all featured instructors`
         }, "Featured instructors retrieved successfully")
     );
 });

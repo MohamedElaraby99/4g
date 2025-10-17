@@ -346,6 +346,8 @@ export const getFeaturedInstructors = asyncHandler(async (req, res, next) => {
 
     console.log('Found featured profiles:', featuredProfiles.length);
     console.log('Featured profiles:', featuredProfiles.map(p => ({ id: p._id, name: p.name })));
+    console.log('=== DEBUG: All featured profiles ===');
+    featuredProfiles.forEach(p => console.log(`  Profile: ${p.name} (ID: ${p._id}, Featured: ${p.featured})`));
 
     if (featuredProfiles.length === 0) {
         return res.status(200).json(
@@ -381,6 +383,8 @@ export const getFeaturedInstructors = asyncHandler(async (req, res, next) => {
     .sort({ 'instructorProfile.rating': -1, 'instructorProfile.totalStudents': -1, createdAt: -1 });
 
     console.log('Found featured instructors after population:', featuredInstructors.length);
+    console.log('=== DEBUG: Found instructors ===');
+    featuredInstructors.forEach(inst => console.log(`  Instructor: ${inst.fullName} (Profile ID: ${inst.instructorProfile?._id})`));
 
     // Check for orphaned profiles (profiles without matching users)
     const foundProfileIds = featuredInstructors.map(inst => inst.instructorProfile?._id?.toString()).filter(Boolean);
@@ -400,6 +404,8 @@ export const getFeaturedInstructors = asyncHandler(async (req, res, next) => {
 
         // For now, we'll proceed with the instructors that have matching profiles
         console.log('Proceeding with instructors that have matching profiles');
+    } else {
+        console.log('✅ All featured profiles have matching users');
     }
 
     console.log('Found featured instructors:', featuredInstructors.length);

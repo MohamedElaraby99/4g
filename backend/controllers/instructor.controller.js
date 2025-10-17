@@ -345,6 +345,7 @@ export const getFeaturedInstructors = asyncHandler(async (req, res, next) => {
     }).limit(parseInt(limit));
 
     console.log('Found featured profiles:', featuredProfiles.length);
+    console.log('Featured profiles:', featuredProfiles.map(p => ({ id: p._id, name: p.name })));
 
     if (featuredProfiles.length === 0) {
         return res.status(200).json(
@@ -357,10 +358,11 @@ export const getFeaturedInstructors = asyncHandler(async (req, res, next) => {
         );
     }
 
-    // Get the user IDs from the featured profiles
+    // Get the user IDs from the featured profiles - use _id correctly
     const profileIds = featuredProfiles.map(profile => profile._id);
+    console.log('Profile IDs to search for:', profileIds);
 
-    // Find users with these instructor profiles
+    // Find users with these instructor profiles - ensure we're using the correct field reference
     const featuredInstructors = await userModel.find({
         role: 'INSTRUCTOR',
         isActive: true,
@@ -379,6 +381,12 @@ export const getFeaturedInstructors = asyncHandler(async (req, res, next) => {
     .sort({ 'instructorProfile.rating': -1, 'instructorProfile.totalStudents': -1, createdAt: -1 });
 
     console.log('Found featured instructors:', featuredInstructors.length);
+    console.log('Featured instructors details:', featuredInstructors.map(inst => ({
+        id: inst._id,
+        name: inst.fullName,
+        profileId: inst.instructorProfile?._id,
+        profileFeatured: inst.instructorProfile?.featured
+    })));
 
     // Only return featured instructors - no fallback to non-featured instructors
     const instructorsToReturn = featuredInstructors;

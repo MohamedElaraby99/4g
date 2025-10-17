@@ -2,8 +2,8 @@ import mongoose from 'mongoose';
 import User from './models/user.model.js';
 import InstructorProfile from './models/instructor.model.js';
 
-// Connect to MongoDB
-const MONGODB_URI = 'mongodb://localhost:27017/the4g';
+// Connect to MongoDB - Use production URI
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/the4g';
 
 const connectDB = async () => {
   try {

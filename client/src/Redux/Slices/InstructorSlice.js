@@ -204,8 +204,7 @@ const instructorSlice = createSlice({
       })
       .addCase(getFeaturedInstructors.fulfilled, (state, action) => {
         state.loading = false;
-        state.instructors = action.payload.data.instructors;
-        // Also store in featuredInstructors for backward compatibility
+        // Only update featuredInstructors, don't touch the main instructors array
         state.featuredInstructors = action.payload.data.instructors;
       })
       .addCase(getFeaturedInstructors.rejected, (state, action) => {

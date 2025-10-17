@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { getFeaturedInstructors } from '../Redux/Slices/InstructorSlice';
 import { getCoursesByInstructor } from '../Redux/Slices/CourseSlice';
-import { FaGraduationCap, FaStar, FaUsers, FaBook, FaClock, FaLinkedin, FaTwitter, FaFacebook, FaWhatsapp, FaTimes, FaAward, FaArrowRight, FaEye } from 'react-icons/fa';
+import { FaGraduationCap, FaStar, FaUsers, FaBook, FaClock, FaLinkedin, FaTwitter, FaFacebook, FaWhatsapp, FaTimes, FaAward, FaArrowRight, FaEye, FaSort, FaFilter } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import { generateImageUrl } from "../utils/fileUtils";
 import { placeholderImages } from "../utils/placeholderImages";
@@ -14,10 +14,49 @@ const InstructorSection = () => {
   const [selectedInstructor, setSelectedInstructor] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [showCourses, setShowCourses] = useState(false);
+  const [sortBy, setSortBy] = useState('featured');
+  const [sortOrder, setSortOrder] = useState('-1');
+  const [showSortOptions, setShowSortOptions] = useState(false);
 
   useEffect(() => {
-    dispatch(getFeaturedInstructors({ limit: 6 }));
-  }, [dispatch]);
+    dispatch(getFeaturedInstructors({ sortBy, sortOrder }));
+  }, [dispatch, sortBy, sortOrder]);
+
+  const handleSortChange = (newSortBy, newSortOrder = '-1') => {
+    setSortBy(newSortBy);
+    setSortOrder(newSortOrder);
+    setShowSortOptions(false);
+  };
+
+  // Close sort options when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showSortOptions && !event.target.closest('.sort-dropdown')) {
+        setShowSortOptions(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showSortOptions]);
+
+  const getCurrentSortLabel = () => {
+    switch (sortBy) {
+      case 'name':
+        return sortOrder === '1' ? 'الاسم (أ-ي)' : 'الاسم (ي-أ)';
+      case 'rating':
+        return 'التقييم (الأعلى أولاً)';
+      case 'students':
+        return 'عدد الطلاب (الأكثر أولاً)';
+      case 'experience':
+        return 'الخبرة (الأكثر أولاً)';
+      case 'created':
+        return 'الأحدث أولاً';
+      case 'featured':
+      default:
+        return 'المميزون أولاً';
+    }
+  };
 
   const handleInstructorClick = (instructor) => {
     setSelectedInstructor(instructor);
@@ -95,6 +134,96 @@ const InstructorSection = () => {
             <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto leading-relaxed">
               مدرسونا المميزون لديهم خبرة واسعة ونهج تعليمي متميز لضمان تجربة تعليمية استثنائية
             </p>
+          </div>
+
+          {/* Sort Controls */}
+          <div className="flex justify-end items-center mb-8">
+            <div className="relative sort-dropdown">
+              <button
+                onClick={() => setShowSortOptions(!showSortOptions)}
+                className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
+              >
+                <FaSort className="text-sm" />
+                <span className="text-sm font-medium">{getCurrentSortLabel()}</span>
+              </button>
+
+              {showSortOptions && (
+                <div className="absolute top-full right-0 mt-2 w-56 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg z-10">
+                  <div className="p-3 border-b border-gray-200 dark:border-gray-600">
+                    <h4 className="font-medium text-gray-800 dark:text-white text-sm">ترتيب المدرسين</h4>
+                  </div>
+
+                  {/* Featured First */}
+                  <button
+                    onClick={() => handleSortChange('featured')}
+                    className={`w-full text-right px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200 ${
+                      sortBy === 'featured' ? 'bg-orange-50 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300' : 'text-gray-700 dark:text-gray-300'
+                    }`}
+                  >
+                    المميزون أولاً
+                  </button>
+
+                  {/* Sort by Name */}
+                  <button
+                    onClick={() => handleSortChange('name', '1')}
+                    className={`w-full text-right px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200 ${
+                      sortBy === 'name' && sortOrder === '1' ? 'bg-orange-50 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300' : 'text-gray-700 dark:text-gray-300'
+                    }`}
+                  >
+                    الاسم (أ-ي)
+                  </button>
+
+                  <button
+                    onClick={() => handleSortChange('name', '-1')}
+                    className={`w-full text-right px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200 ${
+                      sortBy === 'name' && sortOrder === '-1' ? 'bg-orange-50 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300' : 'text-gray-700 dark:text-gray-300'
+                    }`}
+                  >
+                    الاسم (ي-أ)
+                  </button>
+
+                  {/* Sort by Rating */}
+                  <button
+                    onClick={() => handleSortChange('rating')}
+                    className={`w-full text-right px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200 ${
+                      sortBy === 'rating' ? 'bg-orange-50 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300' : 'text-gray-700 dark:text-gray-300'
+                    }`}
+                  >
+                    التقييم (الأعلى أولاً)
+                  </button>
+
+                  {/* Sort by Students */}
+                  <button
+                    onClick={() => handleSortChange('students')}
+                    className={`w-full text-right px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200 ${
+                      sortBy === 'students' ? 'bg-orange-50 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300' : 'text-gray-700 dark:text-gray-300'
+                    }`}
+                  >
+                    عدد الطلاب (الأكثر أولاً)
+                  </button>
+
+                  {/* Sort by Experience */}
+                  <button
+                    onClick={() => handleSortChange('experience')}
+                    className={`w-full text-right px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200 ${
+                      sortBy === 'experience' ? 'bg-orange-50 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300' : 'text-gray-700 dark:text-gray-300'
+                    }`}
+                  >
+                    الخبرة (الأكثر أولاً)
+                  </button>
+
+                  {/* Sort by Creation Date */}
+                  <button
+                    onClick={() => handleSortChange('created', '-1')}
+                    className={`w-full text-right px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200 ${
+                      sortBy === 'created' && sortOrder === '-1' ? 'bg-orange-50 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300' : 'text-gray-700 dark:text-gray-300'
+                    }`}
+                  >
+                    الأحدث أولاً
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Instructors Grid */}

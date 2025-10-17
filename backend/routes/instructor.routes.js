@@ -11,6 +11,7 @@ import {
     toggleInstructorFeatured,
     updateInstructorProfile,
     uploadInstructorProfileImage,
+    updateInstructorDisplayOrder,
     deleteInstructor
 } from '../controllers/instructor.controller.js';
 import { isLoggedIn } from '../middleware/auth.middleware.js';
@@ -31,6 +32,9 @@ router.post('/create', isLoggedIn, authorisedRoles('SUPER_ADMIN'), upload.single
 router.post('/assign-courses', isLoggedIn, authorisedRoles('SUPER_ADMIN', 'ADMIN'), assignCoursesToInstructor);
 router.post('/remove-course', isLoggedIn, authorisedRoles('SUPER_ADMIN', 'ADMIN'), removeCourseFromInstructor);
 router.get('/all', isLoggedIn, authorisedRoles('SUPER_ADMIN', 'ADMIN', 'ASSISTANT'), getAllInstructorsForAdmin);
+
+// Special routes (must come before dynamic :instructorId routes)
+router.put('/display-order', isLoggedIn, authorisedRoles('SUPER_ADMIN', 'ADMIN'), updateInstructorDisplayOrder);
 
 // Routes for updating instructor profiles and images
 router.put('/:instructorId', isLoggedIn, authorisedRoles('SUPER_ADMIN', 'ADMIN'), updateInstructorProfile);

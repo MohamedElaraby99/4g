@@ -334,10 +334,11 @@ export const getAllInstructorsForAdmin = asyncHandler(async (req, res, next) => 
 // Get featured instructors (public endpoint)
 export const getFeaturedInstructors = asyncHandler(async (req, res, next) => {
     // Remove limit to show ALL featured instructors
-    const { limit } = req.query; // Keep limit parameter for backward compatibility but don't use it
+    const { limit, sortBy = 'featured', sortOrder = '-1' } = req.query; // Keep limit parameter for backward compatibility but don't use it
 
     console.log('=== GET FEATURED INSTRUCTORS ===');
     console.log('Requested limit:', limit);
+    console.log('Sort by:', sortBy, 'Order:', sortOrder);
     console.log('Showing ALL featured instructors (no limit applied)');
 
     // First, find ALL featured instructor profiles - ensure we're getting the right data
@@ -366,6 +367,44 @@ export const getFeaturedInstructors = asyncHandler(async (req, res, next) => {
     const profileIds = featuredProfiles.map(profile => profile._id);
     console.log('Profile IDs to search for:', profileIds);
 
+    // Build dynamic sort object based on query parameters
+    const buildSortObject = () => {
+        const sortObj = {};
+        const order = sortOrder === '1' ? 1 : -1;
+
+        switch (sortBy) {
+            case 'name':
+                sortObj['instructorProfile.name'] = order;
+                break;
+            case 'rating':
+                sortObj['instructorProfile.rating'] = order;
+                break;
+            case 'students':
+                sortObj['instructorProfile.totalStudents'] = order;
+                break;
+            case 'experience':
+                sortObj['instructorProfile.experience'] = order;
+                break;
+            case 'created':
+                sortObj.createdAt = order;
+                break;
+            case 'featured':
+            default:
+                // Featured instructors first, then by display order, then by rating
+                sortObj['instructorProfile.featured'] = -1;
+                sortObj['instructorProfile.displayOrder'] = 1;
+                sortObj['instructorProfile.rating'] = -1;
+                sortObj['instructorProfile.totalStudents'] = -1;
+                sortObj.createdAt = -1;
+                break;
+        }
+
+        return sortObj;
+    };
+
+    const sortObject = buildSortObject();
+    console.log('Applied sort object:', sortObject);
+
     // Find users with these instructor profiles - ensure we're using the correct field reference
     const featuredInstructors = await userModel.find({
         role: 'INSTRUCTOR',
@@ -382,7 +421,7 @@ export const getFeaturedInstructors = asyncHandler(async (req, res, next) => {
         options: { limit: 10 } // Limit courses per instructor for performance
     })
     .select('fullName email instructorProfile assignedCourses isActive featured')
-    .sort({ 'instructorProfile.rating': -1, 'instructorProfile.totalStudents': -1, createdAt: -1 });
+    .sort(sortObject);
 
     console.log('Found featured instructors after population:', featuredInstructors.length);
     console.log('=== DEBUG: Found instructors ===');
@@ -471,6 +510,8 @@ export const getFeaturedInstructors = asyncHandler(async (req, res, next) => {
             instructors: transformedInstructors,
             total: transformedInstructors.length,
             featured: transformedInstructors.filter(inst => inst.featured).length,
+            sortBy,
+            sortOrder,
             message: limit ? `Showing all featured instructors (limit parameter ignored)` : `Showing all featured instructors`
         }, "Featured instructors retrieved successfully")
     );
@@ -653,6 +694,42 @@ export const uploadInstructorProfileImage = asyncHandler(async (req, res, next) 
 
     res.status(200).json(
         new ApiResponse(200, updatedInstructor, "Profile image uploaded successfully")
+    );
+});
+
+// Update instructor display order (admin only)
+export const updateInstructorDisplayOrder = asyncHandler(async (req, res, next) => {
+    const { instructorOrders } = req.body;
+
+    if (!Array.isArray(instructorOrders)) {
+        return next(new ApiError(400, "instructorOrders must be an array"));
+    }
+
+    // Validate instructorOrders format
+    for (const item of instructorOrders) {
+        if (!item.instructorId || typeof item.displayOrder !== 'number') {
+            return next(new ApiError(400, "Each item must have instructorId and displayOrder"));
+        }
+    }
+
+    // Update display order for each instructor
+    const updatePromises = instructorOrders.map(async (item) => {
+        const { instructorId, displayOrder } = item;
+
+        // Find the instructor profile
+        const instructorProfile = await instructorModel.findById(instructorId);
+        if (!instructorProfile) {
+            throw new Error(`Instructor profile not found: ${instructorId}`);
+        }
+
+        instructorProfile.displayOrder = displayOrder;
+        return instructorProfile.save();
+    });
+
+    await Promise.all(updatePromises);
+
+    res.status(200).json(
+        new ApiResponse(200, { updatedCount: instructorOrders.length }, "Display order updated successfully")
     );
 });
 

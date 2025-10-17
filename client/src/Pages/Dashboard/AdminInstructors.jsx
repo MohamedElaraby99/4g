@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FaStar, FaToggleOn, FaToggleOff, FaEye, FaEdit, FaTrashAlt, FaPlus, FaSearch, FaFilter, FaTimes, FaLinkedin, FaTwitter, FaFacebook, FaWhatsapp, FaUpload } from 'react-icons/fa';
+import { FaStar, FaToggleOn, FaToggleOff, FaEye, FaEdit, FaTrashAlt, FaPlus, FaSearch, FaFilter, FaTimes, FaLinkedin, FaTwitter, FaFacebook, FaWhatsapp, FaUpload, FaSort, FaSave, FaArrowsAlt } from 'react-icons/fa';
 import { axiosInstance } from '../../Helpers/axiosInstance';
 import { toast } from 'react-hot-toast';
 import Layout from '../../Layout/Layout';
@@ -10,6 +10,12 @@ const AdminInstructors = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [filterFeatured, setFilterFeatured] = useState('all');
     const [togglingFeatured, setTogglingFeatured] = useState(new Set());
+    const [sortBy, setSortBy] = useState('featured');
+    const [sortOrder, setSortOrder] = useState('-1');
+    const [showSortOptions, setShowSortOptions] = useState(false);
+    const [editingDisplayOrder, setEditingDisplayOrder] = useState(false);
+    const [displayOrders, setDisplayOrders] = useState({});
+    const [savingDisplayOrder, setSavingDisplayOrder] = useState(false);
 
     // Create instructor modal state
     const [showCreateModal, setShowCreateModal] = useState(false);
@@ -55,13 +61,98 @@ const AdminInstructors = () => {
 
     useEffect(() => {
         fetchInstructors();
-    }, []);
+    }, [sortBy, sortOrder]);
+
+    const handleSortChange = (newSortBy, newSortOrder = '-1') => {
+        setSortBy(newSortBy);
+        setSortOrder(newSortOrder);
+        setShowSortOptions(false);
+    };
+
+    // Close sort options when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (showSortOptions && !event.target.closest('.sort-dropdown')) {
+                setShowSortOptions(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [showSortOptions]);
+
+    const getCurrentSortLabel = () => {
+        switch (sortBy) {
+            case 'name':
+                return sortOrder === '1' ? 'الاسم (أ-ي)' : 'الاسم (ي-أ)';
+            case 'rating':
+                return 'التقييم (الأعلى أولاً)';
+            case 'students':
+                return 'عدد الطلاب (الأكثر أولاً)';
+            case 'experience':
+                return 'الخبرة (الأكثر أولاً)';
+            case 'created':
+                return 'الأحدث أولاً';
+            case 'featured':
+            default:
+                return 'ترتيب العرض';
+        }
+    };
+
+    const startEditingDisplayOrder = () => {
+        // Initialize display orders from current instructor data
+        const orders = {};
+        filteredInstructors.forEach((instructor, index) => {
+            orders[instructor._id] = instructor.displayOrder || (index + 1) * 10;
+        });
+        setDisplayOrders(orders);
+        setEditingDisplayOrder(true);
+    };
+
+    const handleDisplayOrderChange = (instructorId, value) => {
+        setDisplayOrders(prev => ({
+            ...prev,
+            [instructorId]: parseInt(value) || 0
+        }));
+    };
+
+    const saveDisplayOrder = async () => {
+        setSavingDisplayOrder(true);
+        try {
+            const instructorOrders = Object.entries(displayOrders).map(([instructorId, displayOrder]) => ({
+                instructorId,
+                displayOrder
+            }));
+
+            const response = await axiosInstance.put('/instructors/display-order', {
+                instructorOrders
+            });
+
+            if (response.data.success) {
+                toast.success('تم حفظ ترتيب العرض بنجاح');
+                setEditingDisplayOrder(false);
+                fetchInstructors(); // Refresh to get updated display orders
+            }
+        } catch (error) {
+            console.error('Error saving display order:', error);
+            toast.error('فشل في حفظ ترتيب العرض');
+        } finally {
+            setSavingDisplayOrder(false);
+        }
+    };
+
+    const cancelEditingDisplayOrder = () => {
+        setEditingDisplayOrder(false);
+        setDisplayOrders({});
+    };
 
     const fetchInstructors = async () => {
         try {
             setLoading(true);
-            console.log('Fetching all instructors...');
-            const response = await axiosInstance.get('/instructors/all');
+            console.log('Fetching all instructors with sorting...', { sortBy, sortOrder });
+            const response = await axiosInstance.get('/instructors/all', {
+                params: { sortBy, sortOrder }
+            });
 
             if (response.data.success) {
                 console.log('All instructors data:', response.data.data);
@@ -411,6 +502,93 @@ const AdminInstructors = () => {
                                     </select>
                                 </div>
 
+                                <div className="relative sort-dropdown">
+                                    <button
+                                        onClick={() => setShowSortOptions(!showSortOptions)}
+                                        className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
+                                    >
+                                        <FaSort className="text-sm" />
+                                        <span className="text-sm font-medium">{getCurrentSortLabel()}</span>
+                                    </button>
+
+                                    {showSortOptions && (
+                                        <div className="absolute top-full right-0 mt-2 w-56 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg z-10">
+                                            <div className="p-3 border-b border-gray-200 dark:border-gray-600">
+                                                <h4 className="font-medium text-gray-800 dark:text-white text-sm">ترتيب المدرسين</h4>
+                                            </div>
+
+                                            {/* Featured First */}
+                                            <button
+                                                onClick={() => handleSortChange('featured')}
+                                                className={`w-full text-right px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200 ${
+                                                    sortBy === 'featured' ? 'bg-orange-50 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300' : 'text-gray-700 dark:text-gray-300'
+                                                }`}
+                                            >
+                                                المميزون أولاً
+                                            </button>
+
+                                            {/* Sort by Name */}
+                                            <button
+                                                onClick={() => handleSortChange('name', '1')}
+                                                className={`w-full text-right px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200 ${
+                                                    sortBy === 'name' && sortOrder === '1' ? 'bg-orange-50 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300' : 'text-gray-700 dark:text-gray-300'
+                                                }`}
+                                            >
+                                                الاسم (أ-ي)
+                                            </button>
+
+                                            <button
+                                                onClick={() => handleSortChange('name', '-1')}
+                                                className={`w-full text-right px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200 ${
+                                                    sortBy === 'name' && sortOrder === '-1' ? 'bg-orange-50 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300' : 'text-gray-700 dark:text-gray-300'
+                                                }`}
+                                            >
+                                                الاسم (ي-أ)
+                                            </button>
+
+                                            {/* Sort by Rating */}
+                                            <button
+                                                onClick={() => handleSortChange('rating')}
+                                                className={`w-full text-right px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200 ${
+                                                    sortBy === 'rating' ? 'bg-orange-50 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300' : 'text-gray-700 dark:text-gray-300'
+                                                }`}
+                                            >
+                                                التقييم (الأعلى أولاً)
+                                            </button>
+
+                                            {/* Sort by Students */}
+                                            <button
+                                                onClick={() => handleSortChange('students')}
+                                                className={`w-full text-right px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200 ${
+                                                    sortBy === 'students' ? 'bg-orange-50 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300' : 'text-gray-700 dark:text-gray-300'
+                                                }`}
+                                            >
+                                                عدد الطلاب (الأكثر أولاً)
+                                            </button>
+
+                                            {/* Sort by Experience */}
+                                            <button
+                                                onClick={() => handleSortChange('experience')}
+                                                className={`w-full text-right px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200 ${
+                                                    sortBy === 'experience' ? 'bg-orange-50 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300' : 'text-gray-700 dark:text-gray-300'
+                                                }`}
+                                            >
+                                                الخبرة (الأكثر أولاً)
+                                            </button>
+
+                                            {/* Sort by Creation Date */}
+                                            <button
+                                                onClick={() => handleSortChange('created', '-1')}
+                                                className={`w-full text-right px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200 ${
+                                                    sortBy === 'created' && sortOrder === '-1' ? 'bg-orange-50 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300' : 'text-gray-700 dark:text-gray-300'
+                                                }`}
+                                            >
+                                                الأحدث أولاً
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+
                                 <button
                                     onClick={() => setShowCreateModal(true)}
                                     className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors flex items-center gap-2"
@@ -425,6 +603,37 @@ const AdminInstructors = () => {
                                 >
                                     تحديث البيانات
                                 </button>
+
+                                {!editingDisplayOrder ? (
+                                    <button
+                                        onClick={startEditingDisplayOrder}
+                                        className="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg transition-colors flex items-center gap-2"
+                                    >
+                                        <FaArrowsAlt className="h-4 w-4" />
+                                        ترتيب العرض
+                                    </button>
+                                ) : (
+                                    <>
+                                        <button
+                                            onClick={saveDisplayOrder}
+                                            disabled={savingDisplayOrder}
+                                            className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50"
+                                        >
+                                            {savingDisplayOrder ? (
+                                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                            ) : (
+                                                <FaSave className="h-4 w-4" />
+                                            )}
+                                            حفظ الترتيب
+                                        </button>
+                                        <button
+                                            onClick={cancelEditingDisplayOrder}
+                                            className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-colors"
+                                        >
+                                            إلغاء
+                                        </button>
+                                    </>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -454,6 +663,35 @@ const AdminInstructors = () => {
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                     {filteredInstructors.map((instructor) => (
                                         <div key={instructor._id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-6 hover:shadow-md transition-shadow">
+                                            {/* Display Order Input (when editing) */}
+                                            {editingDisplayOrder && (
+                                                <div className="mb-4 p-3 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg">
+                                                    <label className="block text-sm font-medium text-purple-800 dark:text-purple-200 mb-2">
+                                                        ترتيب العرض في الصفحة الرئيسية
+                                                    </label>
+                                                    <input
+                                                        type="number"
+                                                        min="0"
+                                                        value={displayOrders[instructor._id] || 0}
+                                                        onChange={(e) => handleDisplayOrderChange(instructor._id, e.target.value)}
+                                                        className="w-full p-2 border border-purple-300 dark:border-purple-600 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                                                        placeholder="أدخل رقم الترتيب"
+                                                    />
+                                                    <p className="text-xs text-purple-600 dark:text-purple-400 mt-1">
+                                                        رقم أصغر = يظهر أولاً في الصفحة الرئيسية
+                                                    </p>
+                                                </div>
+                                            )}
+
+                                            {/* Display current order (when not editing) */}
+                                            {!editingDisplayOrder && instructor.displayOrder > 0 && (
+                                                <div className="mb-4 text-center">
+                                                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                                                        الترتيب: #{instructor.displayOrder}
+                                                    </span>
+                                                </div>
+                                            )}
+
                                             {/* Header with featured toggle */}
                                             <div className="flex items-center justify-between mb-4">
                                                 <div className="flex items-center gap-3">

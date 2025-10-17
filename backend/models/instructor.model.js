@@ -88,6 +88,11 @@ const instructorSchema = new mongoose.Schema({
   featured: {
     type: Boolean,
     default: true
+  },
+  displayOrder: {
+    type: Number,
+    default: 999,
+    min: 0
   }
 }, {
   timestamps: true
@@ -98,5 +103,6 @@ instructorSchema.index({ name: 1 });
 instructorSchema.index({ specialization: 1 });
 instructorSchema.index({ isActive: 1 });
 instructorSchema.index({ featured: 1 });
+instructorSchema.index({ displayOrder: 1 });
 
 export default mongoose.model('Instructor', instructorSchema); 

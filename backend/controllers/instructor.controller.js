@@ -338,7 +338,7 @@ export const getFeaturedInstructors = asyncHandler(async (req, res, next) => {
     console.log('=== GET FEATURED INSTRUCTORS ===');
     console.log('Requested limit:', limit);
 
-    // First, find featured instructor profiles
+    // First, find featured instructor profiles - ensure we're getting the right data
     const featuredProfiles = await instructorModel.find({
         featured: true,
         isActive: true
@@ -379,6 +379,28 @@ export const getFeaturedInstructors = asyncHandler(async (req, res, next) => {
     })
     .select('fullName email instructorProfile assignedCourses isActive featured')
     .sort({ 'instructorProfile.rating': -1, 'instructorProfile.totalStudents': -1, createdAt: -1 });
+
+    console.log('Found featured instructors after population:', featuredInstructors.length);
+
+    // Check for orphaned profiles (profiles without matching users)
+    const foundProfileIds = featuredInstructors.map(inst => inst.instructorProfile?._id?.toString()).filter(Boolean);
+    const orphanedProfiles = profileIds.filter(id => !foundProfileIds.includes(id.toString()));
+
+    if (orphanedProfiles.length > 0) {
+        console.log('Found orphaned profiles (profiles without matching users):', orphanedProfiles.length);
+        console.log('Orphaned profile IDs:', orphanedProfiles);
+
+        // Log details of orphaned profiles for debugging
+        orphanedProfiles.forEach(id => {
+            const profile = featuredProfiles.find(p => p._id.toString() === id.toString());
+            if (profile) {
+                console.log(`Orphaned profile: ${profile.name} (ID: ${id})`);
+            }
+        });
+
+        // For now, we'll proceed with the instructors that have matching profiles
+        console.log('Proceeding with instructors that have matching profiles');
+    }
 
     console.log('Found featured instructors:', featuredInstructors.length);
     console.log('Featured instructors details:', featuredInstructors.map(inst => ({

@@ -19,26 +19,83 @@ const debugFeaturedInstructors = async () => {
   try {
     console.log('🔍 Debugging featured instructors query...');
 
-    // Test different query approaches
-    console.log('\n1. Testing direct query for instructors with featured profile:');
+    // Check all instructors and their profiles first
+    console.log('\n1. Checking all instructors and their profile status:');
+    const allInstructors = await User.find({ role: 'INSTRUCTOR' }).populate('instructorProfile');
+
+    allInstructors.forEach((instructor, index) => {
+        console.log(`\nInstructor ${index + 1}: ${instructor.fullName}`);
+        console.log(`  - ID: ${instructor._id}`);
+        console.log(`  - Profile exists: ${!!instructor.instructorProfile}`);
+        console.log(`  - Profile ID: ${instructor.instructorProfile?._id || 'N/A'}`);
+        console.log(`  - Profile featured: ${instructor.instructorProfile?.featured || false}`);
+        console.log(`  - User featured: ${instructor.featured || false}`);
+    });
+
+    // Test the exact query used in the controller
+    console.log('\n2. Testing featured instructor profiles query (controller logic):');
+    const featuredProfiles = await InstructorProfile.find({
+        featured: true,
+        isActive: true
+    });
+
+    console.log(`Found ${featuredProfiles.length} featured profiles:`);
+    featuredProfiles.forEach((profile, index) => {
+        console.log(`  Profile ${index + 1}: ${profile.name} (ID: ${profile._id})`);
+    });
+
+    if (featuredProfiles.length > 0) {
+        const profileIds = featuredProfiles.map(profile => profile._id);
+        console.log('\nProfile IDs to search for:', profileIds);
+
+        console.log('\n3. Testing users with these instructor profile IDs:');
+        const usersWithProfiles = await User.find({
+            role: 'INSTRUCTOR',
+            isActive: true,
+            instructorProfile: { $in: profileIds }
+        }).populate('instructorProfile');
+
+        console.log(`Found ${usersWithProfiles.length} users with matching profiles:`);
+        usersWithProfiles.forEach((user, index) => {
+            console.log(`  User ${index + 1}: ${user.fullName} (Profile ID: ${user.instructorProfile?._id})`);
+        });
+
+        // Check if there are any profile IDs that don't match user instructorProfile fields
+        console.log('\n4. Checking for mismatched IDs:');
+        const foundProfileIds = usersWithProfiles.map(user => user.instructorProfile?._id?.toString()).filter(Boolean);
+        const missingProfiles = profileIds.filter(id => !foundProfileIds.includes(id.toString()));
+
+        if (missingProfiles.length > 0) {
+            console.log(`Found ${missingProfiles.length} profiles that don't match any user:`);
+            missingProfiles.forEach(id => {
+                const profile = featuredProfiles.find(p => p._id.toString() === id.toString());
+                console.log(`  - Profile: ${profile?.name} (ID: ${id})`);
+            });
+        } else {
+            console.log('All profile IDs match user instructorProfile fields');
+        }
+    }
+
+    // Test alternative query approaches
+    console.log('\n5. Testing alternative query approaches:');
+
+    console.log('Direct profile featured query:');
     const directQuery = await User.find({
         role: 'INSTRUCTOR',
         isActive: true,
         'instructorProfile.featured': true
     }).populate('instructorProfile');
-
     console.log(`Found ${directQuery.length} instructors`);
 
-    console.log('\n2. Testing instructors with featured field directly:');
+    console.log('User featured field query:');
     const featuredFieldQuery = await User.find({
         role: 'INSTRUCTOR',
         isActive: true,
         featured: true
     });
-
     console.log(`Found ${featuredFieldQuery.length} instructors`);
 
-    console.log('\n3. Testing OR query (as used in the controller):');
+    console.log('OR query:');
     const orQuery = await User.find({
         role: 'INSTRUCTOR',
         isActive: true,
@@ -47,19 +104,7 @@ const debugFeaturedInstructors = async () => {
             { featured: true }
         ]
     }).populate('instructorProfile');
-
     console.log(`Found ${orQuery.length} instructors`);
-
-    // Check all instructors and their profiles
-    console.log('\n4. Checking all instructors and their profile featured status:');
-    const allInstructors = await User.find({ role: 'INSTRUCTOR' }).populate('instructorProfile');
-
-    allInstructors.forEach((instructor, index) => {
-        console.log(`Instructor ${index + 1}: ${instructor.fullName}`);
-        console.log(`  - Profile exists: ${!!instructor.instructorProfile}`);
-        console.log(`  - Profile featured: ${instructor.instructorProfile?.featured || false}`);
-        console.log(`  - User featured: ${instructor.featured || false}`);
-    });
 
   } catch (error) {
     console.error('❌ Error debugging:', error);

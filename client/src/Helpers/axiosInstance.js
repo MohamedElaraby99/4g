@@ -87,17 +87,83 @@ axiosInstance.interceptors.request.use(
     }
 );
 
-// Add response interceptor for better error handling
+// Flag to prevent multiple simultaneous refresh attempts
+let isRefreshing = false;
+let failedQueue = [];
+
+// Process queue of failed requests
+const processQueue = (error, token = null) => {
+    failedQueue.forEach(({ resolve, reject }) => {
+        if (error) {
+            reject(error);
+        } else {
+            resolve(token);
+        }
+    });
+
+    failedQueue = [];
+};
+
+// Add response interceptor for better error handling and automatic token refresh
 axiosInstance.interceptors.response.use(
     (response) => {
         return response;
     },
-    (error) => {
+    async (error) => {
+        const originalRequest = error.config;
+
+        // Handle device authorization errors
         if (error.response?.status === 403 && error.response?.data?.message?.includes('DEVICE_NOT_AUTHORIZED')) {
-            // Handle device authorization errors
             console.error('Device not authorized:', error.response.data);
             // You could redirect to login or show a device authorization message
+            return Promise.reject(error);
         }
+
+        // Handle token expiration (401) - try to refresh token
+        if (error.response?.status === 401 && !originalRequest._retry) {
+            if (isRefreshing) {
+                // If already refreshing, queue this request
+                return new Promise((resolve, reject) => {
+                    failedQueue.push({ resolve, reject });
+                }).then(token => {
+                    originalRequest.headers.Authorization = `Bearer ${token}`;
+                    return axiosInstance(originalRequest);
+                }).catch(err => {
+                    return Promise.reject(err);
+                });
+            }
+
+            originalRequest._retry = true;
+            isRefreshing = true;
+
+            try {
+                // Try to refresh the token by making direct API call
+                const refreshResponse = await axiosInstance.post("/users/refresh-token");
+
+                // Process queued requests with new access token from cookies
+                processQueue(null, null); // The new access token is already in cookies
+
+                // Retry the original request
+                return axiosInstance(originalRequest);
+
+            } catch (refreshError) {
+                // Refresh failed, redirect to login
+                processQueue(refreshError, null);
+
+                // Clear localStorage and redirect to login
+                if (typeof window !== 'undefined') {
+                    localStorage.removeItem('data');
+                    localStorage.removeItem('role');
+                    localStorage.removeItem('isLoggedIn');
+                    window.location.href = '/login';
+                }
+
+                return Promise.reject(refreshError);
+            } finally {
+                isRefreshing = false;
+            }
+        }
+
         return Promise.reject(error);
     }
 );

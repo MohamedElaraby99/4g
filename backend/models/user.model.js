@@ -188,7 +188,7 @@ userSchema.methods = {
             id: this._id,
             role: this.role
         };
-        
+
         // Include email for ADMIN/SUPER_ADMIN/ASSISTANT/INSTRUCTOR, phone number for USER
         if (this.role === 'USER') {
             payload.phoneNumber = this.phoneNumber;
@@ -196,12 +196,32 @@ userSchema.methods = {
         } else {
             payload.email = this.email;
         }
-        
+
         return jwt.sign(
             payload,
             process.env.JWT_SECRET,
-            { expiresIn: process.env.JWT_EXPIRE }
+            { expiresIn: process.env.JWT_EXPIRE || '15m' } // Access token expires in 15 minutes
         )
+    },
+
+    generateRefreshToken: function () {
+        const payload = {
+            id: this._id,
+            type: 'refresh'
+        };
+
+        return jwt.sign(
+            payload,
+            process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET,
+            { expiresIn: process.env.JWT_REFRESH_EXPIRE || '7d' } // Refresh token expires in 7 days
+        )
+    },
+
+    generateTokens: function () {
+        return {
+            accessToken: this.generateJWTToken(),
+            refreshToken: this.generateRefreshToken()
+        }
     },
 
     generatePasswordResetToken: async function () {

@@ -29,7 +29,8 @@ const lessonSchema = new mongoose.Schema({
       url: { type: String, required: true },
       title: { type: String, default: '' },
       description: { type: String, default: '' },
-      publishDate: { type: Date }
+      publishDate: { type: Date },
+      views: { type: Number, default: 0 }
     }
   ],
   pdfs: [

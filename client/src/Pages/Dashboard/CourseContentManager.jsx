@@ -97,7 +97,7 @@ const LessonContentModal = ({ courseId, unitId, lessonId, onClose }) => {
   const [exams, setExams] = useState(lesson?.exams || []);
   const [essayExams, setEssayExams] = useState([]);
   const [trainings, setTrainings] = useState(lesson?.trainings || []);
-  const [newVideo, setNewVideo] = useState({ url: '', title: '', description: '', publishDate: '' });
+  const [newVideo, setNewVideo] = useState({ url: '', title: '', description: '', publishDate: '', views: 0 });
   const [newPdf, setNewPdf] = useState({ url: '', title: '', fileName: '', publishDate: '' });
   const [newExam, setNewExam] = useState({
     title: '',
@@ -1166,11 +1166,11 @@ const LessonContentModal = ({ courseId, unitId, lessonId, onClose }) => {
     if (!newVideo.url.trim()) return;
     setVideos(videos.map((v, idx) => idx === editVideoIndex ? newVideo : v));
     setEditVideoIndex(null);
-    setNewVideo({ url: '', title: '', description: '', publishDate: '' });
+    setNewVideo({ url: '', title: '', description: '', publishDate: '', views: 0 });
   };
   const handleCancelEditVideo = () => {
     setEditVideoIndex(null);
-    setNewVideo({ url: '', title: '', description: '', publishDate: '' });
+    setNewVideo({ url: '', title: '', description: '', publishDate: '', views: 0 });
   };
 
   // PDF edit handlers
@@ -1406,6 +1406,7 @@ const LessonContentModal = ({ courseId, unitId, lessonId, onClose }) => {
                     <input type="text" className="p-2 border rounded text-right" placeholder="عنوان الفيديو (اختياري)" value={newVideo.title} onChange={e => setNewVideo(v => ({ ...v, title: e.target.value }))} />
                     <textarea className="p-2 border rounded text-right" placeholder="وصف الفيديو (اختياري)" value={newVideo.description} onChange={e => setNewVideo(v => ({ ...v, description: e.target.value }))} rows="2" />
                     <input type="datetime-local" className="p-2 border rounded text-right" placeholder="تاريخ النشر" value={newVideo.publishDate} onChange={e => setNewVideo(v => ({ ...v, publishDate: e.target.value }))} />
+                    <input type="number" className="p-2 border rounded text-right" placeholder="عدد المشاهدات (اختياري)" min="0" value={newVideo.views || 0} onChange={e => setNewVideo(v => ({ ...v, views: parseInt(e.target.value) || 0 }))} />
                   </div>
                   <div className="flex justify-end">
                     {editVideoIndex !== null ? (
@@ -1433,11 +1434,16 @@ const LessonContentModal = ({ courseId, unitId, lessonId, onClose }) => {
                               <p className="font-medium text-gray-900 dark:text-white">{video.title || 'بدون عنوان'}</p>
                               {video.description && <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">{video.description}</p>}
                               <p className="text-xs text-orange-600 dark:text-orange-400 mt-1 break-all">{video.url}</p>
-                              {video.publishDate && (
-                                <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                  تاريخ النشر: {formatDateTime(video.publishDate)}
+                              <div className="flex items-center gap-4 mt-2">
+                                {video.publishDate && (
+                                  <div className="text-xs text-gray-500 dark:text-gray-400">
+                                    تاريخ النشر: {formatDateTime(video.publishDate)}
+                                  </div>
+                                )}
+                                <div className="text-xs text-green-600 dark:text-green-400 font-medium">
+                                  المشاهدات: {video.views || 0}
                                 </div>
-                              )}
+                              </div>
                             </div>
                             <div className="flex gap-2 mr-3">
                               <button type="button" className="text-orange-500 hover:text-orange-700 text-sm" onClick={() => handleEditVideo(idx)}>تعديل</button>

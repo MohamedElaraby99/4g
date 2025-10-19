@@ -676,7 +676,8 @@ export const getLessonById = async (req, res, next) => {
         url: video.url,
         title: video.title,
         description: video.description,
-        publishDate: video.publishDate
+        publishDate: video.publishDate,
+        views: video.views || 0
       })),
       pdfs: filteredPdfs.map(pdf => ({
         _id: pdf._id,
@@ -1341,9 +1342,70 @@ export const getExamResults = async (req, res, next) => {
 };
 
 // Submit a training attempt
+// Increment video views
+export const incrementVideoViews = async (req, res, next) => {
+    try {
+        const { courseId, lessonId, videoIndex } = req.params;
+
+        // Find the course
+        const course = await Course.findById(courseId);
+        if (!course) {
+            return next(new AppError("Course not found", 404));
+        }
+
+        let lesson;
+        let video;
+
+        // Check if it's a direct lesson or unit lesson
+        if (req.query.unitId) {
+            // Unit lesson
+            const unit = course.units.id(req.query.unitId);
+            if (!unit) {
+                return next(new AppError("Unit not found", 404));
+            }
+            lesson = unit.lessons.id(lessonId);
+        } else {
+            // Direct lesson
+            lesson = course.directLessons.id(lessonId);
+        }
+
+        if (!lesson) {
+            return next(new AppError("Lesson not found", 404));
+        }
+
+        // Get the video by index
+        if (!lesson.videos || !lesson.videos[videoIndex]) {
+            return next(new AppError("Video not found", 404));
+        }
+
+        video = lesson.videos[videoIndex];
+
+        // Increment views
+        video.views = (video.views || 0) + 1;
+
+        // Save the course
+        await course.save();
+
+        res.status(200).json({
+            success: true,
+            message: "Video views incremented successfully",
+            data: {
+                video: {
+                    title: video.title,
+                    views: video.views,
+                    url: video.url
+                }
+            }
+        });
+    } catch (error) {
+        console.error('Error incrementing video views:', error);
+        return next(new AppError("Failed to increment video views", 500));
+    }
+};
+
 export const submitTrainingAttempt = async (req, res, next) => {
-  try {
-    const { courseId, lessonId } = req.params;
+    try {
+        const { courseId, lessonId } = req.params;
     const { unitId, trainingIndex, answers } = req.body;
     const userId = req.user._id;
 

@@ -103,7 +103,9 @@ NODE_ENV=development
 
 # JWT Configuration
 JWT_SECRET=${jwtSecret}
-JWT_EXPIRE=100d
+JWT_EXPIRE=15m
+JWT_REFRESH_SECRET=${jwtRefreshSecret}
+JWT_REFRESH_EXPIRE=7d
 
 # Client URL (for CORS)
 CLIENT_URL=${clientUrl}

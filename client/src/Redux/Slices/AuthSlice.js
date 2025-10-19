@@ -69,6 +69,7 @@ export const getUserData = createAsyncThunk("/auth/user/me", async () => {
     }
 })
 
+
 // .....update user data.........
 export const updateUserData = createAsyncThunk("/auth/user/me", async (data) => {
     const loadingMessage = toast.loading("Updating changes...");

@@ -46,6 +46,35 @@ const OptimizedLessonContentModal = ({ isOpen, onClose, courseId, lessonId, unit
     }
   }, [lesson]);
 
+  // Increment video views when video is opened
+  useEffect(() => {
+    if (currentVideo && lesson) {
+      const incrementViews = async () => {
+        try {
+          // For videos with _id, use the id-based approach
+          if (currentVideo._id) {
+            const videoIndex = lesson.videos.findIndex(v => v._id === currentVideo._id);
+            if (videoIndex !== -1) {
+              await axiosInstance.post(`/courses/${lesson.courseId}/lessons/${lesson._id}/videos/${videoIndex}/views`);
+              console.log('Video views incremented for:', currentVideo.title);
+            }
+          } else {
+            // For newly created videos without _id, use array index
+            const videoIndex = lesson.videos.findIndex(v => v === currentVideo);
+            if (videoIndex !== -1) {
+              await axiosInstance.post(`/courses/${lesson.courseId}/lessons/${lesson._id}/videos/${videoIndex}/views`);
+              console.log('Video views incremented for new video:', currentVideo.title);
+            }
+          }
+        } catch (error) {
+          console.error('Failed to increment video views:', error);
+        }
+      };
+
+      incrementViews();
+    }
+  }, [currentVideo, lesson]);
+
   const getContentIcon = (type) => {
     switch (type) {
       case 'video': return <FaVideo className="text-orange-500" />;
@@ -197,12 +226,18 @@ const OptimizedLessonContentModal = ({ isOpen, onClose, courseId, lessonId, unit
       {lesson.videos?.map((video, index) => (
         <div key={video._id} className="bg-gradient-to-br from-orange-50 to-indigo-100 dark:from-gray-800 dark:to-gray-900 p-4 sm:p-6 rounded-xl border border-orange-200 dark:border-gray-700">
           <div className="mb-4 text-gray-600 dark:text-gray-300 leading-relaxed text-sm sm:text-base">{video.description}</div>
-          {video.publishDate && (
-            <div className="mb-3 flex items-center gap-2 text-orange-600 dark:text-orange-400 text-sm">
-              <FaClock />
-              <span>تاريخ النشر: {new Date(video.publishDate).toLocaleDateString('ar')} {new Date(video.publishDate).toLocaleTimeString('ar', { hour: '2-digit', minute: '2-digit' })}</span>
+          <div className="mb-3 flex items-center justify-between">
+            {video.publishDate && (
+              <div className="flex items-center gap-2 text-orange-600 dark:text-orange-400 text-sm">
+                <FaClock />
+                <span>تاريخ النشر: {new Date(video.publishDate).toLocaleDateString('ar')} {new Date(video.publishDate).toLocaleTimeString('ar', { hour: '2-digit', minute: '2-digit' })}</span>
+              </div>
+            )}
+            <div className="flex items-center gap-2 text-green-600 dark:text-green-400 text-sm font-medium">
+              <FaEye />
+              <span>المشاهدات: {video.views || 0}</span>
             </div>
-          )}
+          </div>
           {video.url ? (
             <div className="relative bg-black rounded-lg overflow-hidden shadow-lg aspect-video cursor-pointer group">
               {/* YouTube Thumbnail Background */}

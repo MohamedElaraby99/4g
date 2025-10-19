@@ -4,14 +4,14 @@ import User from '../models/user.model.js';
 import upload from '../middleware/multer.middleware.js';
 import { isLoggedIn, authorisedRoles } from '../middleware/auth.middleware.js';
 import { checkInstructorCourseAccess, filterCoursesForInstructor } from '../middleware/instructorAccess.middleware.js';
-import { 
-  getAllCourses, 
-  getAdminCourses, 
-  getCourseById, 
+import {
+  getAllCourses,
+  getAdminCourses,
+  getCourseById,
   getLessonById,
-  createCourse, 
-  updateCourse, 
-  deleteCourse, 
+  createCourse,
+  updateCourse,
+  deleteCourse,
   getCourseStats,
   getFeaturedCourses,
   toggleFeatured,
@@ -25,7 +25,8 @@ import {
   updateUnit,
   updateLessonContent,
   submitTrainingAttempt,
-  getCoursesByInstructor
+  getCoursesByInstructor,
+  incrementVideoViews
 } from '../controllers/course.controller.js';
 
 const router = express.Router();
@@ -125,5 +126,8 @@ router.put('/:courseId/reorder-lessons', isLoggedIn, authorisedRoles('ADMIN', 'S
 
 // Training attempt submission
 router.post('/:courseId/lessons/:lessonId/trainings/:trainingIndex/submit', isLoggedIn, submitTrainingAttempt);
+
+// Increment video views (public endpoint - anyone can view videos)
+router.post('/:courseId/lessons/:lessonId/videos/:videoIndex/views', incrementVideoViews);
 
 export default router;

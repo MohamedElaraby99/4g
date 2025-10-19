@@ -11,11 +11,18 @@ import { generateDeviceFingerprint, parseDeviceInfo, generateDeviceName } from '
 import { generateProductionFileUrl } from '../utils/fileUtils.js';
 import { getDeviceLimit } from '../config/device.config.js';
 
-const cookieOptions = {
+const accessTokenOptions = {
     httpOnly: true,
-    maxAge: 100 * 24 * 60 * 60 * 1000, // 100 days
-    secure: true, 
-    sameSite: 'none'
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    maxAge: 15 * 60 * 1000 // 15 minutes
+}
+
+const refreshTokenOptions = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
 }
 
 
@@ -228,14 +235,18 @@ const register = async (req, res, next) => {
             console.log('Device registration failed, but user registration successful');
         }
 
-        const token = await user.generateJWTToken();
+        const tokens = user.generateTokens();
 
         // Populate stage for regular users
         if (user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN' && user.stage) {
             await user.populate('stage', 'name');
         }
 
-        res.cookie("token", token, cookieOptions);
+        // Set access token
+        res.cookie("token", tokens.accessToken, accessTokenOptions);
+
+        // Set refresh token
+        res.cookie("refreshToken", tokens.refreshToken, refreshTokenOptions);
 
         res.status(201).json({
             success: true,
@@ -363,7 +374,7 @@ const login = async (req, res, next) => {
             console.log('Admin users do not have device restrictions');
         }
 
-        const token = await user.generateJWTToken();
+        const tokens = user.generateTokens();
 
         user.password = undefined;
 
@@ -372,7 +383,11 @@ const login = async (req, res, next) => {
             await user.populate('stage', 'name');
         }
 
-        res.cookie('token', token, cookieOptions)
+        // Set access token
+        res.cookie('token', tokens.accessToken, accessTokenOptions);
+
+        // Set refresh token
+        res.cookie('refreshToken', tokens.refreshToken, refreshTokenOptions);
 
         res.status(200).json({
             success: true,
@@ -394,6 +409,12 @@ const logout = async (req, res, next) => {
             httpOnly: true
         })
 
+        res.cookie('refreshToken', null, {
+            secure: true,
+            maxAge: 0,
+            httpOnly: true
+        })
+
         res.status(200).json({
             success: true,
             message: 'User loggedout successfully'
@@ -401,6 +422,63 @@ const logout = async (req, res, next) => {
     }
     catch (e) {
         return next(new AppError(e.message, 500))
+    }
+}
+
+// .....Refresh Token.........
+const refreshToken = async (req, res, next) => {
+    try {
+        const { refreshToken } = req.cookies;
+
+        if (!refreshToken) {
+            return next(new AppError("Refresh token not provided", 401));
+        }
+
+        // Verify refresh token
+        const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET);
+
+        if (decoded.type !== 'refresh') {
+            return next(new AppError("Invalid token type", 401));
+        }
+
+        // Get user from database
+        const user = await userModel.findById(decoded.id);
+
+        if (!user) {
+            return next(new AppError("User not found", 401));
+        }
+
+        // Generate new tokens
+        const tokens = user.generateTokens();
+
+        // Set new tokens in cookies
+        res.cookie("token", tokens.accessToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: 15 * 60 * 1000 // 15 minutes
+        });
+
+        res.cookie("refreshToken", tokens.refreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+        });
+
+        return res.status(200).json(new ApiResponse(200, {
+            user: {
+                id: user._id,
+                fullName: user.fullName,
+                email: user.email,
+                role: user.role,
+                isActive: user.isActive
+            },
+            accessToken: tokens.accessToken
+        }, "Token refreshed successfully"));
+    } catch (error) {
+        console.error('Refresh token error:', error);
+        return next(new AppError("Invalid refresh token", 401));
     }
 }
 
@@ -703,6 +781,7 @@ export {
     register,
     login,
     logout,
+    refreshToken,
     getProfile,
     forgotPassword,
     resetPassword,

@@ -4,7 +4,7 @@ import AppError from "../utils/error.utils.js";
 // Get all users with pagination and filters
 const getAllUsers = async (req, res, next) => {
     try {
-        const { page = 1, limit = 20, role, status, search, stage, codeSearch } = req.query;
+        const { page = 1, limit = 20, role, status, search, stage, codeSearch, isInstructor } = req.query;
         const skip = (page - 1) * limit;
 
         let query = {};
@@ -22,6 +22,28 @@ const getAllUsers = async (req, res, next) => {
         // Filter by stage
         if (stage && stage !== 'all') {
             query.stage = stage;
+        }
+
+        // Filter by instructor status
+        if (isInstructor !== undefined && isInstructor !== '' && isInstructor !== 'all') {
+            if (isInstructor === 'true') {
+                // Users who are instructors (have role INSTRUCTOR or have assigned courses)
+                query.$or = [
+                    { role: 'INSTRUCTOR' },
+                    { assignedCourses: { $exists: true, $ne: [] } }
+                ];
+            } else if (isInstructor === 'false') {
+                // Users who are not instructors (don't have role INSTRUCTOR and don't have assigned courses)
+                query.$and = [
+                    { role: { $ne: 'INSTRUCTOR' } },
+                    {
+                        $or: [
+                            { assignedCourses: { $exists: false } },
+                            { assignedCourses: { $size: 0 } }
+                        ]
+                    }
+                ];
+            }
         }
 
         // Search by name, email, or phone number
@@ -91,7 +113,9 @@ const getAllUsers = async (req, res, next) => {
                     totalTransactions: user.wallet?.transactions?.length || 0,
                     subscriptionStatus: user.subscription?.status || 'inactive',
                     createdAt: user.createdAt,
-                    lastLogin: user.lastLogin
+                    lastLogin: user.lastLogin,
+                    isInstructor: user.role === 'INSTRUCTOR' || (user.assignedCourses && user.assignedCourses.length > 0),
+                    assignedCourses: user.assignedCourses || []
                 })),
                 pagination: {
                     currentPage: parseInt(page),

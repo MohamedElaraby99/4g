@@ -334,7 +334,7 @@ export const getAllInstructorsForAdmin = asyncHandler(async (req, res, next) => 
 // Get featured instructors (public endpoint)
 export const getFeaturedInstructors = asyncHandler(async (req, res, next) => {
     // Remove limit to show ALL featured instructors
-    const { limit, sortBy = 'featured', sortOrder = '-1' } = req.query; // Keep limit parameter for backward compatibility but don't use it
+    const { limit, sortBy = 'created', sortOrder = '1' } = req.query; // Keep limit parameter for backward compatibility but don't use it
 
     console.log('=== GET FEATURED INSTRUCTORS ===');
     console.log('Requested limit:', limit);
@@ -389,13 +389,16 @@ export const getFeaturedInstructors = asyncHandler(async (req, res, next) => {
                 sortObj.createdAt = order;
                 break;
             case 'featured':
-            default:
                 // Featured instructors first, then by display order, then by rating
                 sortObj['instructorProfile.featured'] = -1;
                 sortObj['instructorProfile.displayOrder'] = 1;
                 sortObj['instructorProfile.rating'] = -1;
                 sortObj['instructorProfile.totalStudents'] = -1;
                 sortObj.createdAt = -1;
+                break;
+            default:
+                // Default sort by creation date (oldest first)
+                sortObj.createdAt = 1;
                 break;
         }
 

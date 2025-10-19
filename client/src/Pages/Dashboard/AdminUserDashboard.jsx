@@ -78,7 +78,8 @@ export default function AdminUserDashboard() {
         role: "",
         status: "",
         stage: "",
-        search: ""
+        search: "",
+        isInstructor: ""
     });
     const [selectedUserId, setSelectedUserId] = useState(null);
     const [showUserDetails, setShowUserDetails] = useState(false);
@@ -315,24 +316,26 @@ export default function AdminUserDashboard() {
         }
         
         console.log('Role filter:', roleFilter);
-        console.log('Final filter params:', { 
-            page: 1, 
-            limit: 20, 
+        console.log('Final filter params:', {
+            page: 1,
+            limit: 20,
             role: roleFilter,
             status: filters.status,
             stage: filters.stage,
             search: filters.search,
-            codeSearch: filters.codeSearch
+            codeSearch: filters.codeSearch,
+            isInstructor: filters.isInstructor
         });
-        
-        dispatch(getAllUsers({ 
-            page: 1, 
-            limit: 20, 
+
+        dispatch(getAllUsers({
+            page: 1,
+            limit: 20,
             role: roleFilter,
             status: filters.status,
             stage: filters.stage,
             search: filters.search,
-            codeSearch: filters.codeSearch 
+            codeSearch: filters.codeSearch,
+            isInstructor: filters.isInstructor
         }));
     };
 
@@ -767,7 +770,7 @@ export default function AdminUserDashboard() {
                         {activeTab === "users" && (
                             <div className="p-3 sm:p-6">
                                 <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-4 sm:mb-6">
-                                    جميع المستخدمين
+                                    الطلاب
                                 </h3>
 
                                 {/* Filters */}
@@ -828,6 +831,21 @@ export default function AdminUserDashboard() {
                                                 <option value="">جميع الحالات</option>
                                                 <option value="active">نشط</option>
                                                 <option value="inactive">غير نشط</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                                نوع المستخدم
+                                            </label>
+                                            <select
+                                                name="isInstructor"
+                                                value={filters.isInstructor}
+                                                onChange={handleFilterChange}
+                                                className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                            >
+                                                <option value="">الكل</option>
+                                                <option value="true">مدربين فقط</option>
+                                                <option value="false">غير مدربين فقط</option>
                                             </select>
                                         </div>
                                         {activeTab === "users" && (
@@ -1044,6 +1062,21 @@ export default function AdminUserDashboard() {
                                                 <option value="inactive">غير نشط</option>
                                             </select>
                                         </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                                نوع المستخدم
+                                            </label>
+                                            <select
+                                                name="isInstructor"
+                                                value={filters.isInstructor}
+                                                onChange={handleFilterChange}
+                                                className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                            >
+                                                <option value="">الكل</option>
+                                                <option value="true">مدربين فقط</option>
+                                                <option value="false">غير مدربين فقط</option>
+                                            </select>
+                                        </div>
                                         <div className="flex items-end">
                                             <button
                                                 onClick={() => {
@@ -1231,6 +1264,21 @@ export default function AdminUserDashboard() {
                                                 <option value="">جميع الحالات</option>
                                                 <option value="active">نشط</option>
                                                 <option value="inactive">غير نشط</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                                نوع المستخدم
+                                            </label>
+                                            <select
+                                                name="isInstructor"
+                                                value={filters.isInstructor}
+                                                onChange={handleFilterChange}
+                                                className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                            >
+                                                <option value="">الكل</option>
+                                                <option value="true">مدربين فقط</option>
+                                                <option value="false">غير مدربين فقط</option>
                                             </select>
                                         </div>
                                         <div>

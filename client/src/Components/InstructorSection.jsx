@@ -14,8 +14,8 @@ const InstructorSection = () => {
   const [selectedInstructor, setSelectedInstructor] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [showCourses, setShowCourses] = useState(false);
-  const [sortBy, setSortBy] = useState('featured');
-  const [sortOrder, setSortOrder] = useState('-1');
+  const [sortBy, setSortBy] = useState('created');
+  const [sortOrder, setSortOrder] = useState('1');
   const [showSortOptions, setShowSortOptions] = useState(false);
 
   useEffect(() => {
@@ -51,7 +51,7 @@ const InstructorSection = () => {
       case 'experience':
         return 'الخبرة (الأكثر أولاً)';
       case 'created':
-        return 'الأحدث أولاً';
+        return sortOrder === '1' ? 'الأقدم أولاً' : 'الأحدث أولاً';
       case 'featured':
       default:
         return 'المميزون أولاً';
@@ -72,7 +72,8 @@ const InstructorSection = () => {
   const handleShowCourses = (instructor) => {
     setSelectedInstructor(instructor);
     setShowCourses(true);
-    dispatch(getCoursesByInstructor(instructor._id));
+    // Use courses directly from instructor object instead of separate API call
+    // dispatch(getCoursesByInstructor(instructor._id));
   };
 
   const handleImgError = (e) => {
@@ -212,7 +213,17 @@ const InstructorSection = () => {
                     الخبرة (الأكثر أولاً)
                   </button>
 
-                  {/* Sort by Creation Date */}
+                  {/* Sort by Creation Date - Oldest First */}
+                  <button
+                    onClick={() => handleSortChange('created', '1')}
+                    className={`w-full text-right px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200 ${
+                      sortBy === 'created' && sortOrder === '1' ? 'bg-orange-50 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300' : 'text-gray-700 dark:text-gray-300'
+                    }`}
+                  >
+                    الأقدم أولاً
+                  </button>
+
+                  {/* Sort by Creation Date - Newest First */}
                   <button
                     onClick={() => handleSortChange('created', '-1')}
                     className={`w-full text-right px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200 ${
@@ -476,14 +487,9 @@ const InstructorSection = () => {
 
             {/* Modal Content */}
             <div className="p-6">
-              {instructorCoursesLoading ? (
-                <div className="text-center py-12">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto mb-4"></div>
-                  <p className="text-gray-600 dark:text-gray-400">جاري تحميل الدورات...</p>
-                </div>
-              ) : instructorCourses && instructorCourses.length > 0 ? (
+              {selectedInstructor.courses && selectedInstructor.courses.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {instructorCourses.map((course) => (
+                  {selectedInstructor.courses.map((course) => (
                     <div key={course._id} className="bg-gray-50 dark:bg-gray-700 rounded-xl p-6 hover:shadow-lg transition-shadow duration-300">
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex-1">

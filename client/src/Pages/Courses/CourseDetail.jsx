@@ -11,14 +11,14 @@ import {
 import { PaymentSuccessAlert, PaymentErrorAlert } from '../../Components/ModernAlert';
 import WatchButton from '../../Components/WatchButton';
 import OptimizedLessonContentModal from '../../Components/OptimizedLessonContentModal';
-import { 
-  FaBookOpen, 
-  FaUser, 
-  FaStar, 
-  FaPlay, 
-  FaClock, 
-  FaUsers, 
-  FaArrowRight, 
+import {
+  FaBookOpen,
+  FaUser,
+  FaStar,
+  FaPlay,
+  FaClock,
+  FaUsers,
+  FaArrowRight,
   FaArrowLeft,
   FaGraduationCap,
   FaCheckCircle,
@@ -31,7 +31,8 @@ import {
   FaUnlock,
   FaWallet,
   FaTimes,
-  FaClipboardList
+  FaClipboardList,
+  FaExclamationTriangle
 } from 'react-icons/fa';
 import { generateImageUrl } from '../../utils/fileUtils';
 import { placeholderImages } from '../../utils/placeholderImages';

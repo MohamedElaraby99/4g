@@ -26,12 +26,41 @@ export const createGroup = asyncHandler(async (req, res) => {
   }
 
   // Verify instructor exists
-  const instructorUser = await Instructor.findById(instructor);
-  if (!instructorUser) {
-    throw new ApiError(404, "المدرس غير موجود");
-  }
-  if (!instructorUser.isActive) {
-    throw new ApiError(400, "المدرس غير نشط");
+  // First check if it's an Instructor profile ID
+  let instructorProfile = await Instructor.findById(instructor);
+
+  if (!instructorProfile) {
+    // If not found in Instructor collection, check if it's a User with INSTRUCTOR role
+    const instructorUser = await User.findById(instructor);
+    if (!instructorUser || instructorUser.role !== 'INSTRUCTOR') {
+      throw new ApiError(404, "المدرس غير موجود");
+    }
+    if (!instructorUser.isActive) {
+      throw new ApiError(400, "المدرس غير نشط");
+    }
+
+    // If the instructor user doesn't have a profile, create one
+    if (!instructorUser.instructorProfile) {
+      instructorProfile = await Instructor.create({
+        name: instructorUser.fullName,
+        email: instructorUser.email,
+        bio: '',
+        specialization: '',
+        experience: 0,
+        isActive: true
+      });
+
+      // Link the profile to the user
+      instructorUser.instructorProfile = instructorProfile._id;
+      await instructorUser.save();
+    } else {
+      instructorProfile = await Instructor.findById(instructorUser.instructorProfile);
+    }
+  } else {
+    // Found in Instructor collection, check if active
+    if (!instructorProfile.isActive) {
+      throw new ApiError(400, "المدرس غير نشط");
+    }
   }
 
   // Verify subjects exist if provided
@@ -44,7 +73,7 @@ export const createGroup = asyncHandler(async (req, res) => {
 
   const group = await Group.create({
     name,
-    instructor,
+    instructor: instructorProfile._id,
     price,
     maxStudents: maxStudents || 15,
     monthlyPayment: monthlyPayment || { enabled: false, price: null, dueDay: 1 },
@@ -166,12 +195,44 @@ export const updateGroup = asyncHandler(async (req, res) => {
 
   // Verify instructor if provided
   if (updateData.instructor) {
-    const instructorUser = await Instructor.findById(updateData.instructor);
-    if (!instructorUser) {
-      throw new ApiError(404, "المدرس غير موجود");
-    }
-    if (!instructorUser.isActive) {
-      throw new ApiError(400, "المدرس غير نشط");
+    // First check if it's an Instructor profile ID
+    let instructorProfile = await Instructor.findById(updateData.instructor);
+
+    if (!instructorProfile) {
+      // If not found in Instructor collection, check if it's a User with INSTRUCTOR role
+      const instructorUser = await User.findById(updateData.instructor);
+      if (!instructorUser || instructorUser.role !== 'INSTRUCTOR') {
+        throw new ApiError(404, "المدرس غير موجود");
+      }
+      if (!instructorUser.isActive) {
+        throw new ApiError(400, "المدرس غير نشط");
+      }
+
+      // If the instructor user doesn't have a profile, create one
+      if (!instructorUser.instructorProfile) {
+        instructorProfile = await Instructor.create({
+          name: instructorUser.fullName,
+          email: instructorUser.email,
+          bio: '',
+          specialization: '',
+          experience: 0,
+          isActive: true
+        });
+
+        // Link the profile to the user
+        instructorUser.instructorProfile = instructorProfile._id;
+        await instructorUser.save();
+      } else {
+        instructorProfile = await Instructor.findById(instructorUser.instructorProfile);
+      }
+
+      // Update the instructor field to use the profile ID
+      updateData.instructor = instructorProfile._id;
+    } else {
+      // Found in Instructor collection, check if active
+      if (!instructorProfile.isActive) {
+        throw new ApiError(400, "المدرس غير نشط");
+      }
     }
   }
 

@@ -81,7 +81,10 @@ const setupEnvironment = async () => {
         
         // JWT secret
         const jwtSecret = await askQuestion("\nEnter JWT secret (default: api_jwt_secret_2024): ") || "api_jwt_secret_2024";
-        
+
+        // JWT refresh secret
+        const jwtRefreshSecret = await askQuestion("\nEnter JWT refresh secret (default: api_jwt_refresh_secret_2024): ") || "api_jwt_refresh_secret_2024";
+
         // Client URL
         const clientUrl = await askQuestion("\nEnter client URL (default: http://localhost:5173): ") || "http://localhost:5173";
         
@@ -103,9 +106,9 @@ NODE_ENV=development
 
 # JWT Configuration
 JWT_SECRET=${jwtSecret}
-JWT_EXPIRE=15m
+JWT_EXPIRE=120d
 JWT_REFRESH_SECRET=${jwtRefreshSecret}
-JWT_REFRESH_EXPIRE=7d
+JWT_REFRESH_EXPIRE=120d
 
 # Client URL (for CORS)
 CLIENT_URL=${clientUrl}

@@ -2,7 +2,7 @@
 
 /**
  * JWT Configuration Verification Script
- * This script verifies that JWT tokens are configured with 100-day expiry
+ * This script verifies that JWT tokens are configured with 120-day expiry
  */
 
 import jwt from 'jsonwebtoken';
@@ -12,7 +12,7 @@ console.log('================================');
 
 // Check environment variables
 const jwtSecret = process.env.JWT_SECRET || 'your_jwt_secret_key_here';
-const jwtExpire = process.env.JWT_EXPIRE || '100d';
+const jwtExpire = process.env.JWT_EXPIRE || '120d';
 
 console.log(`JWT Secret: ${jwtSecret.substring(0, 10)}...`);
 console.log(`JWT Expire: ${jwtExpire}`);
@@ -39,10 +39,10 @@ try {
         console.log(`Token expires: ${expiryDate.toISOString()}`);
         console.log(`Days until expiry: ${daysUntilExpiry}`);
         
-        if (daysUntilExpiry >= 99 && daysUntilExpiry <= 101) {
-            console.log('✅ JWT expiry is correctly set to ~100 days');
+        if (daysUntilExpiry >= 119 && daysUntilExpiry <= 121) {
+            console.log('✅ JWT expiry is correctly set to ~120 days');
         } else {
-            console.log('❌ JWT expiry is not set to 100 days');
+            console.log('❌ JWT expiry is not set to 120 days');
         }
     }
     
@@ -53,4 +53,4 @@ try {
 console.log('\n📋 Configuration Summary:');
 console.log(`- JWT Secret: ${jwtSecret ? 'Set' : 'Not set'}`);
 console.log(`- JWT Expire: ${jwtExpire}`);
-console.log(`- Cookie MaxAge: 100 days (8,640,000,000 ms)`);
+console.log(`- Cookie MaxAge: 120 days (10,368,000,000 ms)`);

@@ -200,7 +200,7 @@ userSchema.methods = {
         return jwt.sign(
             payload,
             process.env.JWT_SECRET,
-            { expiresIn: process.env.JWT_EXPIRE || '15m' } // Access token expires in 15 minutes
+            { expiresIn: process.env.JWT_EXPIRE || '120d' } // Access token expires in 120 days
         )
     },
 
@@ -213,7 +213,7 @@ userSchema.methods = {
         return jwt.sign(
             payload,
             process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET,
-            { expiresIn: process.env.JWT_REFRESH_EXPIRE || '7d' } // Refresh token expires in 7 days
+            { expiresIn: process.env.JWT_REFRESH_EXPIRE || '120d' } // Refresh token expires in 120 days
         )
     },
 

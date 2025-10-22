@@ -43,12 +43,46 @@ export default function Students() {
 
   // Get students from users data and groups from groups data
   const groups = groupsData || [];
-  // Use allUsers state instead of paginated usersData
-  const students = allUsers.length > 0 ? allUsers : 
-                  (Array.isArray(usersData) ? usersData : 
-                  (usersData?.data?.users && Array.isArray(usersData.data.users)) ? usersData.data.users :
-                  (usersData?.data?.docs && Array.isArray(usersData.data.docs)) ? usersData.data.docs : []);
-  
+
+  // Helper function to remove duplicates based on user ID
+  const removeDuplicateUsers = (usersArray) => {
+    if (!Array.isArray(usersArray)) return [];
+    const seenIds = new Set();
+    return usersArray.filter(user => {
+      // Handle both 'id' and '_id' fields from different API responses
+      const userId = user._id || user.id;
+      if (!user || !userId) {
+        console.log('User without ID found:', user);
+        return false;
+      }
+      if (seenIds.has(userId)) {
+        console.log(`Removing duplicate user: ${user.fullName} (${userId})`);
+        return false;
+      }
+      seenIds.add(userId);
+      return true;
+    });
+  };
+
+  // Use allUsers state instead of paginated usersData, with deduplication
+  let students = [];
+  if (allUsers.length > 0) {
+    students = removeDuplicateUsers(allUsers);
+  } else if (Array.isArray(usersData)) {
+    students = removeDuplicateUsers(usersData);
+  } else if (usersData?.data?.users && Array.isArray(usersData.data.users)) {
+    students = removeDuplicateUsers(usersData.data.users);
+  } else if (usersData?.data?.docs && Array.isArray(usersData.data.docs)) {
+    students = removeDuplicateUsers(usersData.data.docs);
+  }
+
+  // Ensure all students have consistent ID field
+  students = students.map(user => ({
+    ...user,
+    _id: user._id || user.id, // Normalize to _id for consistent usage
+    id: user._id || user.id    // Also set id field
+  }));
+
   const totalDocs = students.length;
   
   // Debug logging
@@ -61,11 +95,22 @@ export default function Students() {
     fetchStudents();
   }, [dispatch]);
 
+  // Additional useEffect to handle data updates
+  useEffect(() => {
+    console.log('🔄 Data updated:', {
+      allUsersLength: allUsers.length,
+      usersDataLength: usersData?.length || 0,
+      groupsLength: groups.length,
+      studentsLength: students.length
+    });
+  }, [allUsers, usersData, groups, students]);
+
   const fetchAllUsers = async () => {
     let allUsers = [];
     let currentPage = 1;
     let hasMore = true;
     const limitPerPage = 100; // Reasonable batch size
+    const seenUserIds = new Set(); // Track unique user IDs
 
     while (hasMore) {
       try {
@@ -75,14 +120,33 @@ export default function Students() {
 
         if (response.data.success && response.data.data.users) {
           const users = response.data.data.users;
-          allUsers = [...allUsers, ...users];
-          
+
+          // Normalize user objects to use _id consistently
+          const normalizedUsers = users.map(user => ({
+            ...user,
+            _id: user._id || user.id, // Use _id if available, otherwise use id
+            id: user._id || user.id    // Set both fields for compatibility
+          }));
+
+          // Filter out duplicate users based on user ID
+          const uniqueUsers = normalizedUsers.filter(user => {
+            const userId = user._id || user.id;
+            if (seenUserIds.has(userId)) {
+              console.log(`Duplicate user found and removed: ${user.fullName} (${userId})`);
+              return false;
+            }
+            seenUserIds.add(userId);
+            return true;
+          });
+
+          allUsers = [...allUsers, ...uniqueUsers];
+
           // Check if there are more pages
           const pagination = response.data.data.pagination;
           hasMore = pagination && currentPage < pagination.totalPages;
           currentPage++;
-          
-          console.log(`Fetched page ${currentPage - 1}, total users so far: ${allUsers.length}`);
+
+          console.log(`Fetched page ${currentPage - 1}, total unique users so far: ${allUsers.length}`);
         } else {
           hasMore = false;
         }
@@ -92,30 +156,35 @@ export default function Students() {
       }
     }
 
+    console.log(`Total unique users fetched: ${allUsers.length}`);
     return allUsers;
   };
 
   const fetchStudents = async () => {
     setLoading(true);
     try {
+      console.log('🚀 Starting fetchStudents...');
+
       // Fetch ALL users and groups
       const [fetchedUsers, groupsResult] = await Promise.all([
         fetchAllUsers(),
         dispatch(getAllGroups())
       ]);
-      
+
       // Store all users in component state
       setAllUsers(fetchedUsers || []);
-      
-      console.log('All users fetched:', fetchedUsers?.length || 0);
-      console.log('Groups result:', groupsResult);
-      
+
+      console.log('✅ All users fetched:', fetchedUsers?.length || 0);
+      console.log('✅ Groups result:', groupsResult);
+      console.log('✅ Students array after processing:', (fetchedUsers || []).length);
+
       setLoading(false);
-      
+
     } catch (error) {
-      console.error('Error fetching students:', error);
+      console.error('❌ Error fetching students:', error);
       setAllUsers([]); // Reset on error
       setLoading(false);
+      toast.error('حدث خطأ في تحميل بيانات الطلاب');
     }
   };
 
@@ -181,9 +250,9 @@ export default function Students() {
           console.log('Looking for student group for ID:', studentId);
           console.log('Available groups:', groups);
           
-          const studentGroup = groups.find(group => 
-            group.students?.some(student => student._id === studentId) ||
-            group.members?.some(member => member._id === studentId)
+          const studentGroup = groups.find(group =>
+            group.students?.some(student => (student._id || student.id) === studentId) ||
+            group.members?.some(member => (member._id || member.id) === studentId)
           );
           
           console.log('Found student group:', studentGroup);
@@ -218,8 +287,8 @@ export default function Students() {
         grades: results[1].status === 'fulfilled' ? results[1].value.data?.data || [] : [],
         achievements: results[2].status === 'fulfilled' ? results[2].value.data?.data || [] : [],
         offlineGrades: studentOfflineGrades,
-        paymentStatus: results[4].status === 'fulfilled' ? 
-          results[4].value.data?.data?.paymentStatus?.find(p => p.student._id === studentId) || null : null
+        paymentStatus: results[4].status === 'fulfilled' ?
+          results[4].value.data?.data?.paymentStatus?.find(p => (p.student._id || p.student.id) === studentId) || null : null
       });
       
     } catch (error) {
@@ -234,7 +303,8 @@ export default function Students() {
   const handleViewStudentDetails = async (student) => {
     setSelectedStudent(student);
     setShowStudentDetailsModal(true);
-    await fetchStudentDetails(student._id);
+    const studentId = student._id || student.id;
+    await fetchStudentDetails(studentId);
   };
 
   // Print handler
@@ -431,8 +501,9 @@ export default function Students() {
       student.email?.toLowerCase().includes(filters.search.toLowerCase());
     
     // Find which group the student belongs to
-    const studentGroup = groups.find(group => 
-      group.students && group.students.some(s => s._id === student._id)
+    const studentId = student._id || student.id;
+    const studentGroup = groups.find(group =>
+      group.students && group.students.some(s => (s._id || s.id) === studentId)
     );
     
     const matchesGroup = !filters.group || studentGroup?.name === filters.group;
@@ -645,8 +716,10 @@ export default function Students() {
                 </thead>
                 <tbody className="divide-y divide-gray-200 dark:divide-gray-600">
                   {filteredStudents.length > 0 ? (
-                    filteredStudents.map((student) => (
-                      <tr key={student._id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                    filteredStudents.map((student) => {
+                      const studentId = student._id || student.id;
+                      return (
+                        <tr key={studentId} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                         <td className="px-4 py-3">
                           <div className="flex items-center space-x-3 space-x-reverse">
                             <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900 rounded-full flex items-center justify-center">
@@ -663,8 +736,8 @@ export default function Students() {
                               </p>
                               <p className="text-gray-500 dark:text-gray-400 text-xs sm:hidden">
                                 {(() => {
-                                  const studentGroup = groups.find(group => 
-                                    group.students && group.students.some(s => s._id === student._id)
+                                  const studentGroup = groups.find(group =>
+                                    group.students && group.students.some(s => (s._id || s.id) === studentId)
                                   );
                                   return studentGroup?.name || 'غير محدد';
                                 })()}
@@ -675,8 +748,8 @@ export default function Students() {
                         <td className="px-4 py-3 hidden sm:table-cell">
                           <span className="px-2 py-1 bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200 text-xs rounded-full">
                             {(() => {
-                              const studentGroup = groups.find(group => 
-                                group.students && group.students.some(s => s._id === student._id)
+                              const studentGroup = groups.find(group =>
+                                group.students && group.students.some(s => (s._id || s.id) === studentId)
                               );
                               return studentGroup?.name || 'غير محدد';
                             })()}
@@ -717,12 +790,12 @@ export default function Students() {
                               <FaEdit />
                             </button>
                             {(() => {
-                              const studentGroup = groups.find(group => 
-                                group.students && group.students.some(s => s._id === student._id)
+                              const studentGroup = groups.find(group =>
+                                group.students && group.students.some(s => (s._id || s.id) === studentId)
                               );
                               return studentGroup ? (
-                                <button 
-                                  onClick={() => handleRemoveUserFromGroup(student._id, studentGroup._id, student.fullName)}
+                                <button
+                                  onClick={() => handleRemoveUserFromGroup(studentId, studentGroup._id, student.fullName)}
                                   className="p-2 text-red-600 hover:bg-red-100 dark:hover:bg-red-900 rounded-lg transition-colors"
                                   title="إزالة من المجموعة"
                                 >
@@ -733,7 +806,8 @@ export default function Students() {
                           </div>
                         </td>
                       </tr>
-                    ))
+                      );
+                    })
                   ) : (
                     <tr>
                       <td colSpan="6" className="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
@@ -804,29 +878,42 @@ export default function Students() {
                     اختر الطلاب ({selectedUsers.length} محدد)
                   </label>
                   <div className="max-h-96 overflow-y-auto border border-gray-300 dark:border-gray-600 rounded-lg">
-                    {students.length > 0 ? (
+                    {loading ? (
+                      <div className="p-8 text-center text-gray-500 dark:text-gray-400">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500 mx-auto mb-2"></div>
+                        جاري تحميل الطلاب...
+                      </div>
+                    ) : students.length > 0 ? (
                       students.map((user) => {
-                        const isInGroup = groups.some(group => 
-                          group.students && group.students.some(s => s._id === user._id)
-                        );
-                        const isSelected = selectedUsers.includes(user._id);
-                        
+                        // Check if student is already in the selected group specifically
+                        const userId = user._id || user.id;
+                        const selectedGroupData = groups.find(group => group._id === selectedGroup);
+                        const isInSelectedGroup = selectedGroupData?.students?.some(s => (s._id || s.id) === userId) || false;
+                        const isInOtherGroups = groups.length > 0 ? groups.some(group =>
+                          group._id !== selectedGroup && group.students?.some(s => (s._id || s.id) === userId)
+                        ) : false;
+                        const isSelected = selectedUsers.includes(userId);
+
                         return (
                           <div
-                            key={user._id}
-                            className={`p-3 border-b border-gray-200 dark:border-gray-600 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 ${
+                            key={userId}
+                            className={`p-3 border-b border-gray-200 dark:border-gray-600 ${
                               isSelected ? 'bg-orange-50 dark:bg-orange-900' : ''
-                            } ${isInGroup ? 'opacity-50' : ''}`}
-                            onClick={() => !isInGroup && toggleUserSelection(user._id)}
+                            } ${isInSelectedGroup ? 'opacity-50' : ''}`}
                           >
                             <div className="flex items-center justify-between">
                               <div className="flex items-center space-x-3 space-x-reverse">
                                 <input
                                   type="checkbox"
                                   checked={isSelected}
-                                  onChange={() => !isInGroup && toggleUserSelection(user._id)}
-                                  disabled={isInGroup}
-                                  className="w-4 h-4 text-orange-600 bg-gray-100 border-gray-300 rounded focus:ring-orange-500 dark:focus:ring-orange-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                                  onChange={(e) => {
+                                    e.stopPropagation();
+                                    if (!isInSelectedGroup) {
+                                      toggleUserSelection(userId);
+                                    }
+                                  }}
+                                  disabled={isInSelectedGroup}
+                                  className="w-4 h-4 text-orange-600 bg-gray-100 border-gray-300 rounded focus:ring-orange-500 dark:focus:ring-orange-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600 cursor-pointer"
                                 />
                                 <div className="w-8 h-8 bg-orange-100 dark:bg-orange-900 rounded-full flex items-center justify-center">
                                   <span className="text-orange-600 dark:text-orange-400 text-sm font-medium">
@@ -842,18 +929,54 @@ export default function Students() {
                                   </p>
                                 </div>
                               </div>
-                              {isInGroup && (
-                                <span className="text-xs text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900 px-2 py-1 rounded-full">
-                                  مسجل في مجموعة
-                                </span>
-                              )}
+                              <div className="flex flex-col items-end gap-1">
+                                {isInSelectedGroup && (
+                                  <span className="text-xs text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900 px-2 py-1 rounded-full">
+                                    موجود في هذه المجموعة
+                                  </span>
+                                )}
+                                {isInOtherGroups && (
+                                  <span className="text-xs text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900 px-2 py-1 rounded-full">
+                                    موجود في مجموعة أخرى
+                                  </span>
+                                )}
+                              </div>
                             </div>
                           </div>
                         );
                       })
                     ) : (
                       <div className="p-8 text-center text-gray-500 dark:text-gray-400">
-                        لا توجد طلاب متاحين
+                        <div className="space-y-2">
+                          <p className="font-medium">لا توجد طلاب متاحين</p>
+                          <p className="text-sm">
+                            {allUsers.length === 0 && !usersData
+                              ? "لم يتم تحميل بيانات الطلاب. تحقق من الاتصال بالإنترنت."
+                              : students.length === 0
+                              ? "جميع الطلاب مسجلون بالفعل في مجموعات."
+                              : "لا توجد مجموعات متاحة للإضافة."}
+                          </p>
+                          <div className="flex flex-col gap-2 mt-3">
+                            <button
+                              onClick={async () => {
+                                console.log('🔄 Manual refresh - Debug info:');
+                                console.log('allUsers:', allUsers);
+                                console.log('usersData:', usersData);
+                                console.log('groups:', groups);
+                                console.log('students:', students);
+                                console.log('Loading state:', loading);
+                                await fetchStudents();
+                                console.log('✅ Manual refresh completed');
+                              }}
+                              className="text-xs bg-orange-100 text-orange-700 hover:bg-orange-200 px-3 py-1 rounded mt-2"
+                            >
+                              🔄 تحديث البيانات
+                            </button>
+                            <p className="text-xs text-gray-400">
+                              إجمالي الطلاب المتاح: {students.length} | المجموعات: {groups.length}
+                            </p>
+                          </div>
+                        </div>
                       </div>
                     )}
                   </div>

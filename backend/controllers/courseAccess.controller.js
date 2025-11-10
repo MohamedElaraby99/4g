@@ -6,10 +6,35 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
+// Helper function to check if instructor has access to a course
+const checkInstructorAccess = async (userId, userRole, courseId) => {
+    // Admin and Super Admin have access to all courses
+    if (userRole === 'ADMIN' || userRole === 'SUPER_ADMIN') {
+        return true;
+    }
+
+    // For instructors, check if they have access to this course
+    if (userRole === 'INSTRUCTOR') {
+        const instructor = await userModel.findById(userId).select('assignedCourses');
+        if (!instructor) {
+            throw new ApiError(404, 'Instructor not found');
+        }
+        const assignedCourses = instructor.assignedCourses || [];
+        const hasAccess = assignedCourses.some(course => course.toString() === courseId.toString());
+        if (!hasAccess) {
+            throw new ApiError(403, 'ليس لديك صلاحية للوصول إلى هذا الكورس');
+        }
+        return true;
+    }
+
+    return false;
+};
+
 // Admin: generate one-time codes to unlock a course for a limited duration
 export const generateCourseAccessCodes = asyncHandler(async (req, res) => {
     const { courseId, accessStartAt, accessEndAt, quantity = 1, codeExpiresAt } = req.body;
     const adminId = req.user.id;
+    const userRole = req.user.role;
 
     if (!courseId) {
         throw new ApiError(400, 'courseId is required');
@@ -29,6 +54,9 @@ export const generateCourseAccessCodes = asyncHandler(async (req, res) => {
     if (!course) {
         throw new ApiError(404, 'Course not found');
     }
+
+    // Check if instructor has access to this course
+    await checkInstructorAccess(adminId, userRole, courseId);
 
     const codes = [];
     for (let i = 0; i < quantity; i++) {
@@ -162,7 +190,30 @@ export const listCourseAccessCodes = asyncHandler(async (req, res) => {
     const limit = Math.min(Math.max(limitRaw, 1), 200);
     const skip = (page - 1) * limit;
     const query = {};
-    if (courseId) query.courseId = courseId;
+    
+    // For instructors, filter codes to only show their assigned courses
+    if (req.user.role === 'INSTRUCTOR') {
+        const instructor = await userModel.findById(req.user.id).select('assignedCourses');
+        if (!instructor) {
+            throw new ApiError(404, 'Instructor not found');
+        }
+        const assignedCourseIds = (instructor.assignedCourses || []).map(c => c.toString());
+        
+        // If courseId is specified, check if instructor has access to it
+        if (courseId) {
+            if (!assignedCourseIds.includes(courseId.toString())) {
+                throw new ApiError(403, 'ليس لديك صلاحية للوصول إلى هذا الكورس');
+            }
+            query.courseId = courseId;
+        } else {
+            // Filter to only show codes for instructor's assigned courses
+            query.courseId = { $in: assignedCourseIds };
+        }
+    } else {
+        // For admins, apply courseId filter if provided
+        if (courseId) query.courseId = courseId;
+    }
+    
     if (typeof isUsed !== 'undefined') query.isUsed = isUsed === 'true';
 
     // If searching, build aggregation to filter by code, course title, or user email
@@ -244,6 +295,10 @@ export const deleteCourseAccessCode = asyncHandler(async (req, res) => {
     if (code.isUsed) {
         throw new ApiError(400, 'Cannot delete a used code');
     }
+    
+    // Check if instructor has access to this course
+    await checkInstructorAccess(req.user.id, req.user.role, code.courseId);
+    
     await CourseAccessCode.deleteOne({ _id: id });
     return res.status(200).json(new ApiResponse(200, { id }, 'Code deleted'));
 });
@@ -254,6 +309,26 @@ export const bulkDeleteCourseAccessCodes = asyncHandler(async (req, res) => {
     if (!Array.isArray(ids) || ids.length === 0) {
         throw new ApiError(400, 'ids array is required');
     }
+    
+    // For instructors, verify they have access to the courses being deleted
+    if (req.user.role === 'INSTRUCTOR') {
+        const instructor = await userModel.findById(req.user.id).select('assignedCourses');
+        if (!instructor) {
+            throw new ApiError(404, 'Instructor not found');
+        }
+        const assignedCourseIds = (instructor.assignedCourses || []).map(c => c.toString());
+        
+        // Get the courses for the codes being deleted
+        const codesToDelete = await CourseAccessCode.find({ _id: { $in: ids } }).select('courseId');
+        const courseIdsToDelete = codesToDelete.map(c => c.courseId.toString());
+        
+        // Check if instructor has access to all courses
+        const unauthorizedCourses = courseIdsToDelete.filter(cId => !assignedCourseIds.includes(cId));
+        if (unauthorizedCourses.length > 0) {
+            throw new ApiError(403, 'ليس لديك صلاحية لحذف أكواد من بعض الكورسات المحددة');
+        }
+    }
+    
     const query = { _id: { $in: ids } };
     if (courseId) query.courseId = courseId;
     if (onlyUnused) query.isUsed = false;

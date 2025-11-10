@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import Layout from "../../Layout/Layout";
 import { axiosInstance } from "../../Helpers/axiosInstance";
-import { getAllCourses } from "../../Redux/Slices/CourseSlice";
+import { getAdminCourses } from "../../Redux/Slices/CourseSlice";
 import { getAllStages } from "../../Redux/Slices/StageSlice";
 import { adminGenerateCourseAccessCodes, adminListCourseAccessCodes, adminDeleteCourseAccessCode, adminBulkDeleteCourseAccessCodes } from "../../Redux/Slices/CourseAccessSlice";
 
@@ -11,6 +11,7 @@ export default function AdminCourseAccessCodes() {
   const { courses } = useSelector((s) => s.course);
   const { stages } = useSelector((s) => s.stage);
   const { admin, error } = useSelector((s) => s.courseAccess);
+  const { role } = useSelector((s) => s.auth);
 
   const [form, setForm] = useState({ stageId: "", courseId: "", quantity: 1, accessStartAt: "", accessEndAt: "" });
   const [searchTerm, setSearchTerm] = useState("");
@@ -23,7 +24,8 @@ export default function AdminCourseAccessCodes() {
   const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
-    dispatch(getAllCourses());
+    // Use getAdminCourses which properly filters courses for instructors
+    dispatch(getAdminCourses());
     dispatch(getAllStages({ page: 1, limit: 100 }));
   }, [dispatch]);
 
